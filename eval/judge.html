@@ -1,0 +1,203 @@
+<!doctype html>
+<html lang="zh-Hans">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>回答判读</title>
+<style>
+/* 判读台: 左列题目与标准出处, 右列模型回答与判定; 颜色沿用 docs/data-model.html */
+:root{
+  --bg:#f6f5f1; --panel:#ffffff; --ink:#1f2328; --muted:#5d636b; --line:#d9d6cc; --code-bg:#efede7;
+  --ok:#3d6b3a; --ok-bg:#e6f0e3; --part:#7a5c2e; --part-bg:#f3ecdf; --bad:#8a3b2f; --bad-bg:#f6e7e3;
+  --accent:#2f5d8a; --accent-bg:#e7eef6;
+  --serif:"Noto Serif SC","Songti SC","STSong",serif;
+  --sans:"Noto Sans SC","PingFang SC","Microsoft YaHei",system-ui,sans-serif;
+  --mono:ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    color-scheme:dark;
+    --bg:#16181b; --panel:#1e2125; --ink:#e6e3dc; --muted:#a3a7ad; --line:#353a40; --code-bg:#24272b;
+    --ok:#9ccc95; --ok-bg:#1c2a1b; --part:#d8b77c; --part-bg:#2b2519; --bad:#e39a8b; --bad-bg:#33201c;
+    --accent:#8fb8e3; --accent-bg:#1b2633;
+  }
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.7 var(--sans)}
+header{position:sticky;top:0;z-index:2;background:var(--panel);border-bottom:1px solid var(--line);
+  padding:10px 16px;display:flex;flex-wrap:wrap;gap:10px 18px;align-items:center}
+header h1{font:700 17px/1.2 var(--serif);margin:0}
+.bar{flex:1 1 200px;min-width:160px;height:8px;background:var(--code-bg);border-radius:4px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--ok)}
+.stat{font-family:var(--mono);font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums}
+select,input[type=text]{font:inherit;font-size:14px;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:4px;padding:3px 6px}
+label.chk{font-size:14px;color:var(--muted);display:inline-flex;gap:5px;align-items:center}
+main{max-width:1400px;margin:0 auto;padding:16px;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);gap:16px;align-items:start}
+section{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:14px 16px;display:flex;flex-direction:column;gap:12px;min-width:0}
+.k{font-size:12px;letter-spacing:.06em;color:var(--muted)}
+.q{font:700 20px/1.5 var(--serif);margin:0}
+.meta{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.tag{font-family:var(--mono);font-size:12px;padding:1px 7px;border-radius:3px;background:var(--code-bg);color:var(--muted)}
+.tag.ok{background:var(--ok-bg);color:var(--ok)} .tag.bad{background:var(--bad-bg);color:var(--bad)}
+.tag.model{background:var(--accent-bg);color:var(--accent);font-weight:600}
+.note{background:var(--part-bg);border-left:3px solid var(--part);padding:8px 10px;border-radius:3px;font-size:14px;white-space:pre-wrap}
+.src{border-left:3px solid var(--ok);background:var(--ok-bg);padding:8px 10px;border-radius:3px}
+.src .id{font-family:var(--mono);font-size:12px;color:var(--muted)}
+.src .t{font-family:var(--serif);font-size:15px;line-height:1.8;word-break:break-all;max-height:16em;overflow:auto}
+.reply{font-size:15px;line-height:1.85;white-space:pre-wrap;word-break:break-word;max-height:60vh;overflow:auto;padding-right:4px}
+.reply .qok{background:var(--ok-bg);color:var(--ok);border-radius:2px}
+.reply .qbad{background:var(--bad-bg);color:var(--bad);border-radius:2px;text-decoration:underline wavy}
+.verdicts{display:flex;flex-wrap:wrap;gap:8px}
+.verdicts button{font:600 15px var(--sans);padding:8px 18px;border-radius:5px;border:1px solid var(--line);background:var(--bg);color:var(--ink);cursor:pointer}
+.verdicts button kbd{font-family:var(--mono);font-size:12px;color:var(--muted);margin-left:6px}
+.verdicts button.on[data-v="对"]{background:var(--ok-bg);border-color:var(--ok);color:var(--ok)}
+.verdicts button.on[data-v="部分"]{background:var(--part-bg);border-color:var(--part);color:var(--part)}
+.verdicts button.on[data-v="错"]{background:var(--bad-bg);border-color:var(--bad);color:var(--bad)}
+.verdicts button:focus-visible,.nav button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.nav{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.nav button{font:14px var(--sans);padding:4px 12px;border-radius:4px;border:1px solid var(--line);background:var(--bg);color:var(--ink);cursor:pointer}
+.hint{font-size:12px;color:var(--muted)}
+details summary{cursor:pointer;color:var(--muted);font-size:14px}
+.ctx{display:flex;flex-direction:column;gap:6px;margin-top:8px}
+.ctx div{font-size:13px;border:1px solid var(--line);border-radius:3px;padding:6px 8px;word-break:break-all;font-family:var(--serif)}
+.ctx div.gold{border-color:var(--ok);background:var(--ok-bg)}
+.ctx b{font-family:var(--mono);font-size:12px;color:var(--muted);font-weight:600}
+.empty{color:var(--muted);font-style:italic}
+@media (max-width:900px){main{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<header>
+  <h1>回答判读 <span id="name" class="stat"></span></h1>
+  <div class="bar" title="已判比例"><i id="barfill" style="width:0"></i></div>
+  <span id="stat" class="stat"></span>
+  <select id="model" aria-label="只看某个模型"><option value="">全部模型</option></select>
+  <label class="chk"><input type="checkbox" id="undone"> 只看没判的</label>
+</header>
+<main>
+  <section id="left">
+    <div class="meta"><span id="qid" class="tag"></span><span id="qtype" class="tag"></span><span id="ctx" class="tag"></span></div>
+    <p class="q" id="q"></p>
+    <div><div class="k">答案依据 (题目 note)</div><div class="note" id="note"></div></div>
+    <div><div class="k">gold 出处原文</div><div id="gold" style="display:flex;flex-direction:column;gap:8px"></div></div>
+  </section>
+  <section id="right">
+    <div class="meta"><span id="mname" class="tag model"></span><span id="refused" class="tag"></span><span id="qstat" class="tag"></span><span id="sec" class="tag"></span></div>
+    <div class="reply" id="reply"></div>
+    <div class="verdicts" id="verdicts"></div>
+    <input type="text" id="vnote" placeholder="备注 (可选, 比如错在哪), 回车保存" aria-label="备注">
+    <div class="nav">
+      <button id="prev">← 上一条</button><button id="next">下一条 →</button><button id="nextUndone">下一条没判的 (u)</button>
+      <span id="pos" class="stat"></span>
+    </div>
+    <div class="hint">键盘: 1 对 · 2 部分 · 3 错 · 0 清除 · ← → 翻页 · u 下一条没判的. 判完自动跳到下一条.</div>
+    <details><summary>模型看过的块 (绿色 = gold)</summary><div class="ctx" id="ctxlist"></div></details>
+  </section>
+</main>
+<script>
+let D, view = [], pos = 0;
+const $ = id => document.getElementById(id);
+const key = it => it.model + "|" + it.qid;
+const esc = s => s.replace(/[&<>"]/g, c => ({"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;"}[c]));
+
+function renderReply(it) {
+  if (it.error) return `<span class="empty">调用出错: ${esc(it.error)}</span>`;
+  if (!it.reply) return '<span class="empty">(空回答)</span>';
+  let h = esc(it.reply);
+  // 引文按核对结果上色: 只替换「」里的那一段
+  for (const [q, cid] of it.quotes) {
+    const e = esc(q);
+    h = h.split("「" + e + "」").join(`「<span class="${cid ? "qok" : "qbad"}" title="${cid ? "原文里找到: " + cid : "原文里找不到"}">${e}</span>」`);
+  }
+  return h.replace(/\*\*(.+?)\*\*/g, "<b>$1</b>");
+}
+
+function rebuildView() {
+  const m = $("model").value, undone = $("undone").checked;
+  const cur = view[pos];
+  view = D.items.filter(it => (!m || it.model === m) && (!undone || !D.judged[key(it)] || it === cur));
+  pos = Math.max(0, cur ? view.indexOf(cur) : 0);
+  if (pos < 0) pos = 0;
+}
+
+function stats() {
+  const n = D.items.length, done = D.items.filter(it => D.judged[key(it)]).length;
+  $("barfill").style.width = (100 * done / n).toFixed(1) + "%";
+  const per = {};
+  for (const it of D.items) { per[it.model] ??= [0, 0]; per[it.model][1]++; if (D.judged[key(it)]) per[it.model][0]++; }
+  $("stat").textContent = `已判 ${done}/${n} · ` + Object.entries(per).map(([m, [a, b]]) => `${m} ${a}/${b}`).join(" · ");
+}
+
+function show() {
+  stats();
+  if (!view.length) { $("q").textContent = "这个筛选下没有条目"; return; }
+  const it = view[pos];
+  $("qid").textContent = it.qid; $("qtype").textContent = it.type;
+  $("ctx").textContent = it.type === "none" ? "none 题: 期望拒答" : (it.gold_in_ctx ? "gold 在上下文" : "gold 不在上下文");
+  $("ctx").className = "tag " + (it.type === "none" ? "" : it.gold_in_ctx ? "ok" : "bad");
+  $("q").textContent = it.q;
+  $("note").textContent = it.note || "(这题没写 note)";
+  $("gold").innerHTML = it.gold.length ? it.gold.map(g =>
+    `<div class="src"><div class="id">${esc(g.id)} · ${esc(g.label)}</div><div class="t">${esc(g.text) || "(找不到原文)"}</div></div>`).join("")
+    : '<span class="empty">无 (资料里没有答案)</span>';
+  $("mname").textContent = it.model;
+  $("refused").textContent = it.refused ? "疑似拒答" : ""; $("refused").hidden = !it.refused;
+  const ok = it.quotes.filter(q => q[1]).length;
+  $("qstat").textContent = `引文 ✓${ok} ✗${it.quotes.length - ok}`;
+  $("sec").textContent = it.sec + "s";
+  $("reply").innerHTML = renderReply(it); $("reply").scrollTop = 0;
+  const j = D.judged[key(it)];
+  for (const b of $("verdicts").children) b.classList.toggle("on", !!j && j.verdict === b.dataset.v);
+  $("vnote").value = j?.note || "";
+  const gold = new Set(it.gold_chunks);
+  $("ctxlist").innerHTML = it.retrieved.map((cid, i) =>
+    `<div class="${gold.has(cid) ? "gold" : ""}"><b>[${i + 1}] ${esc(cid)}</b> ${esc(D.texts[cid] || "")}</div>`).join("");
+  $("pos").textContent = `${pos + 1} / ${view.length}`;
+}
+
+async function judge(verdict) {
+  const it = view[pos]; if (!it) return;
+  const note = $("vnote").value;
+  const r = await fetch("/api/judge", {method: "POST", headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({model: it.model, qid: it.qid, verdict, note})});
+  if (!r.ok) { alert((await r.json()).error); return; }
+  if (verdict === null) delete D.judged[key(it)];
+  else D.judged[key(it)] = {model: it.model, qid: it.qid, verdict, note};
+  if (verdict !== null) go(1); else show();
+}
+
+function go(d) { pos = Math.min(view.length - 1, Math.max(0, pos + d)); if ($("undone").checked) { rebuildView(); } show(); }
+function nextUndone() {
+  for (let i = 1; i <= view.length; i++) { const j = (pos + i) % view.length; if (!D.judged[key(view[j])]) { pos = j; return show(); } }
+  show();
+}
+
+document.addEventListener("keydown", e => {
+  if (e.target === $("vnote")) {
+    if (e.key === "Enter") { const j = D.judged[key(view[pos])]; if (j) judge(j.verdict); $("vnote").blur(); }
+    return;
+  }
+  if (e.target.tagName === "SELECT") return;
+  if (e.key === "1") judge("对"); else if (e.key === "2") judge("部分"); else if (e.key === "3") judge("错");
+  else if (e.key === "0") judge(null);
+  else if (e.key === "ArrowRight") go(1); else if (e.key === "ArrowLeft") go(-1);
+  else if (e.key === "u") nextUndone();
+});
+
+(async () => {
+  D = await (await fetch("/api/data")).json();
+  $("name").textContent = D.name;
+  D.verdicts.forEach((v, i) => {
+    const b = document.createElement("button"); b.dataset.v = v; b.innerHTML = `${v}<kbd>${i + 1}</kbd>`;
+    b.onclick = () => judge(v); $("verdicts").appendChild(b);
+  });
+  for (const m of [...new Set(D.items.map(it => it.model))]) $("model").add(new Option(m, m));
+  $("model").onchange = $("undone").onchange = () => { rebuildView(); show(); };
+  $("prev").onclick = () => go(-1); $("next").onclick = () => go(1); $("nextUndone").onclick = nextUndone;
+  view = D.items.slice();
+  pos = Math.max(0, view.findIndex(it => !D.judged[key(it)]));  // 从第一条没判的开始
+  show();
+})();
+</script>
+</body>
+</html>
