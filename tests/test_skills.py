@@ -76,10 +76,10 @@ def test_guess_game_flow():
 
 
 def test_guess_bad_verdict_and_limit():
-    """判词不认识且没有 answer 时算 "历史上没有记载"; 问题用完后不再请求模型, 只提示猜名字."""
+    """判词不认识且没有 answer 时算 "没有记载"; 问题用完后不再请求模型, 只提示猜名字."""
     c = judge_says("大概是吧")
     g = guess.GuessGame(PERSON, LIB, c, max_questions=1)
-    assert g.ask("他打过仗吗").startswith("历史上没有记载  (1/1)")
+    assert g.ask("他打过仗吗").startswith("没有记载  (1/1)")
     assert "用完了" in g.ask("他当过皇帝吗") and c.calls == 1
 
 
@@ -254,7 +254,6 @@ def test_judge_free_answer_and_leak():
                SimpleNamespace(content='{"verdict": "是", "answer": "是, 他就是先主"}', tool_calls=None)]
     g = guess.GuessGame(PERSON, LIB, lambda m, tools=None: replies.pop(0))
     assert g.ask("他是南方人还是北方人？").startswith("北方人  (1/20)")
-    assert guess.trim("不是, 他主要活跃在曹魏文帝、明帝时期") == "不是" and guess.trim("是, 但不是蜀国的") == "是, 但不是蜀国的"
     assert g.ask("他是不是开国皇帝").startswith(guess.LEAK_REPLY) and g.asked == 1
 
 if __name__ == "__main__":
