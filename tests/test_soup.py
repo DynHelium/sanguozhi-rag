@@ -96,7 +96,7 @@ def test_puzzle_bank_quotes_are_in_source():
 
 def test_game_flow_counts_questions_and_hides_truth():
     """一局游戏: 是非问题计数 (元问题不计), 提示按顺序给, 没猜中时不透露缺哪条, 猜中后揭晓汤底和原文."""
-    from app.soup import Game
+    from rag.soup import Game
     c = fake('{"verdict": "是", "evidence": [0]}',
              json.dumps({"covered": ["f1"], "contradiction": False}),
              json.dumps({"covered": ["f1", "f2", "f3"], "contradiction": False}))

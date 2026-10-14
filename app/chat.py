@@ -30,10 +30,13 @@ import queue
 import re
 import threading
 from collections.abc import Callable, Iterator
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from rag import agent, config, llm
 from rag.quotes import source_label
+
+if TYPE_CHECKING:
+    from rag.skills import Router
 
 CITE = re.compile(r"\[(\d+)\]")  # 回答里的资料编号 [n]
 EXAMPLES = ["曹操因为什么逃离洛阳？", "昭烈皇帝有哪些儿子？", "三国志里有几个马忠？", "Which emperor was stabbed to death in the street?"]
@@ -183,8 +186,8 @@ def check_limits(question: str, history: list[dict], budget: Budget | None) -> s
 
 
 def make_respond(lib: agent.Library, model: str | None = None, effort: str | None = None,
-                 complete_factory: Callable[[], Callable[..., Any]] | None = None, budget: Budget | None = None
-                 ) -> Callable[[Any, list[dict] | None], Iterator[list[dict]]]:
+                 complete_factory: Callable[[], Callable[..., Any]] | None = None, budget: Budget | None = None,
+                 router: "Router | None" = None) -> Callable[..., Iterator[list[dict]]]:
     """返回给 gr.ChatInterface 的 respond(message, history).
 
     message 是字符串或 {"text": ...} (多模态输入框); history 是页面上的消息列表 (格式见模块 docstring).
@@ -197,12 +200,19 @@ def make_respond(lib: agent.Library, model: str | None = None, effort: str | Non
     complete_factory() 每题调用一次, 返回交给 run_agent 的 complete (如 rag.openrouter.make_complete 带限流重试和计时);
     不给就用 rag.llm.complete.
     超出 check_limits 的限制时只 yield 一条说明, 不调模型. 用户点停止 (Gradio 关闭生成器) 时, 后台线程在下一次模型请求前
-    抛 Cancelled 结束, 不再继续花钱; budget 不为 None 时, 每题结束后把这题的花费 (complete.stats["cost"]) 记进去."""
+    抛 Cancelled 结束, 不再继续花钱; budget 不为 None 时, 每题结束后把这题的花费 (complete.stats["cost"]) 记进去.
+    router (rag/skills.Router) 不为 None 时, 先把消息交给它: 触发词开一局游戏, 游戏进行中的消息由游戏回答
+    (只 yield 一条游戏的回复), 不归游戏管的才走问答 agent. sid 是会话 id (Gradio 的 session_hash), 区分各人的游戏."""
 
-    def respond(message: Any, history: list[dict] | None) -> Iterator[list[dict]]:
+    def respond(message: Any, history: list[dict] | None, sid: str = "default") -> Iterator[list[dict]]:
         question = text_of(message.get("text") if isinstance(message, dict) else message).strip()
         if not question:
             return
+        if router is not None:
+            game_reply = router.handle(sid, question)
+            if game_reply is not None:
+                yield [{"role": "assistant", "content": game_reply}]
+                return
         limit = check_limits(question, history or [], budget)
         if limit:
             yield [{"role": "assistant", "content": limit}]
@@ -292,9 +302,18 @@ def main() -> None:
         raise SystemExit("没有模型: --model 或 .env 的 LLM_MODEL")
     print("加载检索索引……")
     lib = agent.load_library()
+    from rag.skills import make_router
+    router = make_router(lib, lambda *a, **kw: (factory() if factory else llm.complete)(*a, **kw),
+                         model, args.effort)
+    respond = make_respond(lib, model, args.effort, factory, Budget(args.daily_budget), router)
+
+    def respond_with_session(message: Any, history: list[dict] | None, request: gr.Request) -> Iterator[list[dict]]:
+        yield from respond(message, history, request.session_hash or "default")
+
     demo = gr.ChatInterface(
-        make_respond(lib, model, args.effort, factory, Budget(args.daily_budget)),
-        chatbot=gr.Chatbot(height=640, placeholder="依据《三国志》(陈寿正文和裴松之注) 回答三国历史问题. 中文或英文提问都可以."),
+        respond_with_session,
+        chatbot=gr.Chatbot(height=640, placeholder="依据《三国志》(陈寿正文和裴松之注) 回答三国历史问题. 中文或英文提问都可以."
+                                                   " 输入 \"猜人物\" 或 \"海龟汤\" 可以玩游戏."),
         title="三国志问答", description=f"模型: {model or config.LLM_MODEL}" + (f" (思考 {args.effort})" if args.effort else ""),
         examples=EXAMPLES, run_examples_on_click=False, concurrency_limit=4,
     )
