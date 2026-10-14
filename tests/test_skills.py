@@ -65,21 +65,21 @@ def test_parse_guess():
 
 
 def test_guess_game_flow():
-    """问一题 (模型判词), 打听名字被代码拦下不计数, 猜错计一问, 用称呼猜中结束."""
-    c = judge_says("是")
+    """问一题 (模型判词), 没法回答的问题不计数, 猜错计一问, 用称呼猜中结束."""
+    c = judge_says("是", "没法回答")
     g = guess.GuessGame(PERSON, LIB, c, known_names={"刘备", "曹操"})
     assert g.ask("他是男性吗？").startswith("是  (1/20)")
-    assert g.ask("他名字第一个字是什么？").startswith("请问是非题  (1/20)") and c.calls == 1
+    assert g.ask("讲讲他的生平").startswith("没法回答  (1/20)") and c.calls == 2
     assert g.ask("猜 曹操").startswith("不是 曹操. (2/20)")
     out = g.ask("猜 刘玄德")
     assert out.startswith("猜对了") and "刘备" in out and "蜀汉昭烈皇帝" in out and g.over
 
 
 def test_guess_bad_verdict_and_limit():
-    """判词不认识时判 "无法判断"; 问题用完后不再请求模型, 只提示猜名字."""
+    """判词不认识且没有 answer 时算 "历史上没有记载"; 问题用完后不再请求模型, 只提示猜名字."""
     c = judge_says("大概是吧")
     g = guess.GuessGame(PERSON, LIB, c, max_questions=1)
-    assert g.ask("他打过仗吗").startswith("无法判断  (1/1)")
+    assert g.ask("他打过仗吗").startswith("历史上没有记载  (1/1)")
     assert "用完了" in g.ask("他当过皇帝吗") and c.calls == 1
 
 
@@ -246,6 +246,15 @@ def test_again_starts_same_game():
     assert "你可以问" in r.handle("a", "再猜一个！") and r.active("a") is not None
     r.reset("a")
     assert r.handle("a", "再猜一个") is None
+
+
+def test_judge_free_answer_and_leak():
+    """裁判可以回一句话 (二选一答选项); 回答里出现谜底名字或称呼就换成 LEAK_REPLY, 这一问不计数."""
+    replies = [SimpleNamespace(content='{"verdict": "选择", "answer": "北方人"}', tool_calls=None),
+               SimpleNamespace(content='{"verdict": "是", "answer": "是, 他就是先主"}', tool_calls=None)]
+    g = guess.GuessGame(PERSON, LIB, lambda m, tools=None: replies.pop(0))
+    assert g.ask("他是南方人还是北方人？").startswith("北方人  (1/20)")
+    assert g.ask("他是不是开国皇帝").startswith(guess.LEAK_REPLY) and g.asked == 1
 
 if __name__ == "__main__":
     from tests._run import run as run_tests

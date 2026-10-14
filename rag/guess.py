@@ -12,9 +12,9 @@
     homonym  有同名的人 (如蜀汉马忠 / 孙吴马忠): 揭晓时说明是哪一位
     note     一句话说明是哪一位, 揭晓时显示; 没有就只显示名字和出处
 
-玩法 1 的裁判 (judge_question): 每个问题单独开一段对话, 模型用 search / read / who 等工具查原文后给判词 (VERDICTS).
-页面只显示判词和计数, 不显示模型写的其他文字, 所以就算模型被诱导写出名字也不会展示出去; 直接打听谜底本身的问题
-(如 "他名字第一个字是什么") 由代码先拦下 (rag/soup.is_meta 加上 _META_NAME). 玩家猜名字时由代码比对人名和称呼 (matches),
+玩法 1 的裁判 (judge_question): 每个问题单独开一段对话, 谜底的出处原文预先给它, 需要时再用工具查; 它回一句话
+(是 / 不是 + 简短说明, 二选一的答一个选项, 原文没有的说 "历史上没有记载"), 页面只显示这一句和计数.
+代码只检查这句话里有没有谜底的名字或称呼 (rag/soup.leaks), 有就换成 LEAK_REPLY. 玩家猜名字时由代码比对人名和称呼 (matches),
 不交给模型判断.
 """
 import json
@@ -29,24 +29,31 @@ from rag import agent, config
 from rag.library import Library, Seen
 from rag.loop import agent_loop
 from rag.normalize import to_simplified
-from rag.soup import _parse_json, is_meta
+from rag.soup import LEAK_REPLY, _parse_json, leaks
 
 CHECKS = config.DATA_DIR / "guess" / "checks.jsonl"
-VERDICTS = ("是", "不是", "无法判断", "请问是非题")
+VERDICTS = ("是", "不是", "选择", "没有记载", "没法回答")  # 判词类别; 给玩家看的是 answer 那一句话
+NOT_COUNTED = "没法回答"  # 这一类不算一问
 MAX_QUESTIONS = 20
 JUDGE_ROUNDS = 3  # 裁判每个问题最多几轮工具调用
 TURN_BUDGET = 90.0  # 一问 (一次 play) 最多花几秒: 超过后不再发新请求, 抛 TimeoutError, 由游戏提示玩家再说一次
 OnEvent = Callable[[str, Any], None]  # on_event(kind, info): 进度事件, kind 是 "tool" / "stage" / "think" (见 play)
 
 JUDGE_SYS = """你是 "猜人物" 游戏的裁判. 谜底是《三国志》里的 {person} (原文里也称 {aliases}; 本传或出处 {bio}). 玩家不知道谜底,
-会问是非问题. 这个人的出处原文已经附在下面 (编号 [n]), 先看这些资料; 问到资料里没有的事 (如和别人的交往, 别处的记载)
+会向你提问. 这个人的出处原文已经附在下面 (编号 [n]), 先看这些资料; 问到资料里没有的事 (如和别人的交往, 别处的记载)
 才用工具查《三国志》原文, 不要把下面已有的段落再 read 一遍.
 
 {bio_text}
 
-判断规则: 原文写明或能直接推出 -> 是 / 不是; 原文确实没写, 推不出来 -> 无法判断 (没写不等于 "不是"); 问题不是能用是 / 不是回答的 -> 请问是非题.
-只依据查到的原文, 不用自己的历史知识. 注意同名的人, 不要查成别人.
-最后只输出一行 JSON: {{"verdict": "是 | 不是 | 无法判断 | 请问是非题", "evidence": [依据的资料编号 n]}}"""
+怎么答 (玩家多半凭印象提问, 按他最可能的意思答, 不抠字眼):
+- 是非题答 是 / 不是, 可以带一句很短的说明 (如 "是, 但不是蜀国的" "不是, 他以谋士为主").
+- 二选一的问题 (如 "是南方人还是北方人" "主要在魏国还是吴国") 直接答其中一个选项.
+- 问法有歧义时按最可能的意思答: "是蜀国人或者官员吗" 是问 "是不是蜀国的人或官员", 不是问 "是蜀国人, 或者是官员".
+- 原文写明或能直接推出的, 答是或不是; 查过原文确实没有记载的, 答 "历史上没有记载".
+- 实在没法用是 / 不是或一个选项回答的 (如 "他是谁" "讲讲他的生平") -> 请玩家换成是非题或选择题.
+- 只依据查到的原文, 不用自己的历史知识. 注意同名的人, 不要查成别人.
+- 回答不超过一句话, 不能写出谜底的名字、字、称号, 也不能直接说出他的姓.
+最后只输出一行 JSON: {{"verdict": "是 | 不是 | 选择 | 没有记载 | 没法回答", "answer": "给玩家看的那一句话", "evidence": [依据的资料编号 n]}}"""
 
 GUESS_SYS = """你在玩 "猜人物": 对方心里想了一个三国人物 (多半是《三国志》里的人, 也可能是只在《三国演义》里出名的人物),
 你要用是非问题猜出是谁. 你最多问 {n} 次 (猜名字也算一次).
@@ -74,8 +81,6 @@ GUESS_SYS = """你在玩 "猜人物": 对方心里想了一个三国人物 (多�
   问问题: {{"ask": "一个是非问题"}}
   猜名字: {{"guess": "人名", "desc": "一句话说明是哪一位 (同名的人很多, 如几个马忠)"}}"""
 
-# 打听名字本身的问题 (猜人物特有; 汤底 / 答案 / 谜底等由 rag/soup.is_meta 拦)
-_META_NAME = re.compile(r"名字|姓什么|叫什么|哪个字|第[一二三四五六七八九十\d]+个字|几个字|拼音|首字母")
 # 明确的猜名字: "/猜 刘备" "猜刘备" "我猜是刘备" "答案是刘备吗"
 _GUESS = re.compile(r"^(?:/猜|猜|我猜|答案是)\s*(?:是|他是|她是)?\s*(.+?)\s*(?:吗|吧)?\s*[？?。.!！]*$")
 
@@ -169,21 +174,25 @@ def bio_chunks(lib: Library, ids: list[str]) -> list[Any]:
 
 def judge_question(lib: Library, person: Person, question: str, complete: Callable[..., Any],
                    on_event: OnEvent | None = None) -> dict:
-    """裁判一个是非问题. 返回 {"verdict": VERDICTS 之一, "by": "code" | "model", "tools": [工具调用记录], "raw": 模型回答末尾}.
+    """裁判玩家的一个问题. 返回 {"verdict": VERDICTS 之一 (类别), "answer": 给玩家看的一句话, "by": "model",
+    "tools": [工具调用记录], "raw": 模型回答末尾}.
 
-    complete(messages, tools=None) -> 模型的一条回复 message (rag/loop.agent_loop 的约定). 打听谜底本身的问题由代码判
-    "请问是非题", 不请求模型. 每个问题单独开一段对话 (裁判互不记忆); 谜底的出处原文 (bio_chunks, 经 Seen 编号) 预先放进
+    complete(messages, tools=None) -> 模型的一条回复 message (rag/loop.agent_loop 的约定). 是非题、二选一、问法有歧义的问题
+    都交给模型按意思回答, 代码不预先拦; 唯一的代码检查是 leaks: 回答里出现谜底的名字或称呼就换成 LEAK_REPLY.
+    每个问题单独开一段对话 (裁判互不记忆); 谜底的出处原文 (bio_chunks, 经 Seen 编号) 预先放进
     system prompt, 大多数问题不用再调工具, 资料以外的事才查; 模型输出解析不了或判词不在 VERDICTS 里时判 "无法判断".
     on_event 只收到 ("stage", "查原文") (裁判的推理和检索词会泄底, 不发). 超过 TURN_BUDGET 时抛 TimeoutError."""
-    if is_meta(question) or _META_NAME.search(question):
-        return {"verdict": "请问是非题", "by": "code", "tools": [], "raw": None}
     seen, log = Seen(lib.notes), []
     sys = JUDGE_SYS.format(person=person["person"], aliases="、".join(person.get("aliases", [])) or "无",
                            bio=", ".join(person["bio"]), bio_text=seen.add(bio_chunks(lib, person["bio"])))
     reply = play([{"role": "system", "content": sys}, {"role": "user", "content": question}], lib, seen, log,
                  complete, JUDGE_ROUNDS, on_event, show=False)
     verdict = field(reply, "verdict")
-    return {"verdict": verdict if verdict in VERDICTS else "无法判断", "by": "model", "tools": log, "raw": reply[-300:]}
+    verdict = verdict if verdict in VERDICTS else "没有记载"
+    answer = (field(reply, "answer") or "").strip() or {"没有记载": "历史上没有记载"}.get(verdict, verdict)
+    if leaks(answer, [person["person"], *person.get("aliases", [])]):
+        answer = LEAK_REPLY
+    return {"verdict": verdict, "answer": answer, "by": "model", "tools": log, "raw": reply[-300:]}
 
 
 def parse_guess(text: str, known_names: set[str] | None = None) -> str | None:
@@ -213,7 +222,7 @@ class GuessGame:
 
     def intro(self, on_event: OnEvent | None = None) -> str:
         """开局说明."""
-        return (f"我心里想好了一个《三国志》里的人物. 你可以问 {self.max} 个是非问题 (我只答 是 / 不是 / 无法判断),"
+        return (f"我心里想好了一个《三国志》里的人物. 你可以问 {self.max} 个问题 (是非题或二选一, 我查原文回答),"
                 " 猜名字时说 \"猜 某某\" 或直接说名字. 输入 /放弃 揭晓答案, /退出 结束游戏.")
 
     def ask(self, text: str, on_event: OnEvent | None = None) -> str:
@@ -237,9 +246,9 @@ class GuessGame:
             r = judge_question(self.lib, self.p, text, self.complete, on_event)
         except TimeoutError:
             return "这一问查原文太久了, 没判出来 (不计数). 请再问一次."
-        if r["verdict"] != "请问是非题":
+        if r["verdict"] != NOT_COUNTED and r["answer"] != LEAK_REPLY:
             self.asked += 1
-        return f"{r['verdict']}  ({self.asked}/{self.max})" + self._left()
+        return f"{r['answer']}  ({self.asked}/{self.max})" + self._left()
 
     def _left(self) -> str:
         return " 问题用完了, 猜一个名字吧." if self.asked >= self.max and not self.over else ""
