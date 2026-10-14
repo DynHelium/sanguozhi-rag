@@ -1,0 +1,3639 @@
+{
+ "中平": {
+  "start": 184,
+  "status": "ref",
+  "uses": 13,
+  "books": [
+   "吳書",
+   "蜀書",
+   "魏書"
+  ],
+  "candidates": [],
+  "ref": [
+   {
+    "start": 184,
+    "end": 189,
+    "years": "6年",
+    "regime": "东汉",
+    "emperor": "汉灵帝劉宏",
+    "period_raw": "184年十二月－189年三月",
+    "note": "189年九月曾改元永汉，同年十二月董卓以献帝名义下诏废光熹、昭宁、永汉，复称中平六年（来源同表）。",
+    "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E6%9D%B1%E6%BC%A2"
+   }
+  ],
+  "by_regime": {
+   "东汉": 184
+  }
+ },
+ "五鳳": {
+  "start": 254,
+  "status": "ok",
+  "uses": 5,
+  "books": [
+   "吳書"
+  ],
+  "candidates": [
+   {
+    "start": 254,
+    "count": 5,
+    "books": [
+     "吳書"
+    ],
+    "evidence": [
+     {
+      "juan": 48,
+      "book": "吳書",
+      "yl": "五鳳元年|254年"
+     },
+     {
+      "juan": 56,
+      "book": "吳書",
+      "yl": "五鳳二年|255年"
+     },
+     {
+      "juan": 59,
+      "book": "吳書",
+      "yl": "五鳳元年|254年"
+     },
+     {
+      "juan": 61,
+      "book": "吳書",
+      "yl": "五鳳二年|255年"
+     },
+     {
+      "juan": 64,
+      "book": "吳書",
+      "yl": "五鳳元年|254年"
+     }
+    ]
+   }
+  ],
+  "ref": [
+   {
+    "start": -57,
+    "end": -54,
+    "regime": "西汉",
+    "emperor": "汉宣帝劉詢",
+    "years": "4年",
+    "period_raw": "前57年－前54年",
+    "note": "表中写作「五凤」，按繁简/异体字形归一匹配（五鳳）。",
+    "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E8%A5%BF%E6%BC%A2"
+   },
+   {
+    "start": 254,
+    "end": 256,
+    "regime": "孫吳",
+    "emperor": "吳會稽王孫亮",
+    "years": "3年",
+    "period_raw": "254年－256年十月",
+    "note": "",
+    "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E5%AD%AB%E5%90%B3"
+   }
+  ],
+  "by_regime": {
+   "西汉": -57,
+   "孙吴": 254
+  },
+  "verified": true
+ },
+ "元和": {
+  "start": 84,
+  "status": "ok",
+  "uses": 1,
+  "books": [
+   "魏書"
+  ],
+  "candidates": [
+   {
+    "start": 84,
+    "count": 1,
+    "books": [
+     "魏書"
+    ],
+    "evidence": [
+     {
+      "juan": 3,
+      "book": "魏書",
+      "yl": "元和三年|86年"
+     }
+    ]
+   }
+  ],
+  "ref": [
+   {
+    "start": 84,
+    "end": 87,
+    "regime": "东汉",
+    "emperor": "汉章帝劉炟",
+    "years": "4年",
+    "period_raw": "84年八月－87年七月",
+    "note": "",
+    "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E6%9D%B1%E6%BC%A2"
+   }
+  ],
+  "by_regime": {
+   "东汉": 84
+  },
+  "verified": true
+ },
+ "元壽": {
+  "start": -2,
+  "status": "ref",
+  "uses": 1,
+  "books": [
+   "魏書"
+  ],
+  "candidates": [],
+  "ref": [
+   {
+    "start": -2,
+    "end": -1,
+    "years": "2年",
+    "regime": "西汉",
+    "emperor": "汉哀帝劉欣",
+    "period_raw": "前2年－前1年",
+    "note": "或作元受。 元壽二年（前1年）九月汉平帝即位沿用。",
+    "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E8%A5%BF%E6%BC%A2"
+   }
+  ],
+  "by_regime": {
+   "西汉": -2
+  }
+ },
+ "元始": {
+  "start": 1,
+  "status": "ref",
+  "uses": 1,
+  "books": [
+   "魏書"
+  ],
+  "candidates": [],
+  "ref": [
+   {
+    "start": 1,
+    "end": 5,
+    "years": "5年",
+    "regime": "西汉",
+    "emperor": "汉平帝劉衎",
+    "period_raw": "1年－5年",
+    "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E8%A5%BF%E6%BC%A2"
+   }
+  ],
+  "by_regime": {
+   "西汉": 1
+  }
+ },
+ "元封": {
+  "start": -110,
+  "status": "ref",
+  "uses": 1,
+  "books": [
+   "魏書"
+  ],
+  "candidates": [],
+  "ref": [
+   {
+    "start": -110,
+    "end": -104,
+    "years": "7年",
+    "regime": "西汉",
+    "emperor": "汉武帝劉徹",
+    "period_raw": "前110年－前104年四月",
+    "note": "用亥正。第一個有詔書的年號。 有學者說年號為後來追述，當時以六元紀年。",
+    "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E8%A5%BF%E6%BC%A2"
+   }
+  ],
+  "by_regime": {
+   "西汉": -110
+  }
+ },
+ "元康": {
+  "start": 291,
+  "status": "ok",
+  "uses": 1,
+  "books": [
+   "魏書"
+  ],
+  "candidates": [
+   {
+    "start": 291,
+    "count": 1,
+    "books": [
+     "魏書"
+    ],
+    "evidence": [
+     {
+      "juan": 27,
+      "book": "魏書",
+      "yl": "元康元年|291年"
+     }
+    ]
+   }
+  ],
+  "ref": [
+   {
+    "start": -65,
+    "end": -61,
+    "regime": "西汉",
+    "emperor": "汉宣帝劉詢",
+    "years": "5年",
+    "period_raw": "前65年－前61年二月",
+    "note": "",
+    "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E8%A5%BF%E6%BC%A2"
+   },
+   {
+    "start": 291,
+    "end": 299,
+    "regime": "西晋",
+    "emperor": "晉惠帝司馬衷",
+    "years": "9年",
+    "period_raw": "291年三月－299年",
+    "note": "",
+    "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E8%A5%BF%E6%99%89"
+   }
+  ],
+  "by_regime": {
+   "西汉": -65,
+   "西晋": 291
+  },
+  "verified": true
+ },
+ "元狩": {
+  "start": -122,
+  "status": "ref",
+  "uses": 1,
+  "books": [
+   "蜀書"
+  ],
+  "candidates": [],
+  "ref": [
+   {
+    "start": -122,
+    "end": -117,
+    "years": "6年",
+    "regime": "西汉",
+    "emperor": "汉武帝劉徹",
+    "period_raw": "前122年－前117年",
+    "note": "用亥正。有學者說年號為後來追述，當時以四元紀年。",
+    "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E8%A5%BF%E6%BC%A2"
+   }
+  ],
+  "by_regime": {
+   "西汉": -122
+  }
+ },
+ "元興": {
+  "start": 264,
+  "status": "ok",
+  "uses": 2,
+  "books": [
+   "吳書"
+  ],
+  "candidates": [
+   {
+    "start": 264,
+    "count": 2,
+    "books": [
+     "吳書"
+    ],
+    "evidence": [
+     {
+      "juan": 48,
+      "book": "吳書",
+      "yl": "元興元年|264年"
+     },
+     {
+      "juan": 56,
+      "book": "吳書",
+      "yl": "元興元年|264年"
+     }
+    ]
+   }
+  ],
+  "ref": [
+   {
+    "start": 105,
+    "end": 105,
+    "regime": "东汉",
+    "emperor": "汉和帝劉肇",
+    "years": "1年",
+    "period_raw": "105年四月－十二月",
+    "note": "表中写作「元兴」，按繁简/异体字形归一匹配（元興）。",
+    "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E6%9D%B1%E6%BC%A2"
+   },
+   {
+    "start": 264,
+    "end": 265,
+    "regime": "孫吳",
+    "emperor": "吳末帝孙皓",
+    "years": "2年",
+    "period_raw": "264年七月－265年三月",
+    "note": "表中写作「元兴」，按繁简/异体字形归一匹配（元興）。",
+    "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E5%AD%AB%E5%90%B3"
+   },
+   {
+    "start": 402,
+    "end": 404,
+    "regime": "东晋",
+    "emperor": "晋安帝司馬德宗",
+    "years": "3年",
+    "period_raw": "402年－404年",
+    "note": "表中写作「元兴」，按繁简/异体字形归一匹配（元興）。 403年－404年桓玄篡位。 胡三省注《资治通鉴》：元年三月，元显败，复隆安年号（六年）。桓玄寻改曰大亨。玄篡，又改曰永始。",
+    "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E6%9D%B1%E6%99%89"
+   }
+  ],
+  "by_regime": {
+   "东汉": 105,
+   "孙吴": 264,
+   "东晋": 402
+  },
+  "verified": true
+ },
+ "元鼎": {
+  "start": -116,
+  "status": "ref",
+  "uses": 1,
+  "books": [
+   "吳書"
+  ],
+  "candidates": [],
+  "ref": [
+   {
+    "start": -116,
+    "end": -111,
+    "years": "6年",
+    "regime": "西汉",
+    "emperor": "汉武帝劉徹",
+    "period_raw": "前116年－前111年",
+    "note": "用亥正。有學者說年號為後來追述，當時以五元紀年。",
+    "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E8%A5%BF%E6%BC%A2"
+   }
+  ],
+  "by_regime": {
+   "西汉": -116
+  }
+ },
+ "光和": {
+  "start": 178,
+  "status": "ref",
+  "uses": 4,
+  "books": [
+   "魏書"
+  ],
+  "candidates": [],
+  "ref": [
+   {
+    "start": 178,
+    "end": 184,
+    "years": "7年",
+    "regime": "东汉",
+    "emperor": "汉灵帝劉宏",
+    "period_raw": "178年三月－184年",
+    "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E6%9D%B1%E6%BC%A2"
+   }
+  ],
+  "by_regime": {
+   "东汉": 178
+  }
+ },
+ "初平": {
+  "start": 190,
+  "status": "ok",
+  "uses": 15,
+  "books": [
+   "吳書",
+   "蜀書",
+   "魏書"
+  ],
+  "candidates": [
+   {
+    "start": 190,
+    "count": 1,
+    "books": [
+     "魏書"
+    ],
+    "evidence": [
+     {
+      "juan": 8,
+      "book": "魏書",
+      "yl": "初平元年|190年"
+     }
+    ]
+   }
+  ],
+  "ref": [
+   {
+    "start": 190,
+    "end": 193,
+    "regime": "东汉",
+    "emperor": "汉献帝劉協",
+    "years": "4年",
+    "period_raw": "190年－193年",
+    "note": "",
+    "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E6%9D%B1%E6%BC%A2"
+   }
+  ],
+  "by_regime": {
+   "东汉": 190
+  },
+  "verified": true
+ },
+ "咸寧": {
+  "start": 275,
+  "status": "ref",
+  "uses": 2,
+  "books": [
+   "蜀書",
+   "魏書"
+  ],
+  "candidates": [],
+  "ref": [
+   {
+    "start": 275,
+    "end": 280,
+    "years": "6年",
+    "regime": "西晋",
+    "emperor": "晋武帝司馬炎",
+    "period_raw": "275年－280年四月",
+    "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E8%A5%BF%E6%99%89"
+   }
+  ],
+  "by_regime": {
+   "西晋": 275
+  }
+ },
+ "咸熙": {
+  "start": 264,
+  "status": "ref",
+  "uses": 11,
+  "books": [
+   "吳書",
+   "蜀書",
+   "魏書"
+  ],
+  "candidates": [],
+  "ref": [
+   {
+    "start": 264,
+    "end": 265,
+    "years": "2年",
+    "regime": "曹魏",
+    "emperor": "魏元帝曹奂",
+    "period_raw": "264年五月－265年闰十一月",
+    "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E6%9B%B9%E9%AD%8F"
+   }
+  ],
+  "by_regime": {
+   "曹魏": 264
+  }
+ },
+ "嘉平": {
+  "start": 249,
+  "status": "ok",
+  "uses": 23,
+  "books": [
+   "吳書",
+   "魏書"
+  ],
+  "candidates": [
+   {
+    "start": 249,
+    "count": 23,
+    "books": [
+     "吳書",
+     "魏書"
+    ],
+    "evidence": [
+     {
+      "juan": 4,
+      "book": "魏書",
+      "yl": "嘉平元年|249年"
+     },
+     {
+      "juan": 5,
+      "book": "魏書",
+      "yl": "嘉平三年|251年"
+     },
+     {
+      "juan": 9,
+      "book": "魏書",
+      "yl": "嘉平六年|254年"
+     },
+     {
+      "juan": 9,
+      "book": "魏書",
+      "yl": "嘉平四年|252年"
+     },
+     {
+      "juan": 9,
+      "book": "魏書",
+      "yl": "嘉平六年|254年"
+     },
+     {
+      "juan": 11,
+      "book": "魏書",
+      "yl": "嘉平二年|250年"
+     },
+     {
+      "juan": 13,
+      "book": "魏書",
+      "yl": "嘉平六年|254年"
+     },
+     {
+      "juan": 14,
+      "book": "魏書",
+      "yl": "嘉平二年|250年"
+     },
+     {
+      "juan": 15,
+      "book": "魏書",
+      "yl": "嘉平六年|254年"
+     },
+     {
+      "juan": 20,
+      "book": "魏書",
+      "yl": "嘉平六年|254年"
+     },
+     {
+      "juan": 20,
+      "book": "魏書",
+      "yl": "嘉平元年|249年"
+     },
+     {
+      "juan": 20,
+      "book": "魏書",
+      "yl": "嘉平元年|249年"
+     },
+     {
+      "juan": 21,
+      "book": "魏書",
+      "yl": "嘉平四年|252年"
+     },
+     {
+      "juan": 21,
+      "book": "魏書",
+      "yl": "嘉平四年|252年"
+     },
+     {
+      "juan": 24,
+      "book": "魏書",
+      "yl": "嘉平二年|250年"
+     },
+     {
+      "juan": 26,
+      "book": "魏書",
+      "yl": "嘉平六年|254年"
+     },
+     {
+      "juan": 26,
+      "book": "魏書",
+      "yl": "嘉平元年|249年"
+     },
+     {
+      "juan": 27,
+      "book": "魏書",
+      "yl": "嘉平元年|249年"
+     },
+     {
+      "juan": 27,
+      "book": "魏書",
+      "yl": "嘉平二年|250年"
+     },
+     {
+      "juan": 28,
+      "book": "魏書",
+      "yl": "嘉平元年|249年"
+     },
+     {
+      "juan": 28,
+      "book": "魏書",
+      "yl": "嘉平元年|249年"
+     },
+     {
+      "juan": 28,
+      "book": "魏書",
+      "yl": "嘉平元年|249年"
+     },
+     {
+      "juan": 48,
+      "book": "吳書",
+      "yl": "嘉平四年|252年"
+     }
+    ]
+   }
+  ],
+  "ref": [
+   {
+    "start": 249,
+    "end": 254,
+    "regime": "曹魏",
+    "emperor": "魏齊王曹芳",
+    "years": "6年",
+    "period_raw": "249年四月－254年十月",
+    "note": "",
+    "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E6%9B%B9%E9%AD%8F"
+   }
+  ],
+  "by_regime": {
+   "曹魏": 249
+  },
+  "verified": true
+ },
+ "嘉禾": {
+  "start": 232,
+  "status": "ref",
+  "uses": 16,
+  "books": [
+   "吳書"
+  ],
+  "candidates": [],
+  "ref": [
+   {
+    "start": 232,
+    "end": 238,
+    "years": "7年",
+    "regime": "孫吳",
+    "emperor": "吳大帝孙权",
+    "period_raw": "232年－238年八月",
+    "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E5%AD%AB%E5%90%B3"
+   }
+  ],
+  "by_regime": {
+   "孙吴": 232
+  }
+ },
+ "天冊": {
+  "start": 275,
+  "status": "ref",
+  "uses": 3,
+  "books": [
+   "吳書"
+  ],
+  "candidates": [],
+  "ref": [
+   {
+    "start": 275,
+    "end": 276,
+    "years": "2年",
+    "regime": "孫吳",
+    "emperor": "吳末帝孙皓",
+    "period_raw": "275年－276年六月",
+    "note": "《吳志·陸胤傳》作“天策”（来源表备注），即同一年号。",
+    "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E5%AD%AB%E5%90%B3"
+   }
+  ],
+  "by_regime": {
+   "孙吴": 275
+  }
+ },
+ "天璽": {
+  "start": 276,
+  "status": "ok",
+  "uses": 2,
+  "books": [
+   "吳書"
+  ],
+  "candidates": [
+   {
+    "start": 276,
+    "count": 2,
+    "books": [
+     "吳書"
+    ],
+    "evidence": [
+     {
+      "juan": 48,
+      "book": "吳書",
+      "yl": "天璽元年|276年"
+     },
+     {
+      "juan": 51,
+      "book": "吳書",
+      "yl": "天璽元年|276年"
+     }
+    ]
+   }
+  ],
+  "ref": [
+   {
+    "start": 276,
+    "end": 276,
+    "regime": "孫吳",
+    "emperor": "吳末帝孙皓",
+    "years": "1年",
+    "period_raw": "276年七月－十二月",
+    "note": "表中写作「天玺」，按繁简/异体字形归一匹配（天璽）。",
+    "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E5%AD%AB%E5%90%B3"
+   }
+  ],
+  "by_regime": {
+   "孙吴": 276
+  },
+  "verified": true
+ },
+ "天策": {
+  "start": 275,
+  "status": "ref",
+  "uses": 1,
+  "books": [
+   "吳書"
+  ],
+  "candidates": [],
+  "ref": [
+   {
+    "start": 275,
+    "end": 276,
+    "years": "2年",
+    "regime": "孫吳",
+    "emperor": "吳末帝孙皓",
+    "period_raw": "275年－276年六月",
+    "note": "即孙吴末帝孙皓“天册”。来源表“天册”条备注：《吳志·陸胤傳》作天策。与武周“天册万岁”无关。",
+    "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E5%AD%AB%E5%90%B3"
+   }
+  ],
+  "by_regime": {
+   "孙吴": 275
+  }
+ },
+ "天紀": {
+  "start": 277,
+  "status": "ref",
+  "uses": 5,
+  "books": [
+   "吳書"
+  ],
+  "candidates": [],
+  "ref": [
+   {
+    "start": 277,
+    "end": 280,
+    "years": "4年",
+    "regime": "孫吳",
+    "emperor": "吳末帝孙皓",
+    "period_raw": "277年－280年三月",
+    "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E5%AD%AB%E5%90%B3"
+   }
+  ],
+  "by_regime": {
+   "孙吴": 277
+  }
+ },
+ "太元": {
+  "start": 251,
+  "status": "ok",
+  "uses": 8,
+  "books": [
+   "吳書"
+  ],
+  "candidates": [
+   {
+    "start": 251,
+    "count": 8,
+    "books": [
+     "吳書"
+    ],
+    "evidence": [
+     {
+      "juan": 47,
+      "book": "吳書",
+      "yl": "太元元年|251年"
+     },
+     {
+      "juan": 48,
+      "book": "吳書",
+      "yl": "太元元年|251年"
+     },
+     {
+      "juan": 48,
+      "book": "吳書",
+      "yl": "太元二年|252年"
+     },
+     {
+      "juan": 56,
+      "book": "吳書",
+      "yl": "太元元年|251年"
+     },
+     {
+      "juan": 58,
+      "book": "吳書",
+      "yl": "太元元年|251年"
+     },
+     {
+      "juan": 59,
+      "book": "吳書",
+      "yl": "太元二年|252年"
+     },
+     {
+      "juan": 59,
+      "book": "吳書",
+      "yl": "太元二年|252年"
+     },
+     {
+      "juan": 64,
+      "book": "吳書",
+      "yl": "太元元年|251年"
+     }
+    ]
+   }
+  ],
+  "ref": [
+   {
+    "start": 251,
+    "end": 252,
+    "regime": "孫吳",
+    "emperor": "吳大帝孙权",
+    "years": "2年",
+    "period_raw": "251年五月－252年正月",
+    "note": "",
+    "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E5%AD%AB%E5%90%B3"
+   },
+   {
+    "start": 376,
+    "end": 396,
+    "regime": "东晋",
+    "emperor": "晋孝武帝司馬曜",
+    "years": "21年",
+    "period_raw": "376年－396年",
+    "note": "太元二十一年（396年）九月晋安帝即位沿用。",
+    "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E6%9D%B1%E6%99%89"
+   }
+  ],
+  "by_regime": {
+   "孙吴": 251,
+   "东晋": 376
+  },
+  "verified": true
+ },
+ "太和": {
+  "start": 227,
+  "status": "ok",
+  "uses": 54,
+  "books": [
+   "魏書"
+  ],
+  "candidates": [
+   {
+    "start": 227,
+    "count": 53,
+    "books": [
+     "魏書"
+    ],
+    "evidence": [
+     {
+      "juan": 1,
+      "book": "魏書",
+      "yl": "太和三年|229年"
+     },
+     {
+      "juan": 3,
+      "book": "魏書",
+      "yl": "太和元年|227年"
+     },
+     {
+      "juan": 5,
+      "book": "魏書",
+      "yl": "太和四年|230年"
+     },
+     {
+      "juan": 5,
+      "book": "魏書",
+      "yl": "太和元年|227年"
+     },
+     {
+      "juan": 5,
+      "book": "魏書",
+      "yl": "太和元年|227年"
+     },
+     {
+      "juan": 8,
+      "book": "魏書",
+      "yl": "太和二年|228年"
+     },
+     {
+      "juan": 9,
+      "book": "魏書",
+      "yl": "太和二年|228年"
+     },
+     {
+      "juan": 9,
+      "book": "魏書",
+      "yl": "太和六年|232年"
+     },
+     {
+      "juan": 9,
+      "book": "魏書",
+      "yl": "太和二年|228年"
+     },
+     {
+      "juan": 13,
+      "book": "魏書",
+      "yl": "太和四年|230年"
+     },
+     {
+      "juan": 13,
+      "book": "魏書",
+      "yl": "太和五年|231年"
+     },
+     {
+      "juan": 13,
+      "book": "魏書",
+      "yl": "太和二年|228年"
+     },
+     {
+      "juan": 13,
+      "book": "魏書",
+      "yl": "太和三年|229年"
+     },
+     {
+      "juan": 14,
+      "book": "魏書",
+      "yl": "太和四年|230年"
+     },
+     {
+      "juan": 14,
+      "book": "魏書",
+      "yl": "太和六年|232年"
+     },
+     {
+      "juan": 14,
+      "book": "魏書",
+      "yl": "太和六年|232年"
+     },
+     {
+      "juan": 15,
+      "book": "魏書",
+      "yl": "太和二年|228年"
+     },
+     {
+      "juan": 15,
+      "book": "魏書",
+      "yl": "太和二年|228年"
+     },
+     {
+      "juan": 17,
+      "book": "魏書",
+      "yl": "太和元年|227年"
+     },
+     {
+      "juan": 19,
+      "book": "魏書",
+      "yl": "太和六年|232年"
+     },
+     {
+      "juan": 19,
+      "book": "魏書",
+      "yl": "太和元年|227年"
+     },
+     {
+      "juan": 19,
+      "book": "魏書",
+      "yl": "太和三年|229年"
+     },
+     {
+      "juan": 20,
+      "book": "魏書",
+      "yl": "太和三年|229年"
+     },
+     {
+      "juan": 20,
+      "book": "魏書",
+      "yl": "太和三年|229年"
+     },
+     {
+      "juan": 20,
+      "book": "魏書",
+      "yl": "太和五年|231年"
+     },
+     {
+      "juan": 20,
+      "book": "魏書",
+      "yl": "太和六年|232年"
+     },
+     {
+      "juan": 20,
+      "book": "魏書",
+      "yl": "太和六年|232年"
+     },
+     {
+      "juan": 20,
+      "book": "魏書",
+      "yl": "太和六年|232年"
+     },
+     {
+      "juan": 20,
+      "book": "魏書",
+      "yl": "太和二年|228年"
+     },
+     {
+      "juan": 20,
+      "book": "魏書",
+      "yl": "太和四年|230年"
+     },
+     {
+      "juan": 20,
+      "book": "魏書",
+      "yl": "太和六年|232年"
+     },
+     {
+      "juan": 20,
+      "book": "魏書",
+      "yl": "太和六年|232年"
+     },
+     {
+      "juan": 20,
+      "book": "魏書",
+      "yl": "太和六年|232年"
+     },
+     {
+      "juan": 20,
+      "book": "魏書",
+      "yl": "太和五年|231年"
+     },
+     {
+      "juan": 20,
+      "book": "魏書",
+      "yl": "太和五年|231年"
+     },
+     {
+      "juan": 20,
+      "book": "魏書",
+      "yl": "太和五年|231年"
+     },
+     {
+      "juan": 20,
+      "book": "魏書",
+      "yl": "太和五年|231年"
+     },
+     {
+      "juan": 20,
+      "book": "魏書",
+      "yl": "太和三年|229年"
+     },
+     {
+      "juan": 20,
+      "book": "魏書",
+      "yl": "太和五年|231年"
+     },
+     {
+      "juan": 20,
+      "book": "魏書",
+      "yl": "太和五年|231年"
+     },
+     {
+      "juan": 20,
+      "book": "魏書",
+      "yl": "太和六年|232年"
+     },
+     {
+      "juan": 20,
+      "book": "魏書",
+      "yl": "太和元年|227年"
+     },
+     {
+      "juan": 20,
+      "book": "魏書",
+      "yl": "太和五年|231年"
+     },
+     {
+      "juan": 20,
+      "book": "魏書",
+      "yl": "太和六年|232年"
+     },
+     {
+      "juan": 20,
+      "book": "魏書",
+      "yl": "太和六年|232年"
+     },
+     {
+      "juan": 20,
+      "book": "魏書",
+      "yl": "太和三年|229年"
+     },
+     {
+      "juan": 20,
+      "book": "魏書",
+      "yl": "太和三年|229年"
+     },
+     {
+      "juan": 21,
+      "book": "魏書",
+      "yl": "太和四年|230年"
+     },
+     {
+      "juan": 26,
+      "book": "魏書",
+      "yl": "太和二年|228年"
+     },
+     {
+      "juan": 26,
+      "book": "魏書",
+      "yl": "太和二年|228年"
+     },
+     {
+      "juan": 26,
+      "book": "魏書",
+      "yl": "太和二年|228年"
+     },
+     {
+      "juan": 30,
+      "book": "魏書",
+      "yl": "太和二年|228年"
+     },
+     {
+      "juan": 30,
+      "book": "魏書",
+      "yl": "太和二年|228年"
+     }
+    ]
+   }
+  ],
+  "ref": [
+   {
+    "start": 227,
+    "end": 233,
+    "regime": "曹魏",
+    "emperor": "魏明帝曹叡",
+    "years": "7年",
+    "period_raw": "227年－233年正月",
+    "note": "",
+    "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E6%9B%B9%E9%AD%8F"
+   },
+   {
+    "start": 366,
+    "end": 371,
+    "regime": "东晋",
+    "emperor": "晉海西公司馬奕",
+    "years": "6年",
+    "period_raw": "366年－371年十一月",
+    "note": "",
+    "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E6%9D%B1%E6%99%89"
+   }
+  ],
+  "by_regime": {
+   "曹魏": 227,
+   "东晋": 366
+  },
+  "verified": true
+ },
+ "太安": {
+  "start": 302,
+  "status": "ok",
+  "uses": 1,
+  "books": [
+   "魏書"
+  ],
+  "candidates": [
+   {
+    "start": 302,
+    "count": 1,
+    "books": [
+     "魏書"
+    ],
+    "evidence": [
+     {
+      "juan": 4,
+      "book": "魏書",
+      "yl": "太安元年|302年"
+     }
+    ]
+   }
+  ],
+  "ref": [
+   {
+    "start": 302,
+    "end": 304,
+    "regime": "西晋",
+    "emperor": "晉惠帝司馬衷",
+    "years": "3年",
+    "period_raw": "302年十二月－304年正月",
+    "note": "或作大安。",
+    "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E8%A5%BF%E6%99%89"
+   }
+  ],
+  "by_regime": {
+   "西晋": 302
+  },
+  "verified": true
+ },
+ "太平": {
+  "start": 256,
+  "status": "ok",
+  "uses": 11,
+  "books": [
+   "吳書"
+  ],
+  "candidates": [
+   {
+    "start": 256,
+    "count": 11,
+    "books": [
+     "吳書"
+    ],
+    "evidence": [
+     {
+      "juan": 48,
+      "book": "吳書",
+      "yl": "太平元年|256年"
+     },
+     {
+      "juan": 55,
+      "book": "吳書",
+      "yl": "太平二年|257年"
+     },
+     {
+      "juan": 56,
+      "book": "吳書",
+      "yl": "太平二年|257年"
+     },
+     {
+      "juan": 56,
+      "book": "吳書",
+      "yl": "太平元年|256年"
+     },
+     {
+      "juan": 56,
+      "book": "吳書",
+      "yl": "太平二年|257年"
+     },
+     {
+      "juan": 57,
+      "book": "吳書",
+      "yl": "太平三年|258年"
+     },
+     {
+      "juan": 58,
+      "book": "吳書",
+      "yl": "太平二年|257年"
+     },
+     {
+      "juan": 59,
+      "book": "吳書",
+      "yl": "太平二年|257年"
+     },
+     {
+      "juan": 59,
+      "book": "吳書",
+      "yl": "太平三年|258年"
+     },
+     {
+      "juan": 60,
+      "book": "吳書",
+      "yl": "太平元年|256年"
+     },
+     {
+      "juan": 60,
+      "book": "吳書",
+      "yl": "太平二年|257年"
+     }
+    ]
+   }
+  ],
+  "ref": [
+   {
+    "start": 256,
+    "end": 258,
+    "regime": "孫吳",
+    "emperor": "吳會稽王孫亮",
+    "years": "3年",
+    "period_raw": "256年十月－258年十月",
+    "note": "",
+    "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E5%AD%AB%E5%90%B3"
+   }
+  ],
+  "by_regime": {
+   "孙吴": 256
+  },
+  "verified": true
+ },
+ "太康": {
+  "start": 280,
+  "status": "ref",
+  "uses": 9,
+  "books": [
+   "吳書",
+   "魏書"
+  ],
+  "candidates": [],
+  "ref": [
+   {
+    "start": 280,
+    "end": 289,
+    "years": "10年",
+    "regime": "西晋",
+    "emperor": "晋武帝司馬炎",
+    "period_raw": "280年四月－289年",
+    "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E8%A5%BF%E6%99%89"
+   }
+  ],
+  "by_regime": {
+   "西晋": 280
+  }
+ },
+ "太熙": {
+  "start": 290,
+  "status": "ref",
+  "uses": 1,
+  "books": [
+   "吳書"
+  ],
+  "candidates": [],
+  "ref": [
+   {
+    "start": 290,
+    "end": 290,
+    "years": "1年",
+    "regime": "西晋",
+    "emperor": "晋武帝司馬炎",
+    "period_raw": "290年正月－四月",
+    "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E8%A5%BF%E6%99%89"
+   }
+  ],
+  "by_regime": {
+   "西晋": 290
+  }
+ },
+ "太興": {
+  "start": 318,
+  "status": "ref",
+  "uses": 1,
+  "books": [
+   "吳書"
+  ],
+  "candidates": [],
+  "ref": [
+   {
+    "start": 318,
+    "end": 321,
+    "years": "4年",
+    "regime": "东晋",
+    "emperor": "晉元帝司馬睿",
+    "period_raw": "318年三月－321年",
+    "note": "来源表正名作“大兴”，备注“或作太兴”。",
+    "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E6%9D%B1%E6%99%89"
+   }
+  ],
+  "by_regime": {
+   "东晋": 318
+  }
+ },
+ "寶鼎": {
+  "start": 266,
+  "status": "ref",
+  "uses": 6,
+  "books": [
+   "吳書"
+  ],
+  "candidates": [],
+  "ref": [
+   {
+    "start": 266,
+    "end": 269,
+    "years": "4年",
+    "regime": "孫吳",
+    "emperor": "吳末帝孙皓",
+    "period_raw": "266年八月－269年九月",
+    "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E5%AD%AB%E5%90%B3"
+   }
+  ],
+  "by_regime": {
+   "孙吴": 266
+  }
+ },
+ "延光": {
+  "start": 122,
+  "status": "ref",
+  "uses": 2,
+  "books": [
+   "蜀書",
+   "魏書"
+  ],
+  "candidates": [],
+  "ref": [
+   {
+    "start": 122,
+    "end": 125,
+    "years": "4年",
+    "regime": "东汉",
+    "emperor": "汉安帝劉祜",
+    "period_raw": "122年三月－125年",
+    "note": "延光四年（125年）三月北乡侯刘懿即位沿用；同年十一月汉顺帝即位沿用。",
+    "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E6%9D%B1%E6%BC%A2"
+   }
+  ],
+  "by_regime": {
+   "东汉": 122
+  }
+ },
+ "延康": {
+  "start": 220,
+  "status": "ok",
+  "uses": 10,
+  "books": [
+   "吳書",
+   "魏書"
+  ],
+  "candidates": [
+   {
+    "start": 220,
+    "count": 9,
+    "books": [
+     "吳書",
+     "魏書"
+    ],
+    "evidence": [
+     {
+      "juan": 2,
+      "book": "魏書",
+      "yl": "延康元年|220年"
+     },
+     {
+      "juan": 2,
+      "book": "魏書",
+      "yl": "延康元年|220年"
+     },
+     {
+      "juan": 3,
+      "book": "魏書",
+      "yl": "延康元年|220年"
+     },
+     {
+      "juan": 5,
+      "book": "魏書",
+      "yl": "延康元年|220年"
+     },
+     {
+      "juan": 12,
+      "book": "魏書",
+      "yl": "延康元年|220年"
+     },
+     {
+      "juan": 21,
+      "book": "魏書",
+      "yl": "延康元年|220年"
+     },
+     {
+      "juan": 23,
+      "book": "魏書",
+      "yl": "延康元年|220年"
+     },
+     {
+      "juan": 52,
+      "book": "吳書",
+      "yl": "延康元年|220年"
+     },
+     {
+      "juan": 60,
+      "book": "吳書",
+      "yl": "延康元年|220年"
+     }
+    ]
+   }
+  ],
+  "ref": [
+   {
+    "start": 220,
+    "end": 220,
+    "regime": "东汉",
+    "emperor": "汉献帝劉協",
+    "years": "1年",
+    "period_raw": "220年三月－十月",
+    "note": "",
+    "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E6%9D%B1%E6%BC%A2"
+   }
+  ],
+  "by_regime": {
+   "东汉": 220
+  },
+  "verified": true
+ },
+ "延熙": {
+  "start": 238,
+  "status": "ok",
+  "uses": 24,
+  "books": [
+   "蜀書"
+  ],
+  "candidates": [
+   {
+    "start": 238,
+    "count": 6,
+    "books": [
+     "蜀書"
+    ],
+    "evidence": [
+     {
+      "juan": 33,
+      "book": "蜀書",
+      "yl": "延熙元年|238年"
+     },
+     {
+      "juan": 34,
+      "book": "蜀書",
+      "yl": "延熙元年|238年"
+     },
+     {
+      "juan": 34,
+      "book": "蜀書",
+      "yl": "延熙元年|238年"
+     },
+     {
+      "juan": 42,
+      "book": "蜀書",
+      "yl": "延熙元年|238年"
+     },
+     {
+      "juan": 43,
+      "book": "蜀書",
+      "yl": "延熙元年|238年"
+     },
+     {
+      "juan": 45,
+      "book": "蜀書",
+      "yl": "延熙元年|238年"
+     }
+    ]
+   }
+  ],
+  "ref": [
+   {
+    "start": 238,
+    "end": 257,
+    "regime": "蜀汉",
+    "emperor": "漢後主刘禅",
+    "years": "20年",
+    "period_raw": "238年－257年",
+    "note": "",
+    "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E8%9C%80%E6%BC%A2"
+   }
+  ],
+  "by_regime": {
+   "蜀汉": 238
+  },
+  "verified": true
+ },
+ "延熹": {
+  "start": 158,
+  "status": "ref",
+  "uses": 2,
+  "books": [
+   "魏書"
+  ],
+  "candidates": [],
+  "ref": [
+   {
+    "start": 158,
+    "end": 167,
+    "years": "10年",
+    "regime": "东汉",
+    "emperor": "汉桓帝劉志",
+    "period_raw": "158年六月－167年六月",
+    "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E6%9D%B1%E6%BC%A2"
+   }
+  ],
+  "by_regime": {
+   "东汉": 158
+  }
+ },
+ "建元": {
+  "start": 343,
+  "status": "ok",
+  "uses": 1,
+  "books": [
+   "魏書"
+  ],
+  "candidates": [
+   {
+    "start": 343,
+    "count": 1,
+    "books": [
+     "魏書"
+    ],
+    "evidence": [
+     {
+      "juan": 21,
+      "book": "魏書",
+      "yl": "建元元年|343年"
+     }
+    ]
+   }
+  ],
+  "ref": [
+   {
+    "start": -140,
+    "end": -135,
+    "regime": "西汉",
+    "emperor": "汉武帝劉徹",
+    "years": "6年",
+    "period_raw": "前140年－前135年",
+    "note": "用亥正。有學者說年號為後來追述，當時以一元紀年。",
+    "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E8%A5%BF%E6%BC%A2"
+   },
+   {
+    "start": 343,
+    "end": 344,
+    "regime": "东晋",
+    "emperor": "晉康帝司馬岳",
+    "years": "2年",
+    "period_raw": "343年－344年",
+    "note": "建元二年（344年）九月晉穆帝即位沿用。",
+    "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E6%9D%B1%E6%99%89"
+   }
+  ],
+  "by_regime": {
+   "西汉": -140,
+   "东晋": 343
+  },
+  "verified": true
+ },
+ "建光": {
+  "start": 121,
+  "status": "ok",
+  "uses": 1,
+  "books": [
+   "魏書"
+  ],
+  "candidates": [
+   {
+    "start": 121,
+    "count": 1,
+    "books": [
+     "魏書"
+    ],
+    "evidence": [
+     {
+      "juan": 8,
+      "book": "魏書",
+      "yl": "建光元年|121年"
+     }
+    ]
+   }
+  ],
+  "ref": [
+   {
+    "start": 121,
+    "end": 122,
+    "regime": "东汉",
+    "emperor": "汉安帝劉祜",
+    "years": "2年",
+    "period_raw": "121年七月－122年三月",
+    "note": "",
+    "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E6%9D%B1%E6%BC%A2"
+   }
+  ],
+  "by_regime": {
+   "东汉": 121
+  },
+  "verified": true
+ },
+ "建安": {
+  "start": 196,
+  "status": "ref",
+  "uses": 140,
+  "books": [
+   "吳書",
+   "蜀書",
+   "魏書"
+  ],
+  "candidates": [],
+  "ref": [
+   {
+    "start": 196,
+    "end": 220,
+    "years": "25年",
+    "regime": "东汉",
+    "emperor": "汉献帝劉協",
+    "period_raw": "196年正月－220年二月",
+    "note": "劉備、孫權仍行漢建安年號。",
+    "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E6%9D%B1%E6%BC%A2"
+   }
+  ],
+  "by_regime": {
+   "东汉": 196
+  }
+ },
+ "建寧": {
+  "start": 168,
+  "status": "ref",
+  "uses": 1,
+  "books": [
+   "魏書"
+  ],
+  "candidates": [],
+  "ref": [
+   {
+    "start": 168,
+    "end": 172,
+    "years": "5年",
+    "regime": "东汉",
+    "emperor": "汉灵帝劉宏",
+    "period_raw": "168年正月－172年五月",
+    "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E6%9D%B1%E6%BC%A2"
+   }
+  ],
+  "by_regime": {
+   "东汉": 168
+  }
+ },
+ "建康": {
+  "start": 144,
+  "status": "ref",
+  "uses": 1,
+  "books": [
+   "蜀書"
+  ],
+  "candidates": [],
+  "ref": [
+   {
+    "start": 144,
+    "end": 144,
+    "years": "1年",
+    "regime": "东汉",
+    "emperor": "汉顺帝劉保",
+    "period_raw": "144年四月－十二月",
+    "note": "建康元年（144年）八月汉冲帝即位沿用。",
+    "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E6%9D%B1%E6%BC%A2"
+   }
+  ],
+  "by_regime": {
+   "东汉": 144
+  }
+ },
+ "建武": {
+  "start": 25,
+  "status": "ok",
+  "uses": 3,
+  "books": [
+   "魏書"
+  ],
+  "candidates": [
+   {
+    "start": 25,
+    "count": 1,
+    "books": [
+     "魏書"
+    ],
+    "evidence": [
+     {
+      "juan": 9,
+      "book": "魏書",
+      "yl": "建武九年|33年"
+     }
+    ]
+   }
+  ],
+  "ref": [
+   {
+    "start": 25,
+    "end": 56,
+    "regime": "东汉",
+    "emperor": "汉光武帝劉秀",
+    "years": "32年",
+    "period_raw": "25年六月－56年四月",
+    "note": "",
+    "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E6%9D%B1%E6%BC%A2"
+   },
+   {
+    "start": 304,
+    "end": 304,
+    "regime": "西晋",
+    "emperor": "晉惠帝司馬衷",
+    "years": "1年",
+    "period_raw": "304年七月－十一月",
+    "note": "永安元年（304年）七月改元建武元年，同年十一月复称永安，次月又改元为永興元年。",
+    "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E8%A5%BF%E6%99%89"
+   },
+   {
+    "start": 317,
+    "end": 318,
+    "regime": "东晋",
+    "emperor": "晉元帝司馬睿",
+    "years": "2年",
+    "period_raw": "317年三月－318年三月",
+    "note": "",
+    "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E6%9D%B1%E6%99%89"
+   }
+  ],
+  "by_regime": {
+   "东汉": 25,
+   "西晋": 304,
+   "东晋": 317
+  },
+  "verified": true
+ },
+ "建興": {
+  "start": null,
+  "status": "多政权",
+  "uses": 40,
+  "books": [
+   "吳書",
+   "蜀書"
+  ],
+  "candidates": [
+   {
+    "start": 223,
+    "count": 38,
+    "books": [
+     "蜀書"
+    ],
+    "evidence": [
+     {
+      "juan": 33,
+      "book": "蜀書",
+      "yl": "建興元年|223年"
+     },
+     {
+      "juan": 34,
+      "book": "蜀書",
+      "yl": "建興元年|223年"
+     },
+     {
+      "juan": 34,
+      "book": "蜀書",
+      "yl": "建興元年|223年"
+     },
+     {
+      "juan": 34,
+      "book": "蜀書",
+      "yl": "建興十五年|237年"
+     },
+     {
+      "juan": 34,
+      "book": "蜀書",
+      "yl": "建興八年|230年"
+     },
+     {
+      "juan": 34,
+      "book": "蜀書",
+      "yl": "建興八年|230年"
+     },
+     {
+      "juan": 35,
+      "book": "蜀書",
+      "yl": "建興元年|223年"
+     },
+     {
+      "juan": 35,
+      "book": "蜀書",
+      "yl": "建興十二年|234年"
+     },
+     {
+      "juan": 36,
+      "book": "蜀書",
+      "yl": "建興元年|223年"
+     },
+     {
+      "juan": 38,
+      "book": "蜀書",
+      "yl": "建興二年|224年"
+     },
+     {
+      "juan": 39,
+      "book": "蜀書",
+      "yl": "建興三年|225年"
+     },
+     {
+      "juan": 39,
+      "book": "蜀書",
+      "yl": "建興六年|228年"
+     },
+     {
+      "juan": 39,
+      "book": "蜀書",
+      "yl": "建興三年|225年"
+     },
+     {
+      "juan": 40,
+      "book": "蜀書",
+      "yl": "建興十年|232年"
+     },
+     {
+      "juan": 40,
+      "book": "蜀書",
+      "yl": "建興元年|223年"
+     },
+     {
+      "juan": 40,
+      "book": "蜀書",
+      "yl": "建興三年|225年"
+     },
+     {
+      "juan": 41,
+      "book": "蜀書",
+      "yl": "建興六年|228年"
+     },
+     {
+      "juan": 41,
+      "book": "蜀書",
+      "yl": "建興元年|223年"
+     },
+     {
+      "juan": 41,
+      "book": "蜀書",
+      "yl": "建興八年|230年"
+     },
+     {
+      "juan": 41,
+      "book": "蜀書",
+      "yl": "建興元年|223年"
+     },
+     {
+      "juan": 41,
+      "book": "蜀書",
+      "yl": "建興三年|225年"
+     },
+     {
+      "juan": 42,
+      "book": "蜀書",
+      "yl": "建興二年|224年"
+     },
+     {
+      "juan": 43,
+      "book": "蜀書",
+      "yl": "建興七年|229年"
+     },
+     {
+      "juan": 43,
+      "book": "蜀書",
+      "yl": "建興元年|223年"
+     },
+     {
+      "juan": 43,
+      "book": "蜀書",
+      "yl": "建興六年|228年"
+     },
+     {
+      "juan": 43,
+      "book": "蜀書",
+      "yl": "建興五年|227年"
+     },
+     {
+      "juan": 44,
+      "book": "蜀書",
+      "yl": "建興元年|223年"
+     },
+     {
+      "juan": 44,
+      "book": "蜀書",
+      "yl": "建興八年|230年"
+     },
+     {
+      "juan": 44,
+      "book": "蜀書",
+      "yl": "建興六年|228年"
+     },
+     {
+      "juan": 45,
+      "book": "蜀書",
+      "yl": "建興九年|231年"
+     },
+     {
+      "juan": 45,
+      "book": "蜀書",
+      "yl": "建興元年|223年"
+     },
+     {
+      "juan": 45,
+      "book": "蜀書",
+      "yl": "建興八年|230年"
+     },
+     {
+      "juan": 45,
+      "book": "蜀書",
+      "yl": "建興元年|223年"
+     },
+     {
+      "juan": 45,
+      "book": "蜀書",
+      "yl": "建興六年|228年"
+     },
+     {
+      "juan": 45,
+      "book": "蜀書",
+      "yl": "建興元年|223年"
+     },
+     {
+      "juan": 45,
+      "book": "蜀書",
+      "yl": "建興元年|223年"
+     },
+     {
+      "juan": 45,
+      "book": "蜀書",
+      "yl": "建興三年|225年"
+     },
+     {
+      "juan": 45,
+      "book": "蜀書",
+      "yl": "建興十五年|237年"
+     }
+    ]
+   },
+   {
+    "start": 252,
+    "count": 2,
+    "books": [
+     "吳書"
+    ],
+    "evidence": [
+     {
+      "juan": 56,
+      "book": "吳書",
+      "yl": "建興元年|252年"
+     },
+     {
+      "juan": 64,
+      "book": "吳書",
+      "yl": "建興元年|252年"
+     }
+    ]
+   }
+  ],
+  "ref": [
+   {
+    "start": 223,
+    "end": 237,
+    "years": "15年",
+    "regime": "蜀汉",
+    "emperor": "漢後主刘禅",
+    "period_raw": "223年五月－237年",
+    "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E8%9C%80%E6%BC%A2"
+   },
+   {
+    "start": 252,
+    "end": 253,
+    "years": "2年",
+    "regime": "孫吳",
+    "emperor": "吳會稽王孫亮",
+    "period_raw": "252年四月－253年",
+    "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E5%AD%AB%E5%90%B3"
+   },
+   {
+    "start": 313,
+    "end": 317,
+    "years": "5年",
+    "regime": "西晋",
+    "emperor": "晋愍帝司馬鄴",
+    "period_raw": "313年四月－317年三月",
+    "note": "也有只记到晉愍帝投降前赵时的建兴四年。 前凉沿用该年号。",
+    "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E8%A5%BF%E6%99%89"
+   }
+  ],
+  "by_regime": {
+   "蜀汉": 223,
+   "孙吴": 252,
+   "西晋": 313
+  }
+ },
+ "建衡": {
+  "start": 269,
+  "status": "ref",
+  "uses": 9,
+  "books": [
+   "吳書"
+  ],
+  "candidates": [],
+  "ref": [
+   {
+    "start": 269,
+    "end": 271,
+    "years": "3年",
+    "regime": "孫吳",
+    "emperor": "吳末帝孙皓",
+    "period_raw": "269年十月－271年",
+    "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E5%AD%AB%E5%90%B3"
+   }
+  ],
+  "by_regime": {
+   "孙吴": 269
+  }
+ },
+ "景元": {
+  "start": 260,
+  "status": "ref",
+  "uses": 16,
+  "books": [
+   "蜀書",
+   "魏書"
+  ],
+  "candidates": [],
+  "ref": [
+   {
+    "start": 260,
+    "end": 264,
+    "years": "5年",
+    "regime": "曹魏",
+    "emperor": "魏元帝曹奂",
+    "period_raw": "260年六月－264年五月",
+    "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E6%9B%B9%E9%AD%8F"
+   }
+  ],
+  "by_regime": {
+   "曹魏": 260
+  }
+ },
+ "景初": {
+  "start": 237,
+  "status": "ref",
+  "uses": 25,
+  "books": [
+   "吳書",
+   "蜀書",
+   "魏書"
+  ],
+  "candidates": [],
+  "ref": [
+   {
+    "start": 237,
+    "end": 239,
+    "years": "3年",
+    "regime": "曹魏",
+    "emperor": "魏明帝曹叡",
+    "period_raw": "237年四月－239年",
+    "note": "從元年起用丑正，改青龍四年三月為景初元年四月。景初三年（239年）正月齐王曹芳即位沿用。",
+    "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E6%9B%B9%E9%AD%8F"
+   }
+  ],
+  "by_regime": {
+   "曹魏": 237
+  }
+ },
+ "景耀": {
+  "start": 258,
+  "status": "ref",
+  "uses": 16,
+  "books": [
+   "蜀書"
+  ],
+  "candidates": [],
+  "ref": [
+   {
+    "start": 258,
+    "end": 263,
+    "years": "6年",
+    "regime": "蜀汉",
+    "emperor": "漢後主刘禅",
+    "period_raw": "258年－263年七月",
+    "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E8%9C%80%E6%BC%A2"
+   }
+  ],
+  "by_regime": {
+   "蜀汉": 258
+  }
+ },
+ "正元": {
+  "start": 254,
+  "status": "ref",
+  "uses": 10,
+  "books": [
+   "魏書"
+  ],
+  "candidates": [],
+  "ref": [
+   {
+    "start": 254,
+    "end": 256,
+    "years": "3年",
+    "regime": "曹魏",
+    "emperor": "魏高貴鄉公曹髦",
+    "period_raw": "254年十月－256年五月",
+    "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E6%9B%B9%E9%AD%8F"
+   }
+  ],
+  "by_regime": {
+   "曹魏": 254
+  }
+ },
+ "正始": {
+  "start": 240,
+  "status": "ok",
+  "uses": 31,
+  "books": [
+   "吳書",
+   "魏書"
+  ],
+  "candidates": [
+   {
+    "start": 240,
+    "count": 22,
+    "books": [
+     "吳書",
+     "魏書"
+    ],
+    "evidence": [
+     {
+      "juan": 4,
+      "book": "魏書",
+      "yl": "正始元年|240年"
+     },
+     {
+      "juan": 4,
+      "book": "魏書",
+      "yl": "正始五年|244年"
+     },
+     {
+      "juan": 4,
+      "book": "魏書",
+      "yl": "正始三年|242年"
+     },
+     {
+      "juan": 9,
+      "book": "魏書",
+      "yl": "正始五年|244年"
+     },
+     {
+      "juan": 9,
+      "book": "魏書",
+      "yl": "正始五年|244年"
+     },
+     {
+      "juan": 11,
+      "book": "魏書",
+      "yl": "正始二年|241年"
+     },
+     {
+      "juan": 11,
+      "book": "魏書",
+      "yl": "正始元年|240年"
+     },
+     {
+      "juan": 13,
+      "book": "魏書",
+      "yl": "正始元年|240年"
+     },
+     {
+      "juan": 14,
+      "book": "魏書",
+      "yl": "正始元年|240年"
+     },
+     {
+      "juan": 15,
+      "book": "魏書",
+      "yl": "正始二年|241年"
+     },
+     {
+      "juan": 20,
+      "book": "魏書",
+      "yl": "正始三年|242年"
+     },
+     {
+      "juan": 20,
+      "book": "魏書",
+      "yl": "正始三年|242年"
+     },
+     {
+      "juan": 23,
+      "book": "魏書",
+      "yl": "正始四年|243年"
+     },
+     {
+      "juan": 23,
+      "book": "魏書",
+      "yl": "正始五年|244年"
+     },
+     {
+      "juan": 24,
+      "book": "魏書",
+      "yl": "正始五年|244年"
+     },
+     {
+      "juan": 26,
+      "book": "魏書",
+      "yl": "正始三年|242年"
+     },
+     {
+      "juan": 26,
+      "book": "魏書",
+      "yl": "正始元年|240年"
+     },
+     {
+      "juan": 27,
+      "book": "魏書",
+      "yl": "正始元年|240年"
+     },
+     {
+      "juan": 28,
+      "book": "魏書",
+      "yl": "正始二年|241年"
+     },
+     {
+      "juan": 30,
+      "book": "魏書",
+      "yl": "正始三年|242年"
+     },
+     {
+      "juan": 56,
+      "book": "吳書",
+      "yl": "正始二年|241年"
+     },
+     {
+      "juan": 56,
+      "book": "吳書",
+      "yl": "正始三年|242年"
+     }
+    ]
+   }
+  ],
+  "ref": [
+   {
+    "start": 240,
+    "end": 249,
+    "regime": "曹魏",
+    "emperor": "魏齊王曹芳",
+    "years": "10年",
+    "period_raw": "240年－249年四月",
+    "note": "復寅正。",
+    "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E6%9B%B9%E9%AD%8F"
+   }
+  ],
+  "by_regime": {
+   "曹魏": 240
+  },
+  "verified": true
+ },
+ "永初": {
+  "start": 107,
+  "status": "ok",
+  "uses": 1,
+  "books": [
+   "魏書"
+  ],
+  "candidates": [
+   {
+    "start": 107,
+    "count": 1,
+    "books": [
+     "魏書"
+    ],
+    "evidence": [
+     {
+      "juan": 12,
+      "book": "魏書",
+      "yl": "永初三年|109年"
+     }
+    ]
+   }
+  ],
+  "ref": [
+   {
+    "start": 107,
+    "end": 113,
+    "regime": "东汉",
+    "emperor": "汉安帝劉祜",
+    "years": "7年",
+    "period_raw": "107年－113年",
+    "note": "",
+    "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E6%9D%B1%E6%BC%A2"
+   }
+  ],
+  "by_regime": {
+   "东汉": 107
+  },
+  "verified": true
+ },
+ "永和": {
+  "start": 345,
+  "status": "ok",
+  "uses": 4,
+  "books": [
+   "蜀書",
+   "魏書"
+  ],
+  "candidates": [
+   {
+    "start": 345,
+    "count": 4,
+    "books": [
+     "蜀書",
+     "魏書"
+    ],
+    "evidence": [
+     {
+      "juan": 22,
+      "book": "魏書",
+      "yl": "永和六年|350年"
+     },
+     {
+      "juan": 34,
+      "book": "蜀書",
+      "yl": "永和三年|347年"
+     },
+     {
+      "juan": 35,
+      "book": "蜀書",
+      "yl": "永和三年|347年"
+     },
+     {
+      "juan": 42,
+      "book": "蜀書",
+      "yl": "永和三年|347年"
+     }
+    ]
+   }
+  ],
+  "ref": [
+   {
+    "start": 136,
+    "end": 141,
+    "regime": "东汉",
+    "emperor": "汉顺帝劉保",
+    "years": "6年",
+    "period_raw": "136年正月－141年",
+    "note": "",
+    "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E6%9D%B1%E6%BC%A2"
+   },
+   {
+    "start": 345,
+    "end": 356,
+    "regime": "东晋",
+    "emperor": "晉穆帝司馬聃",
+    "years": "12年",
+    "period_raw": "345年－356年",
+    "note": "",
+    "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E6%9D%B1%E6%99%89"
+   }
+  ],
+  "by_regime": {
+   "东汉": 136,
+   "东晋": 345
+  },
+  "verified": true
+ },
+ "永嘉": {
+  "start": null,
+  "status": "多政权",
+  "uses": 1,
+  "books": [
+   "蜀書"
+  ],
+  "candidates": [],
+  "ref": [
+   {
+    "start": 145,
+    "end": 145,
+    "years": "1年",
+    "regime": "东汉",
+    "emperor": "汉冲帝劉炳",
+    "period_raw": "145年",
+    "note": "或作永熹、永憙，袁宏《後漢紀》誤作元嘉。清代以來學者多從「永憙」說，有人根據宋代文獻及出土的金石銘文，認為作「永嘉」不誤。 永嘉元年（145年）正月汉质帝即位沿用。",
+    "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E6%9D%B1%E6%BC%A2"
+   },
+   {
+    "start": 307,
+    "end": 313,
+    "years": "7年",
+    "regime": "西晋",
+    "emperor": "晋怀帝司馬熾",
+    "period_raw": "307年－313年四月",
+    "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E8%A5%BF%E6%99%89"
+   }
+  ],
+  "by_regime": {
+   "东汉": 145,
+   "西晋": 307
+  }
+ },
+ "永安": {
+  "start": null,
+  "status": "多政权",
+  "uses": 11,
+  "books": [
+   "吳書"
+  ],
+  "candidates": [
+   {
+    "start": 258,
+    "count": 10,
+    "books": [
+     "吳書"
+    ],
+    "evidence": [
+     {
+      "juan": 48,
+      "book": "吳書",
+      "yl": "永安元年|258年"
+     },
+     {
+      "juan": 48,
+      "book": "吳書",
+      "yl": "永安二年|259年"
+     },
+     {
+      "juan": 50,
+      "book": "吳書",
+      "yl": "永安五年|262年"
+     },
+     {
+      "juan": 52,
+      "book": "吳書",
+      "yl": "永安元年|258年"
+     },
+     {
+      "juan": 55,
+      "book": "吳書",
+      "yl": "永安二年|259年"
+     },
+     {
+      "juan": 58,
+      "book": "吳書",
+      "yl": "永安二年|259年"
+     },
+     {
+      "juan": 60,
+      "book": "吳書",
+      "yl": "永安六年|263年"
+     },
+     {
+      "juan": 61,
+      "book": "吳書",
+      "yl": "永安元年|258年"
+     },
+     {
+      "juan": 64,
+      "book": "吳書",
+      "yl": "永安元年|258年"
+     },
+     {
+      "juan": 64,
+      "book": "吳書",
+      "yl": "永安三年|260年"
+     }
+    ]
+   },
+   {
+    "start": 304,
+    "count": 1,
+    "books": [
+     "吳書"
+    ],
+    "evidence": [
+     {
+      "juan": 51,
+      "book": "吳書",
+      "yl": "永安元年|304年"
+     }
+    ]
+   }
+  ],
+  "ref": [
+   {
+    "start": 258,
+    "end": 264,
+    "years": "7年",
+    "regime": "孫吳",
+    "emperor": "吳景帝孫休",
+    "period_raw": "258年十月－264年六月",
+    "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E5%AD%AB%E5%90%B3"
+   },
+   {
+    "start": 304,
+    "end": 304,
+    "years": "1年",
+    "regime": "西晋",
+    "emperor": "晉惠帝司馬衷",
+    "period_raw": "304年正月－十二月",
+    "note": "永安元年（304年）七月改元建武元年，同年十一月复称永安，次月又改元为永興元年。",
+    "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E8%A5%BF%E6%99%89"
+   }
+  ],
+  "by_regime": {
+   "孙吴": 258,
+   "西晋": 304
+  }
+ },
+ "永寧": {
+  "start": 301,
+  "status": "ok",
+  "uses": 1,
+  "books": [
+   "吳書"
+  ],
+  "candidates": [
+   {
+    "start": 301,
+    "count": 1,
+    "books": [
+     "吳書"
+    ],
+    "evidence": [
+     {
+      "juan": 51,
+      "book": "吳書",
+      "yl": "永寧元年|301年"
+     }
+    ]
+   }
+  ],
+  "ref": [
+   {
+    "start": 120,
+    "end": 121,
+    "regime": "东汉",
+    "emperor": "汉安帝劉祜",
+    "years": "2年",
+    "period_raw": "120年四月－121年六月",
+    "note": "表中写作「永宁」，按繁简/异体字形归一匹配（永寧）。",
+    "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E6%9D%B1%E6%BC%A2"
+   },
+   {
+    "start": 301,
+    "end": 302,
+    "regime": "西晋",
+    "emperor": "晉惠帝司馬衷",
+    "years": "2年",
+    "period_raw": "301年四月－302年十一月",
+    "note": "表中写作「永宁」，按繁简/异体字形归一匹配（永寧）。",
+    "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E8%A5%BF%E6%99%89"
+   }
+  ],
+  "by_regime": {
+   "东汉": 120,
+   "西晋": 301
+  },
+  "verified": true
+ },
+ "永康": {
+  "start": 167,
+  "status": "ok",
+  "uses": 1,
+  "books": [
+   "蜀書"
+  ],
+  "candidates": [
+   {
+    "start": 167,
+    "count": 1,
+    "books": [
+     "蜀書"
+    ],
+    "evidence": [
+     {
+      "juan": 31,
+      "book": "蜀書",
+      "yl": "永康元年|167年"
+     }
+    ]
+   }
+  ],
+  "ref": [
+   {
+    "start": 167,
+    "end": 167,
+    "regime": "东汉",
+    "emperor": "汉桓帝劉志",
+    "years": "1年",
+    "period_raw": "167年六月－十二月",
+    "note": "",
+    "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E6%9D%B1%E6%BC%A2"
+   },
+   {
+    "start": 300,
+    "end": 301,
+    "regime": "西晋",
+    "emperor": "晉惠帝司馬衷",
+    "years": "2年",
+    "period_raw": "300年－301年四月",
+    "note": "",
+    "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E8%A5%BF%E6%99%89"
+   }
+  ],
+  "by_regime": {
+   "东汉": 167,
+   "西晋": 300
+  },
+  "verified": true
+ },
+ "永建": {
+  "start": 126,
+  "status": "ref",
+  "uses": 2,
+  "books": [
+   "吳書"
+  ],
+  "candidates": [],
+  "ref": [
+   {
+    "start": 126,
+    "end": 132,
+    "years": "7年",
+    "regime": "东汉",
+    "emperor": "汉顺帝劉保",
+    "period_raw": "126年－132年三月",
+    "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E6%9D%B1%E6%BC%A2"
+   }
+  ],
+  "by_regime": {
+   "东汉": 126
+  }
+ },
+ "永漢": {
+  "start": 189,
+  "status": "ok",
+  "uses": 1,
+  "books": [
+   "魏書"
+  ],
+  "candidates": [
+   {
+    "start": 189,
+    "count": 1,
+    "books": [
+     "魏書"
+    ],
+    "evidence": [
+     {
+      "juan": 10,
+      "book": "魏書",
+      "yl": "永漢元年|189年"
+     }
+    ]
+   }
+  ],
+  "ref": [
+   {
+    "start": 189,
+    "end": 189,
+    "regime": "东汉",
+    "emperor": "汉献帝劉協",
+    "years": "1年",
+    "period_raw": "189年九月－十二月",
+    "note": "表中写作「永汉」，按繁简/异体字形归一匹配（永漢）。",
+    "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E6%9D%B1%E6%BC%A2"
+   }
+  ],
+  "by_regime": {
+   "东汉": 189
+  },
+  "verified": true
+ },
+ "永興": {
+  "start": 304,
+  "status": "ok",
+  "uses": 1,
+  "books": [
+   "吳書"
+  ],
+  "candidates": [
+   {
+    "start": 304,
+    "count": 1,
+    "books": [
+     "吳書"
+    ],
+    "evidence": [
+     {
+      "juan": 51,
+      "book": "吳書",
+      "yl": "永興元年|304年"
+     }
+    ]
+   }
+  ],
+  "ref": [
+   {
+    "start": 153,
+    "end": 154,
+    "regime": "东汉",
+    "emperor": "汉桓帝劉志",
+    "years": "2年",
+    "period_raw": "153年五月－154年",
+    "note": "表中写作「永兴」，按繁简/异体字形归一匹配（永興）。",
+    "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E6%9D%B1%E6%BC%A2"
+   },
+   {
+    "start": 304,
+    "end": 306,
+    "regime": "西晋",
+    "emperor": "晉惠帝司馬衷",
+    "years": "3年",
+    "period_raw": "304年十二月－306年六月",
+    "note": "表中写作「永兴」，按繁简/异体字形归一匹配（永興）。",
+    "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E8%A5%BF%E6%99%89"
+   }
+  ],
+  "by_regime": {
+   "东汉": 153,
+   "西晋": 304
+  },
+  "verified": true
+ },
+ "泰始": {
+  "start": 265,
+  "status": "ok",
+  "uses": 16,
+  "books": [
+   "蜀書",
+   "魏書"
+  ],
+  "candidates": [
+   {
+    "start": 265,
+    "count": 13,
+    "books": [
+     "蜀書",
+     "魏書"
+    ],
+    "evidence": [
+     {
+      "juan": 3,
+      "book": "魏書",
+      "yl": "泰始三年|267年"
+     },
+     {
+      "juan": 3,
+      "book": "魏書",
+      "yl": "泰始二年|266年"
+     },
+     {
+      "juan": 9,
+      "book": "魏書",
+      "yl": "泰始二年|266年"
+     },
+     {
+      "juan": 16,
+      "book": "魏書",
+      "yl": "泰始七年|271年"
+     },
+     {
+      "juan": 18,
+      "book": "魏書",
+      "yl": "泰始四年|268年"
+     },
+     {
+      "juan": 20,
+      "book": "魏書",
+      "yl": "泰始二年|266年"
+     },
+     {
+      "juan": 21,
+      "book": "魏書",
+      "yl": "泰始五年|269年"
+     },
+     {
+      "juan": 23,
+      "book": "魏書",
+      "yl": "泰始七年|271年"
+     },
+     {
+      "juan": 25,
+      "book": "魏書",
+      "yl": "泰始五年|269年"
+     },
+     {
+      "juan": 28,
+      "book": "魏書",
+      "yl": "泰始元年|265年"
+     },
+     {
+      "juan": 33,
+      "book": "蜀書",
+      "yl": "泰始七年|271年"
+     },
+     {
+      "juan": 41,
+      "book": "蜀書",
+      "yl": "泰始元年|265年"
+     },
+     {
+      "juan": 42,
+      "book": "蜀書",
+      "yl": "泰始三年|267年"
+     }
+    ]
+   }
+  ],
+  "ref": [
+   {
+    "start": 265,
+    "end": 274,
+    "regime": "西晋",
+    "emperor": "晋武帝司馬炎",
+    "years": "10年",
+    "period_raw": "265年十二月－274年",
+    "note": "",
+    "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E8%A5%BF%E6%99%89"
+   }
+  ],
+  "by_regime": {
+   "西晋": 265
+  },
+  "verified": true
+ },
+ "漢安": {
+  "start": 142,
+  "status": "ref",
+  "uses": 1,
+  "books": [
+   "蜀書"
+  ],
+  "candidates": [],
+  "ref": [
+   {
+    "start": 142,
+    "end": 144,
+    "years": "3年",
+    "regime": "东汉",
+    "emperor": "汉顺帝劉保",
+    "period_raw": "142年正月－144年四月",
+    "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E6%9D%B1%E6%BC%A2"
+   }
+  ],
+  "by_regime": {
+   "东汉": 142
+  }
+ },
+ "熹平": {
+  "start": 172,
+  "status": "ref",
+  "uses": 3,
+  "books": [
+   "吳書",
+   "魏書"
+  ],
+  "candidates": [],
+  "ref": [
+   {
+    "start": 172,
+    "end": 178,
+    "years": "7年",
+    "regime": "东汉",
+    "emperor": "汉灵帝劉宏",
+    "period_raw": "172年五月－178年三月",
+    "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E6%9D%B1%E6%BC%A2"
+   }
+  ],
+  "by_regime": {
+   "东汉": 172
+  }
+ },
+ "甘露": {
+  "start": null,
+  "status": "多政权",
+  "uses": 16,
+  "books": [
+   "吳書",
+   "魏書"
+  ],
+  "candidates": [
+   {
+    "start": 256,
+    "count": 13,
+    "books": [
+     "吳書",
+     "魏書"
+    ],
+    "evidence": [
+     {
+      "juan": 4,
+      "book": "魏書",
+      "yl": "甘露元年|256年"
+     },
+     {
+      "juan": 4,
+      "book": "魏書",
+      "yl": "甘露三年|258年"
+     },
+     {
+      "juan": 13,
+      "book": "魏書",
+      "yl": "甘露元年|256年"
+     },
+     {
+      "juan": 15,
+      "book": "魏書",
+      "yl": "甘露二年|257年"
+     },
+     {
+      "juan": 16,
+      "book": "魏書",
+      "yl": "甘露二年|257年"
+     },
+     {
+      "juan": 20,
+      "book": "魏書",
+      "yl": "甘露四年|259年"
+     },
+     {
+      "juan": 22,
+      "book": "魏書",
+      "yl": "甘露二年|257年"
+     },
+     {
+      "juan": 27,
+      "book": "魏書",
+      "yl": "甘露四年|259年"
+     },
+     {
+      "juan": 28,
+      "book": "魏書",
+      "yl": "甘露元年|256年"
+     },
+     {
+      "juan": 28,
+      "book": "魏書",
+      "yl": "甘露元年|256年"
+     },
+     {
+      "juan": 28,
+      "book": "魏書",
+      "yl": "甘露二年|257年"
+     },
+     {
+      "juan": 28,
+      "book": "魏書",
+      "yl": "甘露二年|257年"
+     },
+     {
+      "juan": 48,
+      "book": "吳書",
+      "yl": "甘露三年|258年"
+     }
+    ]
+   },
+   {
+    "start": 265,
+    "count": 3,
+    "books": [
+     "吳書"
+    ],
+    "evidence": [
+     {
+      "juan": 48,
+      "book": "吳書",
+      "yl": "甘露元年|265年"
+     },
+     {
+      "juan": 50,
+      "book": "吳書",
+      "yl": "甘露元年|265年"
+     },
+     {
+      "juan": 65,
+      "book": "吳書",
+      "yl": "甘露二年|266年"
+     }
+    ]
+   }
+  ],
+  "ref": [
+   {
+    "start": -53,
+    "end": -50,
+    "years": "4年",
+    "regime": "西汉",
+    "emperor": "汉宣帝劉詢",
+    "period_raw": "前53年－前50年",
+    "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E8%A5%BF%E6%BC%A2"
+   },
+   {
+    "start": 256,
+    "end": 260,
+    "years": "5年",
+    "regime": "曹魏",
+    "emperor": "魏高貴鄉公曹髦",
+    "period_raw": "256年六月－260年五月",
+    "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E6%9B%B9%E9%AD%8F"
+   },
+   {
+    "start": 265,
+    "end": 266,
+    "years": "2年",
+    "regime": "孫吳",
+    "emperor": "吳末帝孙皓",
+    "period_raw": "265年四月－266年七月",
+    "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E5%AD%AB%E5%90%B3"
+   }
+  ],
+  "by_regime": {
+   "西汉": -53,
+   "曹魏": 256,
+   "孙吴": 265
+  }
+ },
+ "章武": {
+  "start": 221,
+  "status": "ref",
+  "uses": 18,
+  "books": [
+   "蜀書"
+  ],
+  "candidates": [],
+  "ref": [
+   {
+    "start": 221,
+    "end": 223,
+    "years": "3年",
+    "regime": "蜀汉",
+    "emperor": "漢昭烈帝刘备",
+    "period_raw": "221年四月－223年四月",
+    "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E8%9C%80%E6%BC%A2"
+   }
+  ],
+  "by_regime": {
+   "蜀汉": 221
+  }
+ },
+ "興平": {
+  "start": 194,
+  "status": "ok",
+  "uses": 9,
+  "books": [
+   "吳書",
+   "蜀書",
+   "魏書"
+  ],
+  "candidates": [
+   {
+    "start": 194,
+    "count": 7,
+    "books": [
+     "吳書",
+     "蜀書",
+     "魏書"
+    ],
+    "evidence": [
+     {
+      "juan": 1,
+      "book": "魏書",
+      "yl": "興平元年|194年"
+     },
+     {
+      "juan": 6,
+      "book": "魏書",
+      "yl": "興平二年|195年"
+     },
+     {
+      "juan": 7,
+      "book": "魏書",
+      "yl": "興平元年|194年"
+     },
+     {
+      "juan": 8,
+      "book": "魏書",
+      "yl": "興平元年|194年"
+     },
+     {
+      "juan": 10,
+      "book": "魏書",
+      "yl": "興平元年|194年"
+     },
+     {
+      "juan": 31,
+      "book": "蜀書",
+      "yl": "興平元年|194年"
+     },
+     {
+      "juan": 46,
+      "book": "吳書",
+      "yl": "興平元年|194年"
+     }
+    ]
+   }
+  ],
+  "ref": [
+   {
+    "start": 194,
+    "end": 195,
+    "regime": "东汉",
+    "emperor": "汉献帝劉協",
+    "years": "2年",
+    "period_raw": "194年正月－195年",
+    "note": "表中写作「兴平」，按繁简/异体字形归一匹配（興平）。",
+    "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E6%9D%B1%E6%BC%A2"
+   }
+  ],
+  "by_regime": {
+   "东汉": 194
+  },
+  "verified": true
+ },
+ "赤烏": {
+  "start": 238,
+  "status": "ref",
+  "uses": 32,
+  "books": [
+   "吳書"
+  ],
+  "candidates": [],
+  "ref": [
+   {
+    "start": 238,
+    "end": 251,
+    "years": "14年",
+    "regime": "孫吳",
+    "emperor": "吳大帝孙权",
+    "period_raw": "238年八月－251年四月",
+    "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E5%AD%AB%E5%90%B3"
+   }
+  ],
+  "by_regime": {
+   "孙吴": 238
+  }
+ },
+ "陽嘉": {
+  "start": 132,
+  "status": "ref",
+  "uses": 1,
+  "books": [
+   "魏書"
+  ],
+  "candidates": [],
+  "ref": [
+   {
+    "start": 132,
+    "end": 135,
+    "years": "4年",
+    "regime": "东汉",
+    "emperor": "汉顺帝劉保",
+    "period_raw": "132年三月－135年",
+    "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E6%9D%B1%E6%BC%A2"
+   }
+  ],
+  "by_regime": {
+   "东汉": 132
+  }
+ },
+ "陽朔": {
+  "start": -24,
+  "status": "ref",
+  "uses": 1,
+  "books": [
+   "吳書"
+  ],
+  "candidates": [],
+  "ref": [
+   {
+    "start": -24,
+    "end": -21,
+    "years": "4年",
+    "regime": "西汉",
+    "emperor": "汉成帝劉驁",
+    "period_raw": "前24年－前21年",
+    "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E8%A5%BF%E6%BC%A2"
+   }
+  ],
+  "by_regime": {
+   "西汉": -24
+  }
+ },
+ "靑龍": {
+  "start": 233,
+  "status": "ref",
+  "uses": 9,
+  "books": [
+   "魏書"
+  ],
+  "candidates": [],
+  "ref": [
+   {
+    "start": 233,
+    "end": 237,
+    "years": "5年",
+    "regime": "曹魏",
+    "emperor": "魏明帝曹叡",
+    "period_raw": "233年二月－237年三月",
+    "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E6%9B%B9%E9%AD%8F",
+    "note": "“靑龍”“青龙”为同一年号（曹魏明帝青龙）的异体/简体写法。"
+   }
+  ],
+  "by_regime": {
+   "曹魏": 233
+  }
+ },
+ "青龍": {
+  "start": 233,
+  "status": "ok",
+  "uses": 18,
+  "books": [
+   "魏書"
+  ],
+  "candidates": [
+   {
+    "start": 233,
+    "count": 7,
+    "books": [
+     "魏書"
+    ],
+    "evidence": [
+     {
+      "juan": 3,
+      "book": "魏書",
+      "yl": "青龍元年|233年"
+     },
+     {
+      "juan": 3,
+      "book": "魏書",
+      "yl": "青龍五年|237年"
+     },
+     {
+      "juan": 3,
+      "book": "魏書",
+      "yl": "青龍三年|235年"
+     },
+     {
+      "juan": 11,
+      "book": "魏書",
+      "yl": "青龍四年|236年"
+     },
+     {
+      "juan": 26,
+      "book": "魏書",
+      "yl": "青龍元年|233年"
+     },
+     {
+      "juan": 30,
+      "book": "魏書",
+      "yl": "青龍元年|233年"
+     },
+     {
+      "juan": 30,
+      "book": "魏書",
+      "yl": "青龍元年|233年"
+     }
+    ]
+   }
+  ],
+  "ref": [
+   {
+    "start": 233,
+    "end": 237,
+    "regime": "曹魏",
+    "emperor": "魏明帝曹叡",
+    "years": "5年",
+    "period_raw": "233年二月－237年三月",
+    "note": "表中写作「青龙」，按繁简/异体字形归一匹配（青龍）。",
+    "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E6%9B%B9%E9%AD%8F"
+   }
+  ],
+  "by_regime": {
+   "曹魏": 233
+  },
+  "verified": true
+ },
+ "青龙": {
+  "start": 233,
+  "status": "ref",
+  "uses": 1,
+  "books": [
+   "魏書"
+  ],
+  "candidates": [],
+  "ref": [
+   {
+    "start": 233,
+    "end": 237,
+    "years": "5年",
+    "regime": "曹魏",
+    "emperor": "魏明帝曹叡",
+    "period_raw": "233年二月－237年三月",
+    "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E6%9B%B9%E9%AD%8F",
+    "note": "“靑龍”“青龙”为同一年号（曹魏明帝青龙）的异体/简体写法。"
+   }
+  ],
+  "by_regime": {
+   "曹魏": 233
+  }
+ },
+ "鳳凰": {
+  "start": 272,
+  "status": "ref",
+  "uses": 3,
+  "books": [
+   "吳書"
+  ],
+  "candidates": [],
+  "ref": [
+   {
+    "start": 272,
+    "end": 274,
+    "years": "3年",
+    "regime": "孫吳",
+    "emperor": "吳末帝孙皓",
+    "period_raw": "272年－274年",
+    "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E5%AD%AB%E5%90%B3"
+   }
+  ],
+  "by_regime": {
+   "孙吴": 272
+  }
+ },
+ "鳳皇": {
+  "start": 272,
+  "status": "ok",
+  "uses": 3,
+  "books": [
+   "吳書"
+  ],
+  "candidates": [
+   {
+    "start": 272,
+    "count": 1,
+    "books": [
+     "吳書"
+    ],
+    "evidence": [
+     {
+      "juan": 48,
+      "book": "吳書",
+      "yl": "鳳皇元年|272年"
+     }
+    ]
+   }
+  ],
+  "ref": [
+   {
+    "start": 272,
+    "end": 274,
+    "regime": "孫吳",
+    "emperor": "吳末帝孙皓",
+    "years": "3年",
+    "period_raw": "272年－274年",
+    "note": "表中写作「凤凰」，按繁简归一并视「皇」「凰」为异写匹配（鳳皇）。",
+    "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E5%AD%AB%E5%90%B3"
+   }
+  ],
+  "by_regime": {
+   "孙吴": 272
+  },
+  "verified": true
+ },
+ "黃初": {
+  "start": 220,
+  "status": "ref",
+  "uses": 65,
+  "books": [
+   "吳書",
+   "蜀書",
+   "魏書"
+  ],
+  "candidates": [],
+  "ref": [
+   {
+    "start": 220,
+    "end": 226,
+    "years": "7年",
+    "regime": "曹魏",
+    "emperor": "魏文帝曹丕",
+    "period_raw": "220年十月－226年",
+    "note": "黃初七年（226年）五月魏明帝即位沿用。",
+    "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E6%9B%B9%E9%AD%8F"
+   }
+  ],
+  "by_regime": {
+   "曹魏": 220
+  }
+ },
+ "黃武": {
+  "start": 222,
+  "status": "ok",
+  "uses": 19,
+  "books": [
+   "吳書"
+  ],
+  "candidates": [
+   {
+    "start": 222,
+    "count": 1,
+    "books": [
+     "吳書"
+    ],
+    "evidence": [
+     {
+      "juan": 56,
+      "book": "吳書",
+      "yl": "黃武元年|222年"
+     }
+    ]
+   }
+  ],
+  "ref": [
+   {
+    "start": 222,
+    "end": 229,
+    "regime": "孫吳",
+    "emperor": "吳大帝孙权",
+    "years": "8年",
+    "period_raw": "222年十月－229年四月",
+    "note": "表中写作「黄武」，按繁简/异体字形归一匹配（黃武）。",
+    "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E5%AD%AB%E5%90%B3"
+   }
+  ],
+  "by_regime": {
+   "孙吴": 222
+  },
+  "verified": true
+ },
+ "黃龍": {
+  "start": 229,
+  "status": "ok",
+  "uses": 14,
+  "books": [
+   "吳書"
+  ],
+  "candidates": [
+   {
+    "start": 229,
+    "count": 9,
+    "books": [
+     "吳書"
+    ],
+    "evidence": [
+     {
+      "juan": 47,
+      "book": "吳書",
+      "yl": "黃龍元年|229年"
+     },
+     {
+      "juan": 54,
+      "book": "吳書",
+      "yl": "黃龍元年|229年"
+     },
+     {
+      "juan": 55,
+      "book": "吳書",
+      "yl": "黃龍元年|229年"
+     },
+     {
+      "juan": 56,
+      "book": "吳書",
+      "yl": "黃龍元年|229年"
+     },
+     {
+      "juan": 57,
+      "book": "吳書",
+      "yl": "黃龍元年|229年"
+     },
+     {
+      "juan": 58,
+      "book": "吳書",
+      "yl": "黃龍元年|229年"
+     },
+     {
+      "juan": 59,
+      "book": "吳書",
+      "yl": "黃龍元年|229年"
+     },
+     {
+      "juan": 60,
+      "book": "吳書",
+      "yl": "黃龍元年|229年"
+     },
+     {
+      "juan": 64,
+      "book": "吳書",
+      "yl": "黃龍元年|229年"
+     }
+    ]
+   }
+  ],
+  "ref": [
+   {
+    "start": -49,
+    "end": -49,
+    "regime": "西汉",
+    "emperor": "汉宣帝劉詢",
+    "years": "1年",
+    "period_raw": "前49年",
+    "note": "表中写作「黄龙」，按繁简/异体字形归一匹配（黃龍）。 黃龍元年（前49年）十二月漢元帝即位沿用。",
+    "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E8%A5%BF%E6%BC%A2"
+   },
+   {
+    "start": 229,
+    "end": 231,
+    "regime": "孫吳",
+    "emperor": "吳大帝孙权",
+    "years": "3年",
+    "period_raw": "229年四月－231年",
+    "note": "表中写作「黄龙」，按繁简/异体字形归一匹配（黃龍）。",
+    "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E5%AD%AB%E5%90%B3"
+   }
+  ],
+  "by_regime": {
+   "西汉": -49,
+   "孙吴": 229
+  },
+  "verified": true
+ },
+ "黄武": {
+  "start": 222,
+  "status": "ref",
+  "uses": 1,
+  "books": [
+   "吳書"
+  ],
+  "candidates": [],
+  "ref": [
+   {
+    "start": 222,
+    "end": 229,
+    "years": "8年",
+    "regime": "孫吳",
+    "emperor": "吳大帝孙权",
+    "period_raw": "222年十月－229年四月",
+    "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E5%AD%AB%E5%90%B3"
+   }
+  ],
+  "by_regime": {
+   "孙吴": 222
+  }
+ }
+}

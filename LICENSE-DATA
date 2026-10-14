@@ -1,0 +1,35 @@
+数据授权说明
+
+代码按 LICENSE（MIT）授权；下面列出的数据文件（data/ 下的数据、eval/*.jsonl 评测题、海龟汤题库，
+以及 eval-judging 分支里的评测结果）按下面的方式授权。
+
+1. 《三国志》白文 data/sources/sanguozhi/baiwen.jsonl
+   陈寿《三国志》正文和裴松之注是公有领域。白文由维基文库（zh.wikisource.org）的录入去掉标点生成，
+   段落划分沿用该录入；维基文库录入的贡献按 CC BY-SA 4.0 授权（https://creativecommons.org/licenses/by-sa/4.0/），
+   本文件按同一协议提供。
+   来源：维基文库《三國志》各卷页面，revid 见 data/sources/sanguozhi/raw/manifest.json（2026-09 下载）。
+   data/sources/sanguozhi/raw/manifest.json 和 data/sources/sanguozhi/patches.yaml 同此授权。
+   仓库不附带全书的标点版；`uv run python -m ingest.use_wikisource` 会按上述 revid 下载，
+   下载内容的使用和再发布请遵守 CC BY-SA 4.0。下面 5、7 两项里的短摘录带有维基文库录入的标点，见那两项。
+
+2. 年号参考表 data/eras_ref.json
+   由中文维基百科条目"中国年号列表"整理，按 CC BY-SA 4.0 授权。
+
+3. 别名表 data/aliases.json
+   从《三国志》原文整理，每个称呼带出处（源 id 和原文用词），按 CC BY-SA 4.0 授权。
+
+4. 年号表 data/eras.json
+   由原文里的年号统计（卷号、维基文库 YL 模板），并与上面的年号参考表交叉核对，按 CC BY-SA 4.0 授权。
+
+5. 评测题 eval/*.jsonl
+   按 CC BY-SA 4.0 授权。题目说明里的原文摘录：古籍文字本身属公有领域，所带的断句标点来自维基文库录入，
+   按 CC BY-SA 4.0 随本文件提供。
+
+6. 白话译文 data/processed/translations/卷*.jsonl
+   由大模型对照《三国志》原文（正文和裴注）逐段翻译成现代汉语，再对照原文校对和统一称谓；翻译和校对都只对照原文，
+   不参考任何现代译本。在本项目可授权的范围内按 CC BY-SA 4.0 提供；原文和维基文库标点沿用各自来源的说明（见第 1 项）。
+   译文可能有错，引用史实请以原文为准。
+
+7. 海龟汤题库 data/soup/*.jsonl（以及 eval-judging 分支里的评测结果 eval/results/*）
+   题目、汤底、标准问答和评测记录按 CC BY-SA 4.0 授权。其中的原文摘录同第 5 项：古籍文字属公有领域，
+   断句标点来自维基文库录入，按 CC BY-SA 4.0 随本文件提供。

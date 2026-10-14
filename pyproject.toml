@@ -1,0 +1,24 @@
+[project]
+name = "sanguozhi-rag"
+version = "0.1.0"
+description = "基于《三国志》+ 裴注的三国历史问答 RAG / Evidence-grounded Three Kingdoms Q&A over the Sanguozhi with Pei Songzhi's annotations"
+requires-python = ">=3.11"
+dependencies = [
+    "openai>=1.40",
+    "python-dotenv>=1.0",
+    "pyyaml>=6.0",
+    "opencc-python-reimplemented>=0.1.7",
+    "numpy>=2.4.6",
+]
+
+[project.optional-dependencies]
+# 建索引/检索：Mac 和 PC 都能装
+index = [
+    "sentence-transformers>=6.1.0",
+]
+ui = [
+    "gradio>=4.40",
+]
+
+[tool.uv]
+package = false

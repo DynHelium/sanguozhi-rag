@@ -1,0 +1,38 @@
+# 离线测试: 不调大模型, 不下载 bge-m3. 三个系统都跑, 因为代码要在 macOS / Windows / Linux 上都能用.
+# 先按固定 revid 下载维基文库原文并解析切块, 这样用真实数据的测试也会跑 (下载失败时这些测试自己跳过).
+name: tests
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  offline:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    env:
+      PYTHONUTF8: "1"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+      - run: uv sync
+      - run: uv run python -m ingest.use_wikisource
+        continue-on-error: true
+      - run: uv run python -m tests
+
+  # 带真实 bge-m3 的测试: 要下载约 2.3GB 模型, 只在手动触发时跑
+  model:
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    env:
+      ALLOW_MODEL_DOWNLOAD: "1"
+      PYTHONUTF8: "1"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+      - run: uv sync --extra index
+      - run: uv run python -m tests dense

@@ -1,0 +1,19 @@
+.env
+.venv/
+__pycache__/
+*.pyc
+.DS_Store
+
+# 下载和生成的文件（由 ingest.use_wikisource、rag.chunk、rag.dense 生成）
+data/sources/sanguozhi/raw/*.wiki
+data/processed/sanguozhi.jsonl
+data/processed/chunks.jsonl
+data/processed/chunks-trans.jsonl
+data/processed/eval_runs/
+data/index/*
+!data/index/.gitkeep
+
+# 模型缓存
+models/
+*.bin
+*.safetensors

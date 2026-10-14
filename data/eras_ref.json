@@ -1,0 +1,1959 @@
+{
+ "中平": [
+  {
+   "start": 184,
+   "end": 189,
+   "years": "6年",
+   "regime": "东汉",
+   "emperor": "汉灵帝劉宏",
+   "period_raw": "184年十二月－189年三月",
+   "note": "189年九月曾改元永汉，同年十二月董卓以献帝名义下诏废光熹、昭宁、永汉，复称中平六年（来源同表）。",
+   "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E6%9D%B1%E6%BC%A2"
+  }
+ ],
+ "元壽": [
+  {
+   "start": -2,
+   "end": -1,
+   "years": "2年",
+   "regime": "西汉",
+   "emperor": "汉哀帝劉欣",
+   "period_raw": "前2年－前1年",
+   "note": "或作元受。 元壽二年（前1年）九月汉平帝即位沿用。",
+   "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E8%A5%BF%E6%BC%A2"
+  },
+  {
+   "start": null,
+   "end": 1204,
+   "years": "？",
+   "regime": "後大理",
+   "emperor": "大理亨天帝段智廉",
+   "period_raw": "？－1204年",
+   "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E5%8D%97%E8%A9%94%E5%8F%8A%E5%A4%A7%E7%90%86"
+  }
+ ],
+ "元始": [
+  {
+   "start": 1,
+   "end": 5,
+   "years": "5年",
+   "regime": "西汉",
+   "emperor": "汉平帝劉衎",
+   "period_raw": "1年－5年",
+   "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E8%A5%BF%E6%BC%A2"
+  }
+ ],
+ "元封": [
+  {
+   "start": -110,
+   "end": -104,
+   "years": "7年",
+   "regime": "西汉",
+   "emperor": "汉武帝劉徹",
+   "period_raw": "前110年－前104年四月",
+   "note": "用亥正。第一個有詔書的年號。 有學者說年號為後來追述，當時以六元紀年。",
+   "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E8%A5%BF%E6%BC%A2"
+  },
+  {
+   "start": null,
+   "end": null,
+   "years": "？",
+   "regime": "南诏",
+   "emperor": "异牟寻",
+   "period_raw": "？",
+   "note": "雲南昆明圓通寺寺後山石壁大壽字右旁落有「元封元年春正月，奉旨書於崇嵩之石壁」，有學者證實是造假的偽作。",
+   "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E5%8D%97%E8%A9%94%E5%8F%8A%E5%A4%A7%E7%90%86"
+  }
+ ],
+ "元狩": [
+  {
+   "start": -122,
+   "end": -117,
+   "years": "6年",
+   "regime": "西汉",
+   "emperor": "汉武帝劉徹",
+   "period_raw": "前122年－前117年",
+   "note": "用亥正。有學者說年號為後來追述，當時以四元紀年。",
+   "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E8%A5%BF%E6%BC%A2"
+  }
+ ],
+ "元鼎": [
+  {
+   "start": -116,
+   "end": -111,
+   "years": "6年",
+   "regime": "西汉",
+   "emperor": "汉武帝劉徹",
+   "period_raw": "前116年－前111年",
+   "note": "用亥正。有學者說年號為後來追述，當時以五元紀年。",
+   "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E8%A5%BF%E6%BC%A2"
+  }
+ ],
+ "光和": [
+  {
+   "start": 178,
+   "end": 184,
+   "years": "7年",
+   "regime": "东汉",
+   "emperor": "汉灵帝劉宏",
+   "period_raw": "178年三月－184年",
+   "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E6%9D%B1%E6%BC%A2"
+  }
+ ],
+ "咸寧": [
+  {
+   "start": 275,
+   "end": 280,
+   "years": "6年",
+   "regime": "西晋",
+   "emperor": "晋武帝司馬炎",
+   "period_raw": "275年－280年四月",
+   "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E8%A5%BF%E6%99%89"
+  },
+  {
+   "start": 399,
+   "end": 401,
+   "years": "3年",
+   "regime": "后凉",
+   "emperor": "涼靈帝呂纂",
+   "period_raw": "399年十二月－401年正月",
+   "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E5%BE%8C%E6%B6%BC"
+  }
+ ],
+ "咸熙": [
+  {
+   "start": 264,
+   "end": 265,
+   "years": "2年",
+   "regime": "曹魏",
+   "emperor": "魏元帝曹奂",
+   "period_raw": "264年五月－265年闰十一月",
+   "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E6%9B%B9%E9%AD%8F"
+  }
+ ],
+ "嘉禾": [
+  {
+   "start": 232,
+   "end": 238,
+   "years": "7年",
+   "regime": "孫吳",
+   "emperor": "吳大帝孙权",
+   "period_raw": "232年－238年八月",
+   "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E5%AD%AB%E5%90%B3"
+  }
+ ],
+ "天冊": [
+  {
+   "start": 275,
+   "end": 276,
+   "years": "2年",
+   "regime": "孫吳",
+   "emperor": "吳末帝孙皓",
+   "period_raw": "275年－276年六月",
+   "note": "《吳志·陸胤傳》作“天策”（来源表备注），即同一年号。",
+   "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E5%AD%AB%E5%90%B3"
+  }
+ ],
+ "天策": [
+  {
+   "start": 275,
+   "end": 276,
+   "years": "2年",
+   "regime": "孫吳",
+   "emperor": "吳末帝孙皓",
+   "period_raw": "275年－276年六月",
+   "note": "即孙吴末帝孙皓“天册”。来源表“天册”条备注：《吳志·陸胤傳》作天策。与武周“天册万岁”无关。",
+   "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E5%AD%AB%E5%90%B3"
+  }
+ ],
+ "天紀": [
+  {
+   "start": 277,
+   "end": 280,
+   "years": "4年",
+   "regime": "孫吳",
+   "emperor": "吳末帝孙皓",
+   "period_raw": "277年－280年三月",
+   "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E5%AD%AB%E5%90%B3"
+  }
+ ],
+ "太康": [
+  {
+   "start": 280,
+   "end": 289,
+   "years": "10年",
+   "regime": "西晋",
+   "emperor": "晋武帝司馬炎",
+   "period_raw": "280年四月－289年",
+   "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E8%A5%BF%E6%99%89"
+  },
+  {
+   "start": null,
+   "end": null,
+   "years": "？",
+   "regime": "金朝统治地区其他势力年号",
+   "emperor": "？",
+   "period_raw": "？",
+   "note": "見《玉海》，按金朝無此年號。",
+   "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E9%87%91%E6%9C%9D"
+  }
+ ],
+ "太熙": [
+  {
+   "start": 290,
+   "end": 290,
+   "years": "1年",
+   "regime": "西晋",
+   "emperor": "晋武帝司馬炎",
+   "period_raw": "290年正月－四月",
+   "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E8%A5%BF%E6%99%89"
+  }
+ ],
+ "太興": [
+  {
+   "start": 318,
+   "end": 321,
+   "years": "4年",
+   "regime": "东晋",
+   "emperor": "晉元帝司馬睿",
+   "period_raw": "318年三月－321年",
+   "note": "来源表正名作“大兴”，备注“或作太兴”。",
+   "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E6%9D%B1%E6%99%89"
+  },
+  {
+   "start": 431,
+   "end": 436,
+   "years": "6年",
+   "regime": "北燕",
+   "emperor": "燕昭成帝馮弘",
+   "period_raw": "431年－436年五月",
+   "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E5%8C%97%E7%87%95"
+  }
+ ],
+ "寶鼎": [
+  {
+   "start": 266,
+   "end": 269,
+   "years": "4年",
+   "regime": "孫吳",
+   "emperor": "吳末帝孙皓",
+   "period_raw": "266年八月－269年九月",
+   "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E5%AD%AB%E5%90%B3"
+  }
+ ],
+ "延光": [
+  {
+   "start": 122,
+   "end": 125,
+   "years": "4年",
+   "regime": "东汉",
+   "emperor": "汉安帝劉祜",
+   "period_raw": "122年三月－125年",
+   "note": "延光四年（125年）三月北乡侯刘懿即位沿用；同年十一月汉顺帝即位沿用。",
+   "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E6%9D%B1%E6%BC%A2"
+  }
+ ],
+ "延熹": [
+  {
+   "start": 158,
+   "end": 167,
+   "years": "10年",
+   "regime": "东汉",
+   "emperor": "汉桓帝劉志",
+   "period_raw": "158年六月－167年六月",
+   "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E6%9D%B1%E6%BC%A2"
+  }
+ ],
+ "建安": [
+  {
+   "start": 196,
+   "end": 220,
+   "years": "25年",
+   "regime": "东汉",
+   "emperor": "汉献帝劉協",
+   "period_raw": "196年正月－220年二月",
+   "note": "劉備、孫權仍行漢建安年號。",
+   "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E6%9D%B1%E6%BC%A2"
+  },
+  {
+   "start": 1083,
+   "end": 1091,
+   "years": "9年",
+   "regime": "大理",
+   "emperor": "大理保定帝段正明",
+   "period_raw": "1083年－1091年",
+   "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E5%8D%97%E8%A9%94%E5%8F%8A%E5%A4%A7%E7%90%86"
+  }
+ ],
+ "建寧": [
+  {
+   "start": 168,
+   "end": 172,
+   "years": "5年",
+   "regime": "东汉",
+   "emperor": "汉灵帝劉宏",
+   "period_raw": "168年正月－172年五月",
+   "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E6%9D%B1%E6%BC%A2"
+  }
+ ],
+ "建康": [
+  {
+   "start": 144,
+   "end": 144,
+   "years": "1年",
+   "regime": "东汉",
+   "emperor": "汉顺帝劉保",
+   "period_raw": "144年四月－十二月",
+   "note": "建康元年（144年）八月汉冲帝即位沿用。",
+   "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E6%9D%B1%E6%BC%A2"
+  },
+  {
+   "start": 319,
+   "end": 320,
+   "years": "2年",
+   "regime": "东晋统治地区出现的其他年号",
+   "emperor": "司马保",
+   "period_raw": "319年四月－320年五月",
+   "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E6%9D%B1%E6%99%89"
+  }
+ ],
+ "建興": [
+  {
+   "start": 223,
+   "end": 237,
+   "years": "15年",
+   "regime": "蜀汉",
+   "emperor": "漢後主刘禅",
+   "period_raw": "223年五月－237年",
+   "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E8%9C%80%E6%BC%A2"
+  },
+  {
+   "start": 252,
+   "end": 253,
+   "years": "2年",
+   "regime": "孫吳",
+   "emperor": "吳會稽王孫亮",
+   "period_raw": "252年四月－253年",
+   "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E5%AD%AB%E5%90%B3"
+  },
+  {
+   "start": 313,
+   "end": 317,
+   "years": "5年",
+   "regime": "西晋",
+   "emperor": "晋愍帝司馬鄴",
+   "period_raw": "313年四月－317年三月",
+   "note": "也有只记到晉愍帝投降前赵时的建兴四年。 前凉沿用该年号。",
+   "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E8%A5%BF%E6%99%89"
+  },
+  {
+   "start": 304,
+   "end": 306,
+   "years": "3年",
+   "regime": "成汉",
+   "emperor": "成武帝李雄",
+   "period_raw": "304年十月－306年六月",
+   "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E6%88%90%E6%BC%A2"
+  },
+  {
+   "start": 386,
+   "end": 396,
+   "years": "11年",
+   "regime": "後燕",
+   "emperor": "燕成武帝慕容垂",
+   "period_raw": "386年二月－396年四月",
+   "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E5%BE%8C%E7%87%95"
+  },
+  {
+   "start": 472,
+   "end": null,
+   "years": "？",
+   "regime": "高句丽",
+   "emperor": "长寿王高璉",
+   "period_raw": "472年－？",
+   "note": "諸史不載。見《建興五年銘金銅釋迦三尊佛光背》銘文「建興五年歲在丙辰」及《中原拓境碑》文「高麗建興四年」，當在472年改元，行用至少5年。",
+   "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E9%AB%98%E5%8F%A5%E9%BA%97"
+  },
+  {
+   "start": 818,
+   "end": 830,
+   "years": "13年",
+   "regime": "渤海",
+   "emperor": "渤海宣王大仁秀",
+   "period_raw": "818年－830年",
+   "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E6%B8%A4%E6%B5%B7%E4%BB%A5%E5%8F%8A%E6%9D%B1%E4%B8%B9%E5%92%8C%E5%AE%9A%E5%AE%89"
+  }
+ ],
+ "建衡": [
+  {
+   "start": 269,
+   "end": 271,
+   "years": "3年",
+   "regime": "孫吳",
+   "emperor": "吳末帝孙皓",
+   "period_raw": "269年十月－271年",
+   "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E5%AD%AB%E5%90%B3"
+  }
+ ],
+ "景元": [
+  {
+   "start": 260,
+   "end": 264,
+   "years": "5年",
+   "regime": "曹魏",
+   "emperor": "魏元帝曹奂",
+   "period_raw": "260年六月－264年五月",
+   "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E6%9B%B9%E9%AD%8F"
+  }
+ ],
+ "景初": [
+  {
+   "start": 237,
+   "end": 239,
+   "years": "3年",
+   "regime": "曹魏",
+   "emperor": "魏明帝曹叡",
+   "period_raw": "237年四月－239年",
+   "note": "從元年起用丑正，改青龍四年三月為景初元年四月。景初三年（239年）正月齐王曹芳即位沿用。",
+   "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E6%9B%B9%E9%AD%8F"
+  }
+ ],
+ "景耀": [
+  {
+   "start": 258,
+   "end": 263,
+   "years": "6年",
+   "regime": "蜀汉",
+   "emperor": "漢後主刘禅",
+   "period_raw": "258年－263年七月",
+   "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E8%9C%80%E6%BC%A2"
+  }
+ ],
+ "正元": [
+  {
+   "start": 254,
+   "end": 256,
+   "years": "3年",
+   "regime": "曹魏",
+   "emperor": "魏高貴鄉公曹髦",
+   "period_raw": "254年十月－256年五月",
+   "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E6%9B%B9%E9%AD%8F"
+  }
+ ],
+ "永嘉": [
+  {
+   "start": 145,
+   "end": 145,
+   "years": "1年",
+   "regime": "东汉",
+   "emperor": "汉冲帝劉炳",
+   "period_raw": "145年",
+   "note": "或作永熹、永憙，袁宏《後漢紀》誤作元嘉。清代以來學者多從「永憙」說，有人根據宋代文獻及出土的金石銘文，認為作「永嘉」不誤。 永嘉元年（145年）正月汉质帝即位沿用。",
+   "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E6%9D%B1%E6%BC%A2"
+  },
+  {
+   "start": 307,
+   "end": 313,
+   "years": "7年",
+   "regime": "西晋",
+   "emperor": "晋怀帝司馬熾",
+   "period_raw": "307年－313年四月",
+   "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E8%A5%BF%E6%99%89"
+  }
+ ],
+ "永安": [
+  {
+   "start": 258,
+   "end": 264,
+   "years": "7年",
+   "regime": "孫吳",
+   "emperor": "吳景帝孫休",
+   "period_raw": "258年十月－264年六月",
+   "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E5%AD%AB%E5%90%B3"
+  },
+  {
+   "start": 304,
+   "end": 304,
+   "years": "1年",
+   "regime": "西晋",
+   "emperor": "晉惠帝司馬衷",
+   "period_raw": "304年正月－十二月",
+   "note": "永安元年（304年）七月改元建武元年，同年十一月复称永安，次月又改元为永興元年。",
+   "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E8%A5%BF%E6%99%89"
+  },
+  {
+   "start": 401,
+   "end": 412,
+   "years": "12年",
+   "regime": "北凉",
+   "emperor": "涼武宣王沮渠蒙遜",
+   "period_raw": "401年六月－412年十月",
+   "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E5%8C%97%E6%B6%BC"
+  },
+  {
+   "start": 528,
+   "end": 530,
+   "years": "3年",
+   "regime": "北魏",
+   "emperor": "魏孝庄帝元子攸",
+   "period_raw": "528年九月－530年十月",
+   "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E5%8C%97%E9%AD%8F"
+  },
+  {
+   "start": 1098,
+   "end": 1100,
+   "years": "3年",
+   "regime": "西夏",
+   "emperor": "夏崇宗李乾順",
+   "period_raw": "1098年－1100年",
+   "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E8%A5%BF%E5%A4%8F"
+  }
+ ],
+ "永建": [
+  {
+   "start": 126,
+   "end": 132,
+   "years": "7年",
+   "regime": "东汉",
+   "emperor": "汉顺帝劉保",
+   "period_raw": "126年－132年三月",
+   "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E6%9D%B1%E6%BC%A2"
+  },
+  {
+   "start": 420,
+   "end": 421,
+   "years": "2年",
+   "regime": "西涼",
+   "emperor": "涼冠軍侯李恂",
+   "period_raw": "420年十月－421年三月",
+   "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E8%A5%BF%E6%B6%BC"
+  }
+ ],
+ "漢安": [
+  {
+   "start": 142,
+   "end": 144,
+   "years": "3年",
+   "regime": "东汉",
+   "emperor": "汉顺帝劉保",
+   "period_raw": "142年正月－144年四月",
+   "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E6%9D%B1%E6%BC%A2"
+  }
+ ],
+ "熹平": [
+  {
+   "start": 172,
+   "end": 178,
+   "years": "7年",
+   "regime": "东汉",
+   "emperor": "汉灵帝劉宏",
+   "period_raw": "172年五月－178年三月",
+   "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E6%9D%B1%E6%BC%A2"
+  }
+ ],
+ "甘露": [
+  {
+   "start": -53,
+   "end": -50,
+   "years": "4年",
+   "regime": "西汉",
+   "emperor": "汉宣帝劉詢",
+   "period_raw": "前53年－前50年",
+   "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E8%A5%BF%E6%BC%A2"
+  },
+  {
+   "start": 256,
+   "end": 260,
+   "years": "5年",
+   "regime": "曹魏",
+   "emperor": "魏高貴鄉公曹髦",
+   "period_raw": "256年六月－260年五月",
+   "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E6%9B%B9%E9%AD%8F"
+  },
+  {
+   "start": 265,
+   "end": 266,
+   "years": "2年",
+   "regime": "孫吳",
+   "emperor": "吳末帝孙皓",
+   "period_raw": "265年四月－266年七月",
+   "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E5%AD%AB%E5%90%B3"
+  },
+  {
+   "start": 359,
+   "end": 364,
+   "years": "6年",
+   "regime": "前秦",
+   "emperor": "秦宣昭帝苻坚",
+   "period_raw": "359年六月－364年",
+   "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E5%89%8D%E7%A7%A6"
+  },
+  {
+   "start": 526,
+   "end": 530,
+   "years": "5年",
+   "regime": "高昌",
+   "emperor": "麴光",
+   "period_raw": "526年－530年",
+   "note": "諸史不載，見於吐魯番出土文物。",
+   "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E9%AB%98%E6%98%8C"
+  },
+  {
+   "start": 926,
+   "end": 936,
+   "years": "11年",
+   "regime": "东丹",
+   "emperor": "耶律倍",
+   "period_raw": "926年－936年",
+   "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E6%B8%A4%E6%B5%B7%E4%BB%A5%E5%8F%8A%E6%9D%B1%E4%B8%B9%E5%92%8C%E5%AE%9A%E5%AE%89"
+  }
+ ],
+ "章武": [
+  {
+   "start": 221,
+   "end": 223,
+   "years": "3年",
+   "regime": "蜀汉",
+   "emperor": "漢昭烈帝刘备",
+   "period_raw": "221年四月－223年四月",
+   "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E8%9C%80%E6%BC%A2"
+  }
+ ],
+ "赤烏": [
+  {
+   "start": 238,
+   "end": 251,
+   "years": "14年",
+   "regime": "孫吳",
+   "emperor": "吳大帝孙权",
+   "period_raw": "238年八月－251年四月",
+   "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E5%AD%AB%E5%90%B3"
+  }
+ ],
+ "陽嘉": [
+  {
+   "start": 132,
+   "end": 135,
+   "years": "4年",
+   "regime": "东汉",
+   "emperor": "汉顺帝劉保",
+   "period_raw": "132年三月－135年",
+   "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E6%9D%B1%E6%BC%A2"
+  }
+ ],
+ "陽朔": [
+  {
+   "start": -24,
+   "end": -21,
+   "years": "4年",
+   "regime": "西汉",
+   "emperor": "汉成帝劉驁",
+   "period_raw": "前24年－前21年",
+   "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E8%A5%BF%E6%BC%A2"
+  }
+ ],
+ "靑龍": [
+  {
+   "start": 233,
+   "end": 237,
+   "years": "5年",
+   "regime": "曹魏",
+   "emperor": "魏明帝曹叡",
+   "period_raw": "233年二月－237年三月",
+   "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E6%9B%B9%E9%AD%8F",
+   "note": "“靑龍”“青龙”为同一年号（曹魏明帝青龙）的异体/简体写法。"
+  },
+  {
+   "start": 350,
+   "end": 350,
+   "years": "1年",
+   "regime": "后赵",
+   "emperor": "趙義陽王石鑒",
+   "period_raw": "350年正月－闰二月",
+   "note": "傳統史書以冉閔殺石鑒、建國大魏，作為後趙的終止。",
+   "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E5%BE%8C%E8%B6%99"
+  },
+  {
+   "start": 398,
+   "end": 398,
+   "years": "4个月",
+   "regime": "后燕统治地区其他势力年号",
+   "emperor": "蘭汗",
+   "period_raw": "398年四月－七月",
+   "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E5%BE%8C%E7%87%95"
+  }
+ ],
+ "青龙": [
+  {
+   "start": 233,
+   "end": 237,
+   "years": "5年",
+   "regime": "曹魏",
+   "emperor": "魏明帝曹叡",
+   "period_raw": "233年二月－237年三月",
+   "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E6%9B%B9%E9%AD%8F",
+   "note": "“靑龍”“青龙”为同一年号（曹魏明帝青龙）的异体/简体写法。"
+  },
+  {
+   "start": 350,
+   "end": 350,
+   "years": "1年",
+   "regime": "后赵",
+   "emperor": "趙義陽王石鑒",
+   "period_raw": "350年正月－闰二月",
+   "note": "傳統史書以冉閔殺石鑒、建國大魏，作為後趙的終止。",
+   "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E5%BE%8C%E8%B6%99"
+  },
+  {
+   "start": 398,
+   "end": 398,
+   "years": "4个月",
+   "regime": "后燕统治地区其他势力年号",
+   "emperor": "蘭汗",
+   "period_raw": "398年四月－七月",
+   "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E5%BE%8C%E7%87%95"
+  }
+ ],
+ "鳳凰": [
+  {
+   "start": 272,
+   "end": 274,
+   "years": "3年",
+   "regime": "孫吳",
+   "emperor": "吳末帝孙皓",
+   "period_raw": "272年－274年",
+   "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E5%AD%AB%E5%90%B3"
+  },
+  {
+   "start": 370,
+   "end": 370,
+   "years": "2個月",
+   "regime": "东晋统治地区出现的其他年号",
+   "emperor": "李金银、李弘",
+   "period_raw": "370年八月－九月",
+   "note": "《晋书·海西公纪》作九月反；《资治通鉴》作八月反，九月平。",
+   "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E6%9D%B1%E6%99%89"
+  },
+  {
+   "start": 386,
+   "end": null,
+   "years": "2年",
+   "regime": "前凉统治地区出现的其他势力年号",
+   "emperor": "張大豫",
+   "period_raw": "386年二月－287年七月",
+   "note": "来源原文起讫为“386年二月－287年七月”，止年明显有误，未予更正。",
+   "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E5%89%8D%E6%B6%BC"
+  }
+ ],
+ "黃初": [
+  {
+   "start": 220,
+   "end": 226,
+   "years": "7年",
+   "regime": "曹魏",
+   "emperor": "魏文帝曹丕",
+   "period_raw": "220年十月－226年",
+   "note": "黃初七年（226年）五月魏明帝即位沿用。",
+   "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E6%9B%B9%E9%AD%8F"
+  },
+  {
+   "start": null,
+   "end": null,
+   "years": "？",
+   "regime": "东魏统治地区其他势力的年号",
+   "emperor": "高欢",
+   "period_raw": "？",
+   "note": "《定晉禪院碑》有「東魏黃初三年高歡帝所造」字樣。",
+   "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E6%9D%B1%E9%AD%8F"
+  }
+ ],
+ "黄武": [
+  {
+   "start": 222,
+   "end": 229,
+   "years": "8年",
+   "regime": "孫吳",
+   "emperor": "吳大帝孙权",
+   "period_raw": "222年十月－229年四月",
+   "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E5%AD%AB%E5%90%B3"
+  }
+ ],
+ "五鳳": [
+  {
+   "start": -57,
+   "end": -54,
+   "regime": "西汉",
+   "emperor": "汉宣帝劉詢",
+   "years": "4年",
+   "period_raw": "前57年－前54年",
+   "note": "表中写作「五凤」，按繁简/异体字形归一匹配（五鳳）。",
+   "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E8%A5%BF%E6%BC%A2"
+  },
+  {
+   "start": 254,
+   "end": 256,
+   "regime": "孫吳",
+   "emperor": "吳會稽王孫亮",
+   "years": "3年",
+   "period_raw": "254年－256年十月",
+   "note": "",
+   "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E5%AD%AB%E5%90%B3"
+  },
+  {
+   "start": 618,
+   "end": 621,
+   "regime": "隋末农民起义时各割据势力年号",
+   "emperor": "窦建德",
+   "years": "4年",
+   "period_raw": "618年十一月－621年五月",
+   "note": "表中写作「五凤」，按繁简/异体字形归一匹配（五鳳）。",
+   "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E9%9A%8B%E6%9C%9D"
+  }
+ ],
+ "元和": [
+  {
+   "start": 84,
+   "end": 87,
+   "regime": "东汉",
+   "emperor": "汉章帝劉炟",
+   "years": "4年",
+   "period_raw": "84年八月－87年七月",
+   "note": "",
+   "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E6%9D%B1%E6%BC%A2"
+  },
+  {
+   "start": 806,
+   "end": 820,
+   "regime": "唐朝（续）",
+   "emperor": "唐宪宗李純",
+   "years": "15年",
+   "period_raw": "806年正月－820年",
+   "note": "元和十五年（820年）闰正月唐穆宗即位沿用。 表题为「续唐朝年号」（武周之后）。",
+   "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E5%94%90%E6%9C%9D"
+  }
+ ],
+ "元康": [
+  {
+   "start": -65,
+   "end": -61,
+   "regime": "西汉",
+   "emperor": "汉宣帝劉詢",
+   "years": "5年",
+   "period_raw": "前65年－前61年二月",
+   "note": "",
+   "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E8%A5%BF%E6%BC%A2"
+  },
+  {
+   "start": 291,
+   "end": 299,
+   "regime": "西晋",
+   "emperor": "晉惠帝司馬衷",
+   "years": "9年",
+   "period_raw": "291年三月－299年",
+   "note": "",
+   "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E8%A5%BF%E6%99%89"
+  }
+ ],
+ "元興": [
+  {
+   "start": 105,
+   "end": 105,
+   "regime": "东汉",
+   "emperor": "汉和帝劉肇",
+   "years": "1年",
+   "period_raw": "105年四月－十二月",
+   "note": "表中写作「元兴」，按繁简/异体字形归一匹配（元興）。",
+   "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E6%9D%B1%E6%BC%A2"
+  },
+  {
+   "start": 264,
+   "end": 265,
+   "regime": "孫吳",
+   "emperor": "吳末帝孙皓",
+   "years": "2年",
+   "period_raw": "264年七月－265年三月",
+   "note": "表中写作「元兴」，按繁简/异体字形归一匹配（元興）。",
+   "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E5%AD%AB%E5%90%B3"
+  },
+  {
+   "start": 402,
+   "end": 404,
+   "regime": "东晋",
+   "emperor": "晋安帝司馬德宗",
+   "years": "3年",
+   "period_raw": "402年－404年",
+   "note": "表中写作「元兴」，按繁简/异体字形归一匹配（元興）。 403年－404年桓玄篡位。 胡三省注《资治通鉴》：元年三月，元显败，复隆安年号（六年）。桓玄寻改曰大亨。玄篡，又改曰永始。",
+   "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E6%9D%B1%E6%99%89"
+  },
+  {
+   "start": 976,
+   "end": null,
+   "regime": "定安",
+   "emperor": "乌玄明",
+   "years": "？",
+   "period_raw": "976年－？",
+   "note": "",
+   "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E6%B8%A4%E6%B5%B7%E4%BB%A5%E5%8F%8A%E6%9D%B1%E4%B8%B9%E5%92%8C%E5%AE%9A%E5%AE%89"
+  },
+  {
+   "start": null,
+   "end": null,
+   "regime": "清朝统治地区其他势力年号",
+   "emperor": "李天極、朱六非",
+   "years": "？",
+   "period_raw": "？",
+   "note": "表中写作「元兴」，按繁简/异体字形归一匹配（元興）。 見於谢国桢《南明史略》，李崇智认为是魏枝葉文兴年號之误。 表中起讫不明（？）。",
+   "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E6%B8%85%E6%9C%9D"
+  }
+ ],
+ "初平": [
+  {
+   "start": 190,
+   "end": 193,
+   "regime": "东汉",
+   "emperor": "汉献帝劉協",
+   "years": "4年",
+   "period_raw": "190年－193年",
+   "note": "",
+   "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E6%9D%B1%E6%BC%A2"
+  }
+ ],
+ "嘉平": [
+  {
+   "start": 249,
+   "end": 254,
+   "regime": "曹魏",
+   "emperor": "魏齊王曹芳",
+   "years": "6年",
+   "period_raw": "249年四月－254年十月",
+   "note": "",
+   "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E6%9B%B9%E9%AD%8F"
+  },
+  {
+   "start": 311,
+   "end": 315,
+   "regime": "汉赵",
+   "emperor": "漢昭武帝刘聪",
+   "years": "5年",
+   "period_raw": "311年六月－315年二月",
+   "note": "",
+   "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E6%BC%A2%E8%B6%99"
+  },
+  {
+   "start": 408,
+   "end": 414,
+   "regime": "南凉",
+   "emperor": "涼景王禿髮傉檀",
+   "years": "7年",
+   "period_raw": "408年十一月－414年七月",
+   "note": "404年二月去年号。408年十一月复称凉王。",
+   "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E5%8D%97%E6%B6%BC"
+  }
+ ],
+ "天璽": [
+  {
+   "start": 276,
+   "end": 276,
+   "regime": "孫吳",
+   "emperor": "吳末帝孙皓",
+   "years": "1年",
+   "period_raw": "276年七月－十二月",
+   "note": "表中写作「天玺」，按繁简/异体字形归一匹配（天璽）。",
+   "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E5%AD%AB%E5%90%B3"
+  },
+  {
+   "start": 399,
+   "end": 401,
+   "regime": "北凉",
+   "emperor": "建康公段業",
+   "years": "3年",
+   "period_raw": "399年二月－401年五月",
+   "note": "表中写作「天玺」，按繁简/异体字形归一匹配（天璽）。 或作六玺。",
+   "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E5%8C%97%E6%B6%BC"
+  }
+ ],
+ "太元": [
+  {
+   "start": 251,
+   "end": 252,
+   "regime": "孫吳",
+   "emperor": "吳大帝孙权",
+   "years": "2年",
+   "period_raw": "251年五月－252年正月",
+   "note": "",
+   "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E5%AD%AB%E5%90%B3"
+  },
+  {
+   "start": 376,
+   "end": 396,
+   "regime": "东晋",
+   "emperor": "晋孝武帝司馬曜",
+   "years": "21年",
+   "period_raw": "376年－396年",
+   "note": "太元二十一年（396年）九月晋安帝即位沿用。",
+   "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E6%9D%B1%E6%99%89"
+  }
+ ],
+ "太和": [
+  {
+   "start": 227,
+   "end": 233,
+   "regime": "曹魏",
+   "emperor": "魏明帝曹叡",
+   "years": "7年",
+   "period_raw": "227年－233年正月",
+   "note": "",
+   "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E6%9B%B9%E9%AD%8F"
+  },
+  {
+   "start": 366,
+   "end": 371,
+   "regime": "东晋",
+   "emperor": "晉海西公司馬奕",
+   "years": "6年",
+   "period_raw": "366年－371年十一月",
+   "note": "",
+   "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E6%9D%B1%E6%99%89"
+  },
+  {
+   "start": null,
+   "end": null,
+   "regime": "汉赵",
+   "emperor": "趙秦王刘曜",
+   "years": "？",
+   "period_raw": "？",
+   "note": "见于《魏书》，鍾淵映《历代建元考》认为是石勒的太和年号之误。 表中起讫不明（？）。",
+   "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E6%BC%A2%E8%B6%99"
+  },
+  {
+   "start": 344,
+   "end": 346,
+   "regime": "成汉",
+   "emperor": "漢歸義侯李势",
+   "years": "3年",
+   "period_raw": "344年－346年九月",
+   "note": "",
+   "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E6%88%90%E6%BC%A2"
+  },
+  {
+   "start": 328,
+   "end": 330,
+   "regime": "后赵",
+   "emperor": "趙明帝石勒",
+   "years": "3年",
+   "period_raw": "328年二月－330年八月",
+   "note": "",
+   "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E5%BE%8C%E8%B6%99"
+  },
+  {
+   "start": 477,
+   "end": 499,
+   "regime": "北魏",
+   "emperor": "魏孝文帝元宏",
+   "years": "23年",
+   "period_raw": "477年－499年",
+   "note": "太和二十三年（499年）四月魏宣武帝即位沿用。",
+   "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E5%8C%97%E9%AD%8F"
+  },
+  {
+   "start": 544,
+   "end": null,
+   "regime": "高句丽",
+   "emperor": "安原王高延",
+   "years": "？",
+   "period_raw": "544年－？",
+   "note": "諸史不載。見《新浦市寺谷金銅板》「□和三年歲次丙寅」（缺字毀損難辨，疑是「太」字），當在544年改元，行用至少3年。",
+   "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E9%AB%98%E5%8F%A5%E9%BA%97"
+  }
+ ],
+ "太安": [
+  {
+   "start": 302,
+   "end": 304,
+   "regime": "西晋",
+   "emperor": "晉惠帝司馬衷",
+   "years": "3年",
+   "period_raw": "302年十二月－304年正月",
+   "note": "或作大安。",
+   "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E8%A5%BF%E6%99%89"
+  },
+  {
+   "start": 385,
+   "end": 386,
+   "regime": "前秦",
+   "emperor": "秦哀平帝苻丕",
+   "years": "2年",
+   "period_raw": "385年八月－386年十月",
+   "note": "",
+   "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E5%89%8D%E7%A7%A6"
+  },
+  {
+   "start": 386,
+   "end": 389,
+   "regime": "后凉",
+   "emperor": "涼懿武帝呂光",
+   "years": "4年",
+   "period_raw": "386年十月－389年正月",
+   "note": "或作大安，《十六國春秋·後涼錄》誤作太平。一說奉前秦苻丕年號。",
+   "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E5%BE%8C%E6%B6%BC"
+  },
+  {
+   "start": 455,
+   "end": 459,
+   "regime": "北魏",
+   "emperor": "魏文成帝拓跋濬",
+   "years": "5年",
+   "period_raw": "455年六月－459年",
+   "note": "",
+   "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E5%8C%97%E9%AD%8F"
+  },
+  {
+   "start": 492,
+   "end": 505,
+   "regime": "柔然",
+   "emperor": "候其伏代庫者可汗那盖",
+   "years": "14年",
+   "period_raw": "492年－505年",
+   "note": "",
+   "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E6%9F%94%E7%84%B6"
+  },
+  {
+   "start": null,
+   "end": null,
+   "regime": "大理",
+   "emperor": "大理世宗段思廉",
+   "years": "？",
+   "period_raw": "？",
+   "note": "见于《雲南志略》。 表中起讫不明（？）。",
+   "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E5%8D%97%E8%A9%94%E5%8F%8A%E5%A4%A7%E7%90%86"
+  }
+ ],
+ "太平": [
+  {
+   "start": 256,
+   "end": 258,
+   "regime": "孫吳",
+   "emperor": "吳會稽王孫亮",
+   "years": "3年",
+   "period_raw": "256年十月－258年十月",
+   "note": "",
+   "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E5%AD%AB%E5%90%B3"
+  },
+  {
+   "start": 300,
+   "end": 301,
+   "regime": "西晋统治地区出现过的其他年号",
+   "emperor": "赵廞",
+   "years": "2个月",
+   "period_raw": "300年十二月－301年正月",
+   "note": "《晋书·惠帝紀》：永康元年十二月「益州刺史趙廞與洛陽流人李庠……據成都反。」《資治通鑑》考異：「《晉春秋》云『建號太平元年』。他書無之。」",
+   "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E8%A5%BF%E6%99%89"
+  },
+  {
+   "start": 403,
+   "end": 403,
+   "regime": "南燕统治地区其他势力的年号",
+   "emperor": "王始",
+   "years": "1个月",
+   "period_raw": "403年四月",
+   "note": "《資治通鑑·晉安帝元興二年》謂泰山賊王王始率領部下數萬人，自稱太平皇帝，任命官員。南燕貴族、桂林王慕容鎮打敗並逮捕他。《通鑑》和《晉書·慕容德載記》均未有記載年號。《紀元編》謂王始的年號為太平，未詳何時。",
+   "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E5%8D%97%E7%87%95"
+  },
+  {
+   "start": 409,
+   "end": 430,
+   "regime": "北燕",
+   "emperor": "燕文成帝馮跋",
+   "years": "22年",
+   "period_raw": "409年十月－430年",
+   "note": "太平二十二年（430年）九月馮弘即位沿用。",
+   "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E5%8C%97%E7%87%95"
+  },
+  {
+   "start": 556,
+   "end": 557,
+   "regime": "梁",
+   "emperor": "梁敬帝蕭方智",
+   "years": "2年",
+   "period_raw": "556年九月－557年十月",
+   "note": "",
+   "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E6%A2%81"
+  },
+  {
+   "start": 485,
+   "end": 491,
+   "regime": "柔然",
+   "emperor": "伏古敦可汗豆仑",
+   "years": "7年",
+   "period_raw": "485年－491年",
+   "note": "高昌用該年號。",
+   "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E6%9F%94%E7%84%B6"
+  },
+  {
+   "start": 485,
+   "end": 488,
+   "regime": "高昌",
+   "emperor": "阚首归",
+   "years": "4年",
+   "period_raw": "485年－488年",
+   "note": "表中灰色背景行：该政权沿用其他政权的年号。 用柔然太平年號（元年至四年）。",
+   "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E9%AB%98%E6%98%8C"
+  },
+  {
+   "start": 616,
+   "end": 622,
+   "regime": "隋末农民起义时各割据势力年号",
+   "emperor": "林士弘",
+   "years": "7年",
+   "period_raw": "616年十二月－622年十月",
+   "note": "或作延康、天成。",
+   "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E9%9A%8B%E6%9C%9D"
+  },
+  {
+   "start": null,
+   "end": null,
+   "regime": "南宋统治地区其他势力年号",
+   "emperor": "李婆備",
+   "years": "？",
+   "period_raw": "？",
+   "note": "大约在建炎年间。 表中起讫不明（？）。",
+   "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E5%8D%97%E5%AE%8B"
+  },
+  {
+   "start": 1021,
+   "end": 1031,
+   "regime": "辽朝",
+   "emperor": "辽圣宗耶律隆緒",
+   "years": "11年",
+   "period_raw": "1021年十一月－1031年六月",
+   "note": "",
+   "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E9%81%BC%E6%9C%9D"
+  },
+  {
+   "start": 1354,
+   "end": 1356,
+   "regime": "元朝统治地区其他势力年号",
+   "emperor": "徐壽輝",
+   "years": "3年",
+   "period_raw": "1354年－1356年",
+   "note": "傳世《統軍元帥之印》有「太平三年月日」字樣，使用至少有3年。",
+   "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E5%85%83%E6%9C%9D"
+  }
+ ],
+ "延康": [
+  {
+   "start": 220,
+   "end": 220,
+   "regime": "东汉",
+   "emperor": "汉献帝劉協",
+   "years": "1年",
+   "period_raw": "220年三月－十月",
+   "note": "",
+   "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E6%9D%B1%E6%BC%A2"
+  },
+  {
+   "start": 619,
+   "end": 620,
+   "regime": "唐朝统治地区其他势力的年号",
+   "emperor": "沈法兴",
+   "years": "2年",
+   "period_raw": "619年九月－620年",
+   "note": "",
+   "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E5%94%90%E6%9C%9D"
+  },
+  {
+   "start": 1283,
+   "end": 1283,
+   "regime": "元朝统治地区其他势力年号",
+   "emperor": "林桂方、赵良钤",
+   "years": "1个月",
+   "period_raw": "1283年三月",
+   "note": "或作建康。",
+   "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E5%85%83%E6%9C%9D"
+  }
+ ],
+ "延熙": [
+  {
+   "start": 238,
+   "end": 257,
+   "regime": "蜀汉",
+   "emperor": "漢後主刘禅",
+   "years": "20年",
+   "period_raw": "238年－257年",
+   "note": "",
+   "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E8%9C%80%E6%BC%A2"
+  },
+  {
+   "start": 334,
+   "end": 334,
+   "regime": "后赵",
+   "emperor": "趙海陽王石弘",
+   "years": "1年",
+   "period_raw": "334年",
+   "note": "延熙元年（334年）十一月石虎即位沿用。",
+   "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E5%BE%8C%E8%B6%99"
+  }
+ ],
+ "建元": [
+  {
+   "start": -140,
+   "end": -135,
+   "regime": "西汉",
+   "emperor": "汉武帝劉徹",
+   "years": "6年",
+   "period_raw": "前140年－前135年",
+   "note": "用亥正。有學者說年號為後來追述，當時以一元紀年。",
+   "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E8%A5%BF%E6%BC%A2"
+  },
+  {
+   "start": 343,
+   "end": 344,
+   "regime": "东晋",
+   "emperor": "晉康帝司馬岳",
+   "years": "2年",
+   "period_raw": "343年－344年",
+   "note": "建元二年（344年）九月晉穆帝即位沿用。",
+   "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E6%9D%B1%E6%99%89"
+  },
+  {
+   "start": 315,
+   "end": 316,
+   "regime": "汉赵",
+   "emperor": "漢昭武帝刘聪",
+   "years": "2年",
+   "period_raw": "315年三月－316年十月",
+   "note": "",
+   "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E6%BC%A2%E8%B6%99"
+  },
+  {
+   "start": 365,
+   "end": 385,
+   "regime": "前秦",
+   "emperor": "秦宣昭帝苻坚",
+   "years": "21年",
+   "period_raw": "365年－385年七月",
+   "note": "呂光仍行前秦建元年號。",
+   "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E5%89%8D%E7%A7%A6"
+  },
+  {
+   "start": 479,
+   "end": 482,
+   "regime": "齊",
+   "emperor": "齊高帝蕭道成",
+   "years": "4年",
+   "period_raw": "479年四月－482年",
+   "note": "建元四年（482年）三月齊武帝即位沿用。",
+   "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E9%BD%8A"
+  }
+ ],
+ "建光": [
+  {
+   "start": 121,
+   "end": 122,
+   "regime": "东汉",
+   "emperor": "汉安帝劉祜",
+   "years": "2年",
+   "period_raw": "121年七月－122年三月",
+   "note": "",
+   "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E6%9D%B1%E6%BC%A2"
+  },
+  {
+   "start": 388,
+   "end": 391,
+   "regime": "后燕统治地区其他势力年号",
+   "emperor": "翟遼",
+   "years": "4年",
+   "period_raw": "388年二月－391年十月",
+   "note": "",
+   "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E5%BE%8C%E7%87%95"
+  }
+ ],
+ "建武": [
+  {
+   "start": 25,
+   "end": 56,
+   "regime": "东汉",
+   "emperor": "汉光武帝劉秀",
+   "years": "32年",
+   "period_raw": "25年六月－56年四月",
+   "note": "",
+   "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E6%9D%B1%E6%BC%A2"
+  },
+  {
+   "start": 304,
+   "end": 304,
+   "regime": "西晋",
+   "emperor": "晉惠帝司馬衷",
+   "years": "1年",
+   "period_raw": "304年七月－十一月",
+   "note": "永安元年（304年）七月改元建武元年，同年十一月复称永安，次月又改元为永興元年。",
+   "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E8%A5%BF%E6%99%89"
+  },
+  {
+   "start": 317,
+   "end": 318,
+   "regime": "东晋",
+   "emperor": "晉元帝司馬睿",
+   "years": "2年",
+   "period_raw": "317年三月－318年三月",
+   "note": "",
+   "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E6%9D%B1%E6%99%89"
+  },
+  {
+   "start": 335,
+   "end": 348,
+   "regime": "后赵",
+   "emperor": "趙武帝石虎",
+   "years": "14年",
+   "period_raw": "335年－348年",
+   "note": "",
+   "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E5%BE%8C%E8%B6%99"
+  },
+  {
+   "start": 386,
+   "end": 386,
+   "regime": "西燕",
+   "emperor": "慕容忠",
+   "years": "1年",
+   "period_raw": "386年三月－九月",
+   "note": "",
+   "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E8%A5%BF%E7%87%95"
+  },
+  {
+   "start": 494,
+   "end": 498,
+   "regime": "齊",
+   "emperor": "齐明帝蕭鸞",
+   "years": "5年",
+   "period_raw": "494年十月－498年四月",
+   "note": "",
+   "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E9%BD%8A"
+  },
+  {
+   "start": 529,
+   "end": 529,
+   "regime": "北魏统治地区其他势力的年号",
+   "emperor": "元颢",
+   "years": "3个月",
+   "period_raw": "529年五月－閏六月",
+   "note": "",
+   "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E5%8C%97%E9%AD%8F"
+  }
+ ],
+ "正始": [
+  {
+   "start": 240,
+   "end": 249,
+   "regime": "曹魏",
+   "emperor": "魏齊王曹芳",
+   "years": "10年",
+   "period_raw": "240年－249年四月",
+   "note": "復寅正。",
+   "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E6%9B%B9%E9%AD%8F"
+  },
+  {
+   "start": 407,
+   "end": 409,
+   "regime": "北燕",
+   "emperor": "燕惠懿帝高雲",
+   "years": "3年",
+   "period_raw": "407年七月－409年十月",
+   "note": "",
+   "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E5%8C%97%E7%87%95"
+  },
+  {
+   "start": 504,
+   "end": 508,
+   "regime": "北魏",
+   "emperor": "魏宣武帝元恪",
+   "years": "5年",
+   "period_raw": "504年正月－508年八月",
+   "note": "",
+   "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E5%8C%97%E9%AD%8F"
+  },
+  {
+   "start": null,
+   "end": null,
+   "regime": "北魏统治地区其他势力的年号",
+   "emperor": "樊素安",
+   "years": "？",
+   "period_raw": "？",
+   "note": "见于葉維庚《紀元通考》和李兆洛《紀元編》，不详何时，或以为是北魏宣武帝元恪的正始年号。 表中起讫不明（？）。",
+   "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E5%8C%97%E9%AD%8F"
+  }
+ ],
+ "永初": [
+  {
+   "start": 107,
+   "end": 113,
+   "regime": "东汉",
+   "emperor": "汉安帝劉祜",
+   "years": "7年",
+   "period_raw": "107年－113年",
+   "note": "",
+   "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E6%9D%B1%E6%BC%A2"
+  },
+  {
+   "start": 420,
+   "end": 422,
+   "regime": "宋",
+   "emperor": "宋武帝劉裕",
+   "years": "3年",
+   "period_raw": "420年六月－422年",
+   "note": "永初三年（422年）五月宋少帝即位沿用。",
+   "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E5%AE%8B"
+  }
+ ],
+ "永和": [
+  {
+   "start": 136,
+   "end": 141,
+   "regime": "东汉",
+   "emperor": "汉顺帝劉保",
+   "years": "6年",
+   "period_raw": "136年正月－141年",
+   "note": "",
+   "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E6%9D%B1%E6%BC%A2"
+  },
+  {
+   "start": 345,
+   "end": 356,
+   "regime": "东晋",
+   "emperor": "晉穆帝司馬聃",
+   "years": "12年",
+   "period_raw": "345年－356年",
+   "note": "",
+   "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E6%9D%B1%E6%99%89"
+  },
+  {
+   "start": 416,
+   "end": 417,
+   "regime": "后秦",
+   "emperor": "秦後主姚泓",
+   "years": "2年",
+   "period_raw": "416年二月－417年八月",
+   "note": "",
+   "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E5%BE%8C%E7%A7%A6"
+  },
+  {
+   "start": 935,
+   "end": 936,
+   "regime": "閩",
+   "emperor": "閩惠宗王延鈞",
+   "years": "2年",
+   "period_raw": "935年－936年二月",
+   "note": "",
+   "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E9%96%A9"
+  },
+  {
+   "start": 1721,
+   "end": 1721,
+   "regime": "清朝统治地区其他势力年号",
+   "emperor": "朱一貴",
+   "years": "2個月",
+   "period_raw": "1721年五月－閏六月",
+   "note": "",
+   "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E6%B8%85%E6%9C%9D"
+  }
+ ],
+ "永寧": [
+  {
+   "start": 120,
+   "end": 121,
+   "regime": "东汉",
+   "emperor": "汉安帝劉祜",
+   "years": "2年",
+   "period_raw": "120年四月－121年六月",
+   "note": "表中写作「永宁」，按繁简/异体字形归一匹配（永寧）。",
+   "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E6%9D%B1%E6%BC%A2"
+  },
+  {
+   "start": 301,
+   "end": 302,
+   "regime": "西晋",
+   "emperor": "晉惠帝司馬衷",
+   "years": "2年",
+   "period_raw": "301年四月－302年十一月",
+   "note": "表中写作「永宁」，按繁简/异体字形归一匹配（永寧）。",
+   "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E8%A5%BF%E6%99%89"
+  },
+  {
+   "start": 350,
+   "end": 351,
+   "regime": "后赵统治地区出现的其他势力年號",
+   "emperor": "石祗",
+   "years": "2年",
+   "period_raw": "350年三月－351年四月",
+   "note": "",
+   "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E5%BE%8C%E8%B6%99"
+  },
+  {
+   "start": 1419,
+   "end": 1420,
+   "regime": "明朝统治地区其他势力年号",
+   "emperor": "范玉",
+   "years": "2年",
+   "period_raw": "1419年－1420年四月",
+   "note": "越南史書均無載，見《明史·安南傳》及《明实录》。",
+   "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E6%98%8E%E6%9C%9D"
+  }
+ ],
+ "永康": [
+  {
+   "start": 167,
+   "end": 167,
+   "regime": "东汉",
+   "emperor": "汉桓帝劉志",
+   "years": "1年",
+   "period_raw": "167年六月－十二月",
+   "note": "",
+   "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E6%9D%B1%E6%BC%A2"
+  },
+  {
+   "start": 300,
+   "end": 301,
+   "regime": "西晋",
+   "emperor": "晉惠帝司馬衷",
+   "years": "2年",
+   "period_raw": "300年－301年四月",
+   "note": "",
+   "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E8%A5%BF%E6%99%89"
+  },
+  {
+   "start": 396,
+   "end": 398,
+   "regime": "後燕",
+   "emperor": "燕惠愍帝慕容宝",
+   "years": "3年",
+   "period_raw": "396年四月－398年四月",
+   "note": "",
+   "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E5%BE%8C%E7%87%95"
+  },
+  {
+   "start": 412,
+   "end": 419,
+   "regime": "西秦",
+   "emperor": "秦文昭王乞伏熾磐",
+   "years": "8年",
+   "period_raw": "412年八月－419年",
+   "note": "",
+   "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E8%A5%BF%E7%A7%A6"
+  },
+  {
+   "start": null,
+   "end": null,
+   "regime": "高句麗統治地區其他不詳的年號",
+   "emperor": "",
+   "years": "？",
+   "period_raw": "？",
+   "note": "諸史不載。見《永康七年銘金銅佛光背》銘文「永康七年歲[次]□□」（缺字毀損難辨，疑是「甲□」或「辛未」）。 表中起讫不明（？）。",
+   "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E9%AB%98%E5%8F%A5%E9%BA%97"
+  },
+  {
+   "start": 466,
+   "end": 484,
+   "regime": "柔然",
+   "emperor": "受羅部真可汗予成",
+   "years": "19年",
+   "period_raw": "466年－484年",
+   "note": "新疆《妙法蓮華經》殘本有「永康五年歲次庚戌（470年）」字樣。 高昌用該年號。",
+   "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E6%9F%94%E7%84%B6"
+  },
+  {
+   "start": 466,
+   "end": null,
+   "regime": "高昌",
+   "emperor": "闞伯周",
+   "years": "12年",
+   "period_raw": "466年－約477年",
+   "note": "表中灰色背景行：该政权沿用其他政权的年号。 用柔然永康年號（元年至十二年）。 止年原文作「約477年」，为约数，end 留空。",
+   "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E9%AB%98%E6%98%8C"
+  },
+  {
+   "start": 477,
+   "end": null,
+   "regime": "高昌",
+   "emperor": "闞義成",
+   "years": "2年",
+   "period_raw": "477年－約478年",
+   "note": "表中灰色背景行：该政权沿用其他政权的年号。 用柔然永康年號（十二年至十三年）。 止年原文作「約478年」，为约数，end 留空。",
+   "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E9%AB%98%E6%98%8C"
+  },
+  {
+   "start": 478,
+   "end": 485,
+   "regime": "高昌",
+   "emperor": "阚首归",
+   "years": "12年",
+   "period_raw": "478年－485年",
+   "note": "表中灰色背景行：该政权沿用其他政权的年号。 用柔然永康年號（十三年至二十年）。",
+   "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E9%AB%98%E6%98%8C"
+  }
+ ],
+ "永漢": [
+  {
+   "start": 189,
+   "end": 189,
+   "regime": "东汉",
+   "emperor": "汉献帝劉協",
+   "years": "1年",
+   "period_raw": "189年九月－十二月",
+   "note": "表中写作「永汉」，按繁简/异体字形归一匹配（永漢）。",
+   "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E6%9D%B1%E6%BC%A2"
+  },
+  {
+   "start": 542,
+   "end": 542,
+   "regime": "南梁统治地区其他势力的年号",
+   "emperor": "劉敬躬",
+   "years": "2个月",
+   "period_raw": "542年正月－二月",
+   "note": "",
+   "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E6%A2%81"
+  }
+ ],
+ "永興": [
+  {
+   "start": 153,
+   "end": 154,
+   "regime": "东汉",
+   "emperor": "汉桓帝劉志",
+   "years": "2年",
+   "period_raw": "153年五月－154年",
+   "note": "表中写作「永兴」，按繁简/异体字形归一匹配（永興）。",
+   "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E6%9D%B1%E6%BC%A2"
+  },
+  {
+   "start": 304,
+   "end": 306,
+   "regime": "西晋",
+   "emperor": "晉惠帝司馬衷",
+   "years": "3年",
+   "period_raw": "304年十二月－306年六月",
+   "note": "表中写作「永兴」，按繁简/异体字形归一匹配（永興）。",
+   "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E8%A5%BF%E6%99%89"
+  },
+  {
+   "start": 350,
+   "end": 352,
+   "regime": "冉魏",
+   "emperor": "魏武悼天王冉闵",
+   "years": "3年",
+   "period_raw": "350年闰二月－352年四月",
+   "note": "表中写作「永兴」，按繁简/异体字形归一匹配（永興）。",
+   "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E5%BE%8C%E8%B6%99"
+  },
+  {
+   "start": 357,
+   "end": 359,
+   "regime": "前秦",
+   "emperor": "秦宣昭帝苻坚",
+   "years": "3年",
+   "period_raw": "357年六月－359年五月",
+   "note": "表中写作「永兴」，按繁简/异体字形归一匹配（永興）。",
+   "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E5%89%8D%E7%A7%A6"
+  },
+  {
+   "start": 409,
+   "end": 413,
+   "regime": "北魏",
+   "emperor": "魏明元帝拓跋嗣",
+   "years": "5年",
+   "period_raw": "409年闰十月－413年",
+   "note": "表中写作「永兴」，按繁简/异体字形归一匹配（永興）。",
+   "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E5%8C%97%E9%AD%8F"
+  },
+  {
+   "start": 532,
+   "end": 532,
+   "regime": "北魏",
+   "emperor": "魏孝武帝元脩",
+   "years": "1年",
+   "period_raw": "532年十二月",
+   "note": "表中写作「永兴」，按繁简/异体字形归一匹配（永興）。",
+   "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E5%8C%97%E9%AD%8F"
+  },
+  {
+   "start": 1628,
+   "end": 1628,
+   "regime": "明朝统治地区其他势力年号",
+   "emperor": "张惟元",
+   "years": "1年",
+   "period_raw": "1628年",
+   "note": "表中写作「永兴」，按繁简/异体字形归一匹配（永興）。",
+   "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E6%98%8E%E6%9C%9D"
+  },
+  {
+   "start": 1708,
+   "end": 1708,
+   "regime": "清朝统治地区其他势力年号",
+   "emperor": "钱宝通",
+   "years": "1年",
+   "period_raw": "1708年冬季",
+   "note": "表中写作「永兴」，按繁简/异体字形归一匹配（永興）。",
+   "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E6%B8%85%E6%9C%9D"
+  }
+ ],
+ "泰始": [
+  {
+   "start": 265,
+   "end": 274,
+   "regime": "西晋",
+   "emperor": "晋武帝司馬炎",
+   "years": "10年",
+   "period_raw": "265年十二月－274年",
+   "note": "",
+   "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E8%A5%BF%E6%99%89"
+  },
+  {
+   "start": 465,
+   "end": 471,
+   "regime": "宋",
+   "emperor": "宋明帝劉彧",
+   "years": "7年",
+   "period_raw": "465年十二月－471年",
+   "note": "",
+   "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E5%AE%8B"
+  },
+  {
+   "start": 432,
+   "end": 437,
+   "regime": "劉宋统治地区其他势力的年号",
+   "emperor": "程道養",
+   "years": "6年",
+   "period_raw": "432年－437年四月",
+   "note": "",
+   "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E5%AE%8B"
+  }
+ ],
+ "興平": [
+  {
+   "start": 194,
+   "end": 195,
+   "regime": "东汉",
+   "emperor": "汉献帝劉協",
+   "years": "2年",
+   "period_raw": "194年正月－195年",
+   "note": "表中写作「兴平」，按繁简/异体字形归一匹配（興平）。",
+   "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E6%9D%B1%E6%BC%A2"
+  },
+  {
+   "start": 486,
+   "end": 486,
+   "regime": "南齐统治地区其他势力的年号",
+   "emperor": "唐㝢之",
+   "years": "1個月",
+   "period_raw": "486年正月",
+   "note": "表中写作「兴平」，按繁简/异体字形归一匹配（興平）。",
+   "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E9%BD%8A"
+  }
+ ],
+ "青龍": [
+  {
+   "start": 233,
+   "end": 237,
+   "regime": "曹魏",
+   "emperor": "魏明帝曹叡",
+   "years": "5年",
+   "period_raw": "233年二月－237年三月",
+   "note": "表中写作「青龙」，按繁简/异体字形归一匹配（青龍）。",
+   "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E6%9B%B9%E9%AD%8F"
+  },
+  {
+   "start": 350,
+   "end": 350,
+   "regime": "后赵",
+   "emperor": "趙義陽王石鑒",
+   "years": "1年",
+   "period_raw": "350年正月－闰二月",
+   "note": "傳統史書以冉閔殺石鑒、建國大魏，作為後趙的終止。",
+   "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E5%BE%8C%E8%B6%99"
+  },
+  {
+   "start": 398,
+   "end": 398,
+   "regime": "后燕统治地区其他势力年号",
+   "emperor": "蘭汗",
+   "years": "4个月",
+   "period_raw": "398年四月－七月",
+   "note": "",
+   "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E5%BE%8C%E7%87%95"
+  }
+ ],
+ "鳳皇": [
+  {
+   "start": 272,
+   "end": 274,
+   "regime": "孫吳",
+   "emperor": "吳末帝孙皓",
+   "years": "3年",
+   "period_raw": "272年－274年",
+   "note": "表中写作「凤凰」，按繁简归一并视「皇」「凰」为异写匹配（鳳皇）。",
+   "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E5%AD%AB%E5%90%B3"
+  },
+  {
+   "start": 370,
+   "end": 370,
+   "regime": "东晋统治地区出现的其他年号",
+   "emperor": "李金银、李弘",
+   "years": "2個月",
+   "period_raw": "370年八月－九月",
+   "note": "表中写作「凤凰」，按繁简归一并视「皇」「凰」为异写匹配（鳳皇）。 《晋书·海西公纪》作九月反；《资治通鉴》作八月反，九月平。",
+   "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E6%9D%B1%E6%99%89"
+  },
+  {
+   "start": 386,
+   "end": null,
+   "regime": "前凉统治地区出现的其他势力年号",
+   "emperor": "張大豫",
+   "years": "2年",
+   "period_raw": "386年二月－287年七月",
+   "note": "表中写作「凤凰」，按繁简归一并视「皇」「凰」为异写匹配（鳳皇）。 来源原文起讫为“386年二月－287年七月”，止年明显有误，未予更正。",
+   "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E5%89%8D%E6%B6%BC"
+  }
+ ],
+ "黃武": [
+  {
+   "start": 222,
+   "end": 229,
+   "regime": "孫吳",
+   "emperor": "吳大帝孙权",
+   "years": "8年",
+   "period_raw": "222年十月－229年四月",
+   "note": "表中写作「黄武」，按繁简/异体字形归一匹配（黃武）。",
+   "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E5%AD%AB%E5%90%B3"
+  }
+ ],
+ "黃龍": [
+  {
+   "start": -49,
+   "end": -49,
+   "regime": "西汉",
+   "emperor": "汉宣帝劉詢",
+   "years": "1年",
+   "period_raw": "前49年",
+   "note": "表中写作「黄龙」，按繁简/异体字形归一匹配（黃龍）。 黃龍元年（前49年）十二月漢元帝即位沿用。",
+   "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E8%A5%BF%E6%BC%A2"
+  },
+  {
+   "start": 229,
+   "end": 231,
+   "regime": "孫吳",
+   "emperor": "吳大帝孙权",
+   "years": "3年",
+   "period_raw": "229年四月－231年",
+   "note": "表中写作「黄龙」，按繁简/异体字形归一匹配（黃龍）。",
+   "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E5%AD%AB%E5%90%B3"
+  },
+  {
+   "start": 761,
+   "end": 761,
+   "regime": "唐朝统治地区其他势力的年号",
+   "emperor": "段子璋",
+   "years": "2个月",
+   "period_raw": "761年四月－五月",
+   "note": "",
+   "source": "https://zh.wikipedia.org/w/index.php?title=%E4%B8%AD%E5%9B%BD%E5%B9%B4%E5%8F%B7%E5%88%97%E8%A1%A8&oldid=94366635#%E5%94%90%E6%9C%9D"
+  }
+ ]
+}
