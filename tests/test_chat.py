@@ -112,12 +112,9 @@ def test_describe_tolerates_non_object_args():
 # ---------- 限制和停止 ----------
 
 def test_limits_stop_before_calling_model():
-    """问题太长, 对话轮数到上限, 今天的预算用完: 只回一条说明, 不调模型."""
+    """问题太长, 今天的预算用完: 只回一条说明, 不调模型."""
     out, script = run("问" * (chat.MAX_QUESTION_CHARS + 1), [])
     assert len(out) == 1 and "太长" in out[0][0]["content"] and script.seen == []
-    many = [{"role": "user", "content": "q"}, {"role": "assistant", "content": "a"}] * chat.MAX_TURNS
-    out, script = run("曹操去过浚仪吗", many)
-    assert "轮" in out[0][0]["content"] and script.seen == []
     budget = chat.Budget(0.01)
     budget.add(0.02)
     respond = chat.make_respond(LIB, complete_factory=lambda: Script(), budget=budget)

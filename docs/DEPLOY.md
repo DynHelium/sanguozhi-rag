@@ -17,7 +17,7 @@
 
 - `--daily-budget <美元>`：按 OpenRouter 返回的实际花费累计，当天用满后拒绝新问题，第二天清零（进程重启也会清零）。
   每题答完才记账，几个问题同时在答时总花费可能略超上限，所以它不是硬上限。
-- 每个问题最长 500 字，每次对话最多 20 轮（`app/chat.py` 的 `MAX_QUESTION_CHARS`、`MAX_TURNS`）。
+- 每个问题最长 500 字（`app/chat.py` 的 `MAX_QUESTION_CHARS`）；对话轮数不设上限。
 - 用户点停止后，后台不再开始新的一次模型调用；正在进行的那次请求（包括它内部的限流重试）可能还会做完。
 - 同时最多 4 个问题在回答（Gradio 的 `concurrency_limit`），其余排队；同一模型同时在途的请求数另有上限（`rag/openrouter.PER_MODEL`）。
 

@@ -146,7 +146,6 @@ def render_sources(res: dict, max_len: int = 300) -> str:
 
 
 MAX_QUESTION_CHARS = 500  # 一个问题最长多少字
-MAX_TURNS = 20            # 一次对话最多问几轮 (页面上的用户消息数)
 
 
 class Cancelled(Exception):
@@ -178,11 +177,10 @@ class Budget:
 
 
 def check_limits(question: str, history: list[dict], budget: Budget | None) -> str | None:
-    """超出限制时返回给用户看的说明, 没超出返回 None: 问题太长, 这次对话的轮数到上限, 今天的预算用完."""
+    """超出限制时返回给用户看的说明, 没超出返回 None: 问题太长, 今天的预算用完. 对话轮数不设上限 (游戏的回合也在历史里,
+    按轮数拦会误伤); 历史太长时由用户点 "清除对话"."""
     if len(question) > MAX_QUESTION_CHARS:
         return f"问题太长了 (超过 {MAX_QUESTION_CHARS} 字), 请精简后再问."
-    if sum(1 for m in history if m.get("role") == "user") >= MAX_TURNS:
-        return f"这次对话已经问了 {MAX_TURNS} 轮, 请点「清除」开始新的对话."
     if budget is not None and budget.exhausted():
         return "今天的额度已经用完, 请明天再来."
     return None
