@@ -2,11 +2,16 @@
 
     uv run python -m tests.test_skills
 """
+import json
 import random
+import tempfile
+from pathlib import Path
 from types import SimpleNamespace
 
 from rag import guess, skills, soup
 from tests.test_agent import LIB
+
+skills.TRACE_DIR = Path(tempfile.mkdtemp())  # 测试的逐步记录写到临时目录, 不进 data/
 
 PERSON: guess.Person = {"id": "g-01", "tier": "common", "person": "刘备", "aliases": ["先主", "刘玄德"],
                         "bio": ["32-0000"], "note": "蜀汉昭烈皇帝", "playable": True}
@@ -190,6 +195,21 @@ def test_agent_guess_timeout_recovers():
     assert "想得太久" in g.ask("是") and g.pending and g.msgs[:len(before)] == before
     g.complete = agent_says('{"ask": "q2"}')
     assert g.ask("继续").endswith("第 2 问: q2") and not g.pending
+
+
+def test_router_writes_trace():
+    """每句话记 user / tool / reply 三类记录, 带 sid, skill, turn; 不归游戏管的话不记."""
+    call = SimpleNamespace(id="c1", function=SimpleNamespace(name="search", arguments='{"query": "浚儀"}'))
+    replies = [SimpleNamespace(content="", tool_calls=[call]), SimpleNamespace(content='{"ask": "q?"}', tool_calls=None)]
+    for f in skills.TRACE_DIR.glob("*.jsonl"):
+        f.unlink()
+    r = skills.Router({"guess_person": lambda: guess.AgentGuessGame(LIB, lambda m, tools=None: replies.pop(0))})
+    assert r.handle("t", "曹操是谁") is None
+    r.handle("t", "猜人物")
+    rows = [json.loads(line) for f in skills.TRACE_DIR.glob("*.jsonl") for line in open(f, encoding="utf-8")]
+    assert [x["type"] for x in rows] == ["user", "tool", "reply"]
+    assert {(x["sid"], x["skill"], x["turn"]) for x in rows} == {("t", "guess_person", 1)}
+    assert rows[1]["args"] == {"query": "浚儀"} and rows[2]["text"].endswith("第 1 问: q?")
 
 
 if __name__ == "__main__":

@@ -29,6 +29,7 @@ Router 按会话 id 保存每个会话正在玩的游戏, 只放在服务端内�
 拿回要显示的文字. handle 返回 None 表示这句话不归游戏管, 由调用方照常交给问答 agent.
 """
 import argparse
+import json
 import random
 import re
 import sys
@@ -52,6 +53,28 @@ COMMANDS = {
 }
 ANSWER = re.compile(r"^/(?:答|answer)\s*(.*)$", re.S | re.I)
 REQUEST_TIMEOUT = 60  # 游戏里单次模型请求的超时 (秒); 问答 agent 用 rag/openrouter 的默认 300 秒
+TRACE_DIR = config.DATA_DIR / "processed" / "game_logs"  # 每局游戏的逐步记录, 按天一个 jsonl (不进 git)
+_ctx = threading.local()  # 当前线程正在处理的那一问: sid, skill, turn; 模型请求的记录靠它知道属于哪一问
+_trace_lock = threading.Lock()
+
+
+def trace(record: dict) -> None:
+    """往 TRACE_DIR/<日期>.jsonl 追加一行记录, 自动带上时间和当前这一问的 sid / skill / turn (见 Router.handle).
+
+    记录类型 (type):
+        user     玩家这一句: {"text"}
+        request  一次模型请求: {"seconds", "n_messages", "tools", "last" (最后一条消息, 截断), "content", "reasoning",
+                 "tool_calls": [{"name", "arguments"}], "usage": {"prompt", "completion", "reasoning"}, "error"}
+        tool     一次工具调用: {"tool", "args", "chunks", "error"}
+        reply    这一问的回复: {"text", "seconds"}
+    写失败 (磁盘等) 时静默跳过, 不影响游戏."""
+    rec = {"ts": round(time.time(), 3), **{k: getattr(_ctx, k, None) for k in ("sid", "skill", "turn")}, **record}
+    try:
+        TRACE_DIR.mkdir(parents=True, exist_ok=True)
+        with _trace_lock, open(TRACE_DIR / f"{time.strftime('%Y-%m-%d')}.jsonl", "a", encoding="utf-8") as f:
+            f.write(json.dumps(rec, ensure_ascii=False, default=str) + "\n")
+    except OSError:
+        pass
 OnEvent = Callable[[str, Any], None]
 
 
@@ -115,6 +138,7 @@ class Router:
         self.skills = {k: v for k, v in all_skills.items() if k in factories}
         self.factories = factories
         self.sessions: dict[str, tuple[Skill, GameLike]] = {}
+        self.turns: dict[str, int] = {}  # 每个会话说了几句 (记录里的 turn)
         self.lock = threading.Lock()
 
     def active(self, sid: str) -> Skill | None:
@@ -129,6 +153,25 @@ class Router:
     def handle(self, sid: str, text: str, on_event: OnEvent | None = None) -> str | None:
         """处理会话 sid 的一句话, 返回要显示的文字; None 表示不归游戏管 (没在玩, 也不是触发词).
         on_event(kind, info) 收游戏这一问的进度 (Agent 的推理, 工具调用), 见 rag/guess.play."""
+        cur0 = self.sessions.get(sid)
+        sk0 = match_skill(text, self.skills) or (cur0[0] if cur0 else None)
+        if sk0 is None:
+            return None
+        self.turns[sid] = self.turns.get(sid, 0) + 1
+        _ctx.sid, _ctx.skill, _ctx.turn = sid, sk0.name, self.turns[sid]
+        trace({"type": "user", "text": text})
+        start = time.time()
+
+        def logged(kind: str, info: Any) -> None:
+            if kind == "tool" and isinstance(info, dict):
+                trace({"type": "tool", **{k: info.get(k) for k in ("tool", "args", "chunks", "error")}})
+            if on_event:
+                on_event(kind, info)
+        reply = self._handle(sid, text, logged)
+        trace({"type": "reply", "text": reply, "seconds": round(time.time() - start, 2)})
+        return reply
+
+    def _handle(self, sid: str, text: str, on_event: OnEvent | None) -> str | None:
         sk = match_skill(text, self.skills)
         if sk:
             game = self.factories[sk.name]()
@@ -173,28 +216,42 @@ def make_router(lib: Any, complete: Callable[..., Any], model: str | None = None
     猜人物的裁判要走 agent 循环 (要的是返回 message 的 complete), 这里包一层. lib 是 rag.library.load_library() 的结果."""
     from rag import guess, soup
 
+    def traced(messages: list[dict], **kw: Any) -> Any:
+        """发一次请求 (ChatCompletion), 把耗时, token, 推理, 工具调用记进 trace, 失败也记一行再抛."""
+        t = time.time()
+        base = {"n_messages": len(messages), "tools": bool(kw.get("tools")),
+                "last": str(messages[-1].get("content"))[:300] if messages else None}
+        try:
+            resp = complete(messages, **kw)
+        except Exception as e:
+            trace({"type": "request", "seconds": round(time.time() - t, 2), **base, "error": f"{type(e).__name__}: {e}"})
+            print(f"[skill] 模型请求失败 {time.time() - t:.1f}s: {type(e).__name__}: {e}", file=sys.stderr, flush=True)
+            raise
+        msg, u = resp.choices[0].message, getattr(resp, "usage", None)
+        details = getattr(u, "completion_tokens_details", None)
+        trace({"type": "request", "seconds": round(time.time() - t, 2), **base, "content": msg.content,
+               "reasoning": getattr(msg, "reasoning", None),
+               "tool_calls": [{"name": c.function.name, "arguments": c.function.arguments} for c in msg.tool_calls or []],
+               "usage": {"prompt": getattr(u, "prompt_tokens", None), "completion": getattr(u, "completion_tokens", None),
+                         "reasoning": getattr(details, "reasoning_tokens", None)}, "error": None})
+        print(f"[skill] 模型请求 {time.time() - t:.1f}s, 消息 {len(messages)} 条, 工具调用 {len(msg.tool_calls or [])} 个",
+              file=sys.stderr, flush=True)
+        return resp
+
     def message_complete(messages: list[dict], tools: list[dict] | None = None) -> Any:
         kw: dict[str, Any] = {"model": model, "timeout": REQUEST_TIMEOUT}
         if effort:
             kw["reasoning_effort"] = effort
         if tools:
             kw["tools"] = tools
-        t = time.time()
-        try:
-            msg = complete(messages, **kw).choices[0].message
-        except Exception as e:  # 记一行再抛: 网页卡住时能从日志看出卡在哪次请求
-            print(f"[skill] 模型请求失败 {time.time() - t:.1f}s: {type(e).__name__}: {e}", file=sys.stderr, flush=True)
-            raise
-        calls = len(getattr(msg, "tool_calls", None) or [])
-        print(f"[skill] 模型请求 {time.time() - t:.1f}s, 消息 {len(messages)} 条, 工具调用 {calls} 个", file=sys.stderr, flush=True)
-        return msg
+        return traced(messages, **kw).choices[0].message
 
     puzzles = soup.load_puzzles()
     r = rng or random.Random()
     return Router({
         "guess_person": lambda: guess.GuessPerson(lambda: guess.new_game(lib, message_complete, rng=r),
                                                   lambda: guess.AgentGuessGame(lib, message_complete)),
-        "turtle_soup": lambda: soup.Game(r.choice(puzzles), complete, model, effort),
+        "turtle_soup": lambda: soup.Game(r.choice(puzzles), traced, model, effort),
     })
 
 
