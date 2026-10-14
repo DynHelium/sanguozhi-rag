@@ -118,6 +118,52 @@ def test_new_game_draws_from_pool():
     assert g.p["person"] == "刘备" and "刘备" in g.known_names
 
 
+def agent_says(*replies: str):
+    """假的 message 版 complete: 依次返回给定的 JSON 文字 (Agent 来猜时的问题或猜测), 不调工具."""
+    queue = list(replies)
+
+    def complete(messages, tools=None):
+        complete.last = messages
+        return SimpleNamespace(content=queue.pop(0), tool_calls=None)
+    return complete
+
+
+def test_agent_guess_flow():
+    """Agent 来猜: 开局给第一问; 认不出的回答要求重答; 猜错接着问; 猜对结束. 历史里没有 developer 提醒."""
+    c = agent_says('{"ask": "这个人是男性吗？"}', '{"guess": "曹操", "desc": "魏武帝"}', '{"guess": "刘备", "desc": "先主"}')
+    g = guess.AgentGuessGame(LIB, c)
+    assert g.intro().endswith("第 1 问: 这个人是男性吗？")
+    assert g.ask("也许") == "请回答 是 / 不是 / 不知道."
+    assert g.ask("是的").startswith("第 2 次: 我猜是 曹操 (魏武帝)")
+    assert g.ask("嗯哼") == "请回答 对 / 错."
+    assert g.ask("错").startswith("第 3 次: 我猜是 刘备")
+    assert g.ask("对").startswith("太好了") and g.over
+    assert all(m["role"] != "developer" for m in c.last)
+
+
+def test_agent_guess_runs_out():
+    """次数用完就结束, 问玩家想的是谁; /放弃 让 Agent 认输."""
+    c = agent_says('{"ask": "q1"}', '{"ask": "q2"}')
+    g = guess.AgentGuessGame(LIB, c, max_turns=1)
+    g.intro()
+    assert "用完了" in g.ask("不是") and g.over
+    g2 = guess.AgentGuessGame(LIB, agent_says('{"ask": "q"}'))
+    g2.intro()
+    assert "认输" in g2.reveal() and g2.over
+
+
+def test_guess_person_mode_choice():
+    """猜人物先选玩法: 1 = 玩家猜, 2 = Agent 猜; 别的回答要求重选."""
+    r = skills.Router({"guess_person": lambda: guess.GuessPerson(
+        lambda: guess.GuessGame(PERSON, LIB, judge_says("是")), lambda: guess.AgentGuessGame(LIB, agent_says('{"ask": "q?"}')))})
+    assert "两种玩法" in r.handle("u", "猜人物")
+    assert r.handle("u", "3").startswith("请回复 1")
+    assert "你可以问" in r.handle("u", "1")
+    assert r.handle("u", "他是男的吗").startswith("是")
+    r.handle("v", "/guess_person")
+    assert r.handle("v", "2").endswith("第 1 问: q?")
+
+
 if __name__ == "__main__":
     from tests._run import run as run_tests
     run_tests(globals())

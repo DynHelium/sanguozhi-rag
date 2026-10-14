@@ -52,8 +52,10 @@ ANSWER = re.compile(r"^/(?:答|answer)\s*(.*)$", re.S | re.I)
 
 
 class GameLike(Protocol):
-    """一局游戏要提供的接口 (rag/guess.GuessGame, rag/soup.Game 都符合)."""
-    over: bool
+    """一局游戏要提供的接口 (rag/guess.GuessPerson, rag/soup.Game 都符合)."""
+
+    @property
+    def over(self) -> bool: ...
 
     def intro(self) -> str: ...
     def ask(self, text: str, /) -> str: ...
@@ -173,7 +175,8 @@ def make_router(lib: Any, complete: Callable[..., Any], model: str | None = None
     puzzles = soup.load_puzzles()
     r = rng or random.Random()
     return Router({
-        "guess_person": lambda: guess.new_game(lib, message_complete, rng=r),
+        "guess_person": lambda: guess.GuessPerson(lambda: guess.new_game(lib, message_complete, rng=r),
+                                                  lambda: guess.AgentGuessGame(lib, message_complete)),
         "turtle_soup": lambda: soup.Game(r.choice(puzzles), complete, model, effort),
     })
 

@@ -1,16 +1,18 @@
-"""猜人物 (Agent 出题, 玩家来猜): Agent 心里定一个《三国志》人物, 玩家问是非问题, 最后说出名字.
+"""猜人物, 两种玩法 (GuessPerson 开局时让玩家选):
+    1. Agent 出题, 玩家来猜 (GuessGame): Agent 心里定一个《三国志》人物, 玩家问是非问题, 最后说出名字.
+    2. 玩家出题, Agent 来猜 (AgentGuessGame): 玩家心里想一个人, Agent 问是非问题 (GUESS_SYS, 可以查原文), 最后猜名字.
 
     uv run python -m rag.skills          # 命令行里玩 (输入 "猜人物" 开局), 见 rag/skills.py
     uv run python -m tests.test_skills   # 假模型测试, 不连网
 
-谜底池 data/guess/checks.jsonl, 一行一个人物, 只有 "playable": true 的人会被抽到 (身份明确, 原文有足够记载):
+玩法 1 的谜底池 data/guess/checks.jsonl, 一行一个人物, 只有 "playable": true 的人会被抽到 (身份明确, 原文有足够记载):
     {"id": "g-06", "tier": "rare", "person": "马忠", "aliases": ["狐笃", "马德信"], "bio": ["43-0011"],
      "homonym": true, "note": "...", "playable": true, "questions": [...]}
     bio      这个人本传或出处的源 id, 裁判先读这些段落
     homonym  有同名的人 (如蜀汉马忠 / 孙吴马忠): 揭晓时说明是哪一位
     note     一句话说明是哪一位, 揭晓时显示; 没有就只显示名字和出处
 
-裁判 (judge_question): 每个问题单独开一段对话, 模型用 search / read / who 等工具查原文后给判词 (VERDICTS).
+玩法 1 的裁判 (judge_question): 每个问题单独开一段对话, 模型用 search / read / who 等工具查原文后给判词 (VERDICTS).
 页面只显示判词和计数, 不显示模型写的其他文字, 所以就算模型被诱导写出名字也不会展示出去; 直接打听谜底本身的问题
 (如 "他名字第一个字是什么") 由代码先拦下 (rag/soup.is_meta 加上 _META_NAME). 玩家猜名字时由代码比对人名和称呼 (matches),
 不交给模型判断.
@@ -38,6 +40,25 @@ JUDGE_SYS = """你是 "猜人物" 游戏的裁判. 谜底是《三国志》里�
 判断规则: 原文写明或能直接推出 -> 是 / 不是; 原文确实没写, 推不出来 -> 无法判断 (没写不等于 "不是"); 问题不是能用是 / 不是回答的 -> 请问是非题.
 只依据查到的原文, 不用自己的历史知识. 注意同名的人, 不要查成别人.
 最后只输出一行 JSON: {{"verdict": "是 | 不是 | 无法判断 | 请问是非题", "evidence": [依据的资料编号 n]}}"""
+
+GUESS_SYS = """你在玩 "猜人物": 对方心里想了一个《三国志》里的人物 (正文或裴注里出现的人), 你要用是非问题猜出是谁.
+对方只会回答 "是" "不是" "不知道". 你最多问 {n} 次 (猜名字也算一次).
+你手边有检索《三国志》原文的工具. 前几问范围还很大, 只问不查; 等回答里出现能落到原文的条件 (哪一书、正文还是裴注、
+出现在谁的传里、和谁有关、什么事件) 再查, 搜索词从这些回答里来, 不要凭记忆撒网搜名字. 冷门人物常常只在裴注里出现一两次,
+不查原文想不到; 猜名字前用工具核对候选人确实符合全部回答.
+每一轮只做一件事, 最后只输出一行 JSON:
+  问问题: {{"ask": "一个是非问题"}}
+  猜名字: {{"guess": "人名", "desc": "一句话说明是哪一位 (同名的人很多, 如几个马忠)"}}
+先用几轮问题确定人物范围, 再查原文找人:
+  1. 性别;
+  2. 属于哪一方. 魏、蜀、吴不是全部, 还有汉臣、汉末群雄、辽东公孙氏、外族等; "不是魏也不是蜀" 不等于是吴, 要问清;
+  3. 出现在《三国志》哪一部分 (魏书 / 蜀书 / 吴书), 正文还是只在裴注里, 有没有自己的传;
+  4. 出现在谁的传里、和哪些人有关、卷入了什么事: 这是查原文最有用的线索.
+笼统的年代 (如 "220 年以后") 对查原文帮助不大, 只有能问到具体的年号和年份时才值得问.
+问清 "哪一书 + 正文还是裴注 + 属于哪一方" 后, 就用这些条件查原文: search 的 book / part 参数可以只搜某一书、只搜正文或裴注
+(如 query "南中 叛乱", book "蜀书", part "裴注"), 从查到的原文里列出
+符合全部回答的候选人, 再出能把候选人分开的问题; 不要再一个个类别地排除.
+猜名字: 符合全部回答的候选人还多于 5 个时不猜, 继续问; 缩到 3-5 个以内再猜. 猜错也用掉一次机会."""
 
 # 打听名字本身的问题 (猜人物特有; 汤底 / 答案 / 谜底等由 rag/soup.is_meta 拦)
 _META_NAME = re.compile(r"名字|姓什么|叫什么|哪个字|第[一二三四五六七八九十\d]+个字|几个字|拼音|首字母")
@@ -184,3 +205,124 @@ def new_game(lib: Library, complete: Callable[..., Any], rng: random.Random | No
     people = pool if pool is not None else load_pool()
     known = {to_simplified(p["name"]) for p in load_aliases().get("people", []) if len(p.get("name", "")) >= 2}
     return GuessGame((rng or random).choice(people), lib, complete, known_names=known)
+
+
+AGENT_MAX = 25        # Agent 来猜时最多几次 (问问题和猜名字都算)
+AGENT_HINT_AFTER = 20  # 问过这么多次以后, 每轮告诉模型还剩几次 (模型自己不数)
+AGENT_ROUNDS = 4       # Agent 每一轮最多几轮工具调用
+_YES = {"是", "是的", "对", "对的", "嗯", "有", "yes", "y"}
+_NO = {"不是", "否", "不对", "错", "没有", "no", "n"}
+_UNKNOWN = {"不知道", "不清楚", "不确定", "无法判断", "没写", "unknown"}
+_REMIND = "请只输出一行 JSON: {\"ask\": ...} 或 {\"guess\": ..., \"desc\": ...}."
+
+
+def _answer_kind(text: str) -> str | None:
+    """玩家的回答归成 是 / 不是 / 不知道; 认不出返回 None."""
+    t = re.sub(r"[\s。.!！?？~～,，]+", "", text).casefold()
+    return "是" if t in _YES else "不是" if t in _NO else "不知道" if t in _UNKNOWN else None
+
+
+class AgentGuessGame:
+    """Agent 来猜: 玩家心里想一个人, Agent 问是非问题 (可以用检索工具查原文), 最后猜名字, 玩家答 对 / 错.
+
+    整局是同一段对话 (GUESS_SYS 是 system prompt); 每一轮用 play() 跑 agent 循环, 并删掉循环追加的 developer 提醒.
+    问满 AGENT_HINT_AFTER 次后每轮附上 "还剩 N 次". Agent 没给出问题或名字时提醒一次.
+    complete 签名同 judge_question 的 complete; turns 记录每一轮 {"n", "ask" 或 "guess" + "desc", "tools"}."""
+
+    def __init__(self, lib: Library, complete: Callable[..., Any], max_turns: int = AGENT_MAX,
+                 hint_after: int = AGENT_HINT_AFTER) -> None:
+        self.lib, self.complete, self.max, self.hint_after = lib, complete, max_turns, hint_after
+        self.msgs: list[dict] = [{"role": "system", "content": GUESS_SYS.format(n=max_turns)},
+                                 {"role": "user", "content": "我想好了一个人, 开始吧."}]
+        self.turns: list[dict] = []
+        self.seen = Seen(lib.notes)
+        self.over = False
+
+    def intro(self) -> str:
+        """开局: 说明玩法, 并给出第一个问题."""
+        return ("你心里想好一个《三国志》里的人物, 我来问. 请回答 是 / 不是 / 不知道; 我猜名字时回答 对 / 错."
+                f" 我最多问 {self.max} 次. /放弃 我认输, /退出 结束游戏.\n\n" + self._next())
+
+    def _next(self) -> str:
+        n = len(self.turns) + 1
+        if n > self.max:
+            self.over = True
+            return f"{self.max} 次用完了, 我没猜出来. 你想的是谁?"
+        if n > self.hint_after:
+            self.msgs[-1]["content"] += f"\n(还剩 {self.max - n + 1} 次.)"
+        log: list[dict] = []
+        reply = play(self.msgs, self.lib, self.seen, log, self.complete, AGENT_ROUNDS)
+        if not field(reply, "guess") and not field(reply, "ask"):
+            self.msgs += [{"role": "assistant", "content": reply}, {"role": "user", "content": _REMIND}]
+            reply = play(self.msgs, self.lib, self.seen, log, self.complete, 1)
+        self.msgs.append({"role": "assistant", "content": reply})
+        name = field(reply, "guess")
+        turn: dict[str, Any] = ({"n": n, "guess": name, "desc": field(reply, "desc") or ""} if name
+                                else {"n": n, "ask": field(reply, "ask") or ""})
+        turn["tools"] = log
+        self.turns.append(turn)
+        if name:
+            desc = f" ({turn['desc']})" if turn["desc"] else ""
+            return f"第 {n} 次: 我猜是 {name}{desc}. 对吗?"
+        return f"第 {n} 问: {turn['ask'] or '(我没想好问题, 请随便回答一句让我继续)'}"
+
+    def ask(self, text: str) -> str:
+        """玩家的回答: 上一轮是问题就答 是 / 不是 / 不知道, 是猜名字就答 对 / 错. 返回 Agent 的下一问 (或结局)."""
+        if self.over:
+            return "这一局已经结束了."
+        kind = _answer_kind(text)
+        last = self.turns[-1]
+        if "guess" in last:
+            if kind is None or kind == "不知道":
+                return "请回答 对 / 错."
+            if kind == "是":
+                self.over = True
+                return f"太好了, 是 {last['guess']}! 我用了 {last['n']} 次."
+            self.msgs.append({"role": "user", "content": f"不是 {last['guess']}."})
+        else:
+            if kind is None:
+                return "请回答 是 / 不是 / 不知道."
+            last["answer"] = kind
+            self.msgs.append({"role": "user", "content": kind})
+        return self._next()
+
+    def reveal(self) -> str:
+        """玩家让 Agent 认输."""
+        self.over = True
+        return "好吧, 我认输. 你想的是谁?"
+
+
+class GuessPerson:
+    """猜人物 skill 的一局: 先让玩家选玩法 (1 = Agent 出题玩家猜, GuessGame; 2 = 玩家出题 Agent 猜, AgentGuessGame), 之后转交."""
+    _USER = {"1", "我猜", "你出题", "我来猜"}
+    _AGENT = {"2", "你猜", "我出题", "你来猜"}
+
+    def __init__(self, user_game: Callable[[], Any], agent_game: Callable[[], Any]) -> None:
+        self.user_game, self.agent_game = user_game, agent_game
+        self.game: Any = None
+        self._over = False
+
+    @property
+    def over(self) -> bool:
+        return self._over or bool(self.game and self.game.over)
+
+    def intro(self) -> str:
+        return "两种玩法: 回复 1 = 我想一个人, 你来猜; 回复 2 = 你想一个人, 我来猜."
+
+    def ask(self, text: str) -> str:
+        if self.game is not None:
+            return self.game.ask(text)
+        t = re.sub(r"[\s。.!！?？]+", "", text)
+        if t in self._USER:
+            self.game = self.user_game()
+        elif t in self._AGENT:
+            self.game = self.agent_game()
+        else:
+            return "请回复 1 (我出题, 你来猜) 或 2 (你出题, 我来猜)."
+        return self.game.intro()
+
+    def reveal(self) -> str:
+        if self.game is None:
+            self._over = True
+            return "还没开始, 已结束."
+        return self.game.reveal()
