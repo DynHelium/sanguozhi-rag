@@ -29,7 +29,7 @@ from rag import agent, config
 from rag.library import Library, Seen
 from rag.loop import agent_loop
 from rag.normalize import to_simplified
-from rag.soup import LEAK_REPLY, _parse_json, leaks
+from rag.soup import LEAK_REPLY, _parse_json, leaks, trim
 
 CHECKS = config.DATA_DIR / "guess" / "checks.jsonl"
 VERDICTS = ("是", "不是", "选择", "没有记载", "没法回答")  # 判词类别; 给玩家看的是 answer 那一句话
@@ -46,13 +46,14 @@ JUDGE_SYS = """你是 "猜人物" 游戏的裁判. 谜底是《三国志》里�
 {bio_text}
 
 怎么答 (玩家多半凭印象提问, 按他最可能的意思答, 不抠字眼):
-- 是非题答 是 / 不是, 可以带一句很短的说明 (如 "是, 但不是蜀国的" "不是, 他以谋士为主").
-- 二选一的问题 (如 "是南方人还是北方人" "主要在魏国还是吴国") 直接答其中一个选项.
+- 只答结论, 不介绍, 不解释: 是非题答 "是" 或 "不是"; 二选一的问题 (如 "是南方人还是北方人") 只答选项 (如 "北方人").
+- 只有直接答是 / 不是会误导时, 才加不超过 8 个字的限定, 且不带新线索 (如 "是, 但不是蜀国的" "一半一半");
+  不要顺带说他的官职、时期、经历 —— 那等于送线索.
 - 问法有歧义时按最可能的意思答: "是蜀国人或者官员吗" 是问 "是不是蜀国的人或官员", 不是问 "是蜀国人, 或者是官员".
 - 原文写明或能直接推出的, 答是或不是; 查过原文确实没有记载的, 答 "历史上没有记载".
 - 实在没法用是 / 不是或一个选项回答的 (如 "他是谁" "讲讲他的生平") -> 请玩家换成是非题或选择题.
 - 只依据查到的原文, 不用自己的历史知识. 注意同名的人, 不要查成别人.
-- 回答不超过一句话, 不能写出谜底的名字、字、称号, 也不能直接说出他的姓.
+- 不能写出谜底的名字、字、称号, 也不能直接说出他的姓.
 最后只输出一行 JSON: {{"verdict": "是 | 不是 | 选择 | 没有记载 | 没法回答", "answer": "给玩家看的那一句话", "evidence": [依据的资料编号 n]}}"""
 
 GUESS_SYS = """你在玩 "猜人物": 对方心里想了一个三国人物 (多半是《三国志》里的人, 也可能是只在《三国演义》里出名的人物),
@@ -189,7 +190,7 @@ def judge_question(lib: Library, person: Person, question: str, complete: Callab
                  complete, JUDGE_ROUNDS, on_event, show=False)
     verdict = field(reply, "verdict")
     verdict = verdict if verdict in VERDICTS else "没有记载"
-    answer = (field(reply, "answer") or "").strip() or {"没有记载": "历史上没有记载"}.get(verdict, verdict)
+    answer = trim(field(reply, "answer") or "") or {"没有记载": "历史上没有记载"}.get(verdict, verdict)
     if leaks(answer, [person["person"], *person.get("aliases", [])]):
         answer = LEAK_REPLY
     return {"verdict": verdict, "answer": answer, "by": "model", "tools": log, "raw": reply[-300:]}

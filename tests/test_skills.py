@@ -254,6 +254,7 @@ def test_judge_free_answer_and_leak():
                SimpleNamespace(content='{"verdict": "是", "answer": "是, 他就是先主"}', tool_calls=None)]
     g = guess.GuessGame(PERSON, LIB, lambda m, tools=None: replies.pop(0))
     assert g.ask("他是南方人还是北方人？").startswith("北方人  (1/20)")
+    assert guess.trim("不是, 他主要活跃在曹魏文帝、明帝时期") == "不是" and guess.trim("是, 但不是蜀国的") == "是, 但不是蜀国的"
     assert g.ask("他是不是开国皇帝").startswith(guess.LEAK_REPLY) and g.asked == 1
 
 if __name__ == "__main__":
