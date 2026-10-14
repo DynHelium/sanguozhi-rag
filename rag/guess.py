@@ -39,7 +39,11 @@ TURN_BUDGET = 90.0  # 一问 (一次 play) 最多花几秒: 超过后不再发�
 OnEvent = Callable[[str, Any], None]  # on_event(kind, info): 进度事件, kind 是 "tool" / "stage" / "think" (见 play)
 
 JUDGE_SYS = """你是 "猜人物" 游戏的裁判. 谜底是《三国志》里的 {person} (原文里也称 {aliases}; 本传或出处 {bio}). 玩家不知道谜底,
-会问是非问题. 你手边有检索《三国志》原文的工具: 先用工具查这个人的原文 (可以直接 read 上面的出处 id), 再判断.
+会问是非问题. 这个人的出处原文已经附在下面 (编号 [n]), 先看这些资料; 问到资料里没有的事 (如和别人的交往, 别处的记载)
+才用工具查《三国志》原文, 不要把下面已有的段落再 read 一遍.
+
+{bio_text}
+
 判断规则: 原文写明或能直接推出 -> 是 / 不是; 原文确实没写, 推不出来 -> 无法判断 (没写不等于 "不是"); 问题不是能用是 / 不是回答的 -> 请问是非题.
 只依据查到的原文, 不用自己的历史知识. 注意同名的人, 不要查成别人.
 最后只输出一行 JSON: {{"verdict": "是 | 不是 | 无法判断 | 请问是非题", "evidence": [依据的资料编号 n]}}"""
@@ -152,18 +156,29 @@ def play(msgs: list[dict], lib: Library, seen: Seen, log: list[dict], complete: 
     return reply
 
 
+def bio_chunks(lib: Library, ids: list[str]) -> list[Any]:
+    """谜底人物出处 (源 id) 对应的全部块, 按原文顺序去重 (一个源段切成几块时都取)."""
+    out: list[Any] = []
+    for sid in ids:
+        for i in lib.by_source.get(sid, []):
+            if lib.chunks[i] not in out:
+                out.append(lib.chunks[i])
+    return out
+
+
 def judge_question(lib: Library, person: Person, question: str, complete: Callable[..., Any],
                    on_event: OnEvent | None = None) -> dict:
     """裁判一个是非问题. 返回 {"verdict": VERDICTS 之一, "by": "code" | "model", "tools": [工具调用记录], "raw": 模型回答末尾}.
 
     complete(messages, tools=None) -> 模型的一条回复 message (rag/loop.agent_loop 的约定). 打听谜底本身的问题由代码判
-    "请问是非题", 不请求模型. 每个问题单独开一段对话 (裁判互不记忆); 模型输出解析不了或判词不在 VERDICTS 里时判 "无法判断".
+    "请问是非题", 不请求模型. 每个问题单独开一段对话 (裁判互不记忆); 谜底的出处原文 (bio_chunks, 经 Seen 编号) 预先放进
+    system prompt, 大多数问题不用再调工具, 资料以外的事才查; 模型输出解析不了或判词不在 VERDICTS 里时判 "无法判断".
     on_event 只收到 ("stage", "查原文") (裁判的推理和检索词会泄底, 不发). 超过 TURN_BUDGET 时抛 TimeoutError."""
     if is_meta(question) or _META_NAME.search(question):
         return {"verdict": "请问是非题", "by": "code", "tools": [], "raw": None}
     seen, log = Seen(lib.notes), []
     sys = JUDGE_SYS.format(person=person["person"], aliases="、".join(person.get("aliases", [])) or "无",
-                           bio=", ".join(person["bio"]))
+                           bio=", ".join(person["bio"]), bio_text=seen.add(bio_chunks(lib, person["bio"])))
     reply = play([{"role": "system", "content": sys}, {"role": "user", "content": question}], lib, seen, log,
                  complete, JUDGE_ROUNDS, on_event, show=False)
     verdict = field(reply, "verdict")
