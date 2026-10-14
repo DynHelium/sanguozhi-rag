@@ -348,17 +348,76 @@ def main() -> None:
                          model, args.effort)
     respond = make_respond(lib, model, args.effort, factory, Budget(args.daily_budget), router)
 
-    def respond_with_session(message: Any, history: list[dict] | None, request: gr.Request) -> Iterator[list[dict]]:
-        yield from respond(message, history, request.session_hash or "default")
-
-    demo = gr.ChatInterface(
-        respond_with_session,
-        chatbot=gr.Chatbot(height=640, placeholder="依据《三国志》(陈寿正文和裴松之注) 回答三国历史问题. 中文或英文提问都可以."
-                                                   " 输入 \"猜人物\" 或 \"海龟汤\" 可以玩游戏."),
-        title="三国志问答", description=f"模型: {model or config.LLM_MODEL}" + (f" (思考 {args.effort})" if args.effort else ""),
-        examples=EXAMPLES, run_examples_on_click=False, concurrency_limit=4,
-    )
+    desc = f"模型: {model or config.LLM_MODEL}" + (f" (思考 {args.effort})" if args.effort else "")
+    demo = build_ui(respond, router, desc)
     demo.launch(server_port=args.port, share=args.share)
+
+
+GAME_BUTTONS = [("猜人物", "猜人物"), ("海龟汤", "海龟汤"), ("提示", "/提示"), ("放弃 / 揭晓", "/放弃"), ("退出游戏", "/退出")]
+IN_GAME = {"/提示", "/放弃", "/退出"}  # 只在游戏中可用的按钮
+
+
+def build_ui(respond: Callable[..., Iterator[list[dict]]], router: "Router", description: str) -> Any:
+    """搭网页 (gr.Blocks): 聊天框, 输入框 (带停止), 游戏按钮, 清除对话, 示例问题.
+
+    对话历史和一个浏览器 id 存在 gr.BrowserState (浏览器 localStorage) 里: 刷新页面后对话还在,
+    游戏状态按浏览器 id (而不是每次连接都变的 session_hash) 存在 router 里, 刷新后也接得上 (服务重启后游戏会丢).
+    "清除对话" 清掉聊天记录和正在玩的游戏, 之后的问题不再带前文. 提示 / 放弃 / 退出 三个按钮只在游戏中可点."""
+    import uuid
+
+    import gradio as gr
+
+    def ensure(uid: str) -> str:
+        return uid or uuid.uuid4().hex
+
+    def buttons(uid: str) -> list[Any]:
+        active = router.active(uid) is not None
+        return [gr.update(interactive=active or cmd not in IN_GAME) for _, cmd in GAME_BUTTONS]
+
+    def send(text: str, history: list[dict] | None, uid: str) -> Iterator[tuple]:
+        uid, history = ensure(uid), list(history or [])
+        text = (text or "").strip()
+        if not text:
+            yield (history, "", history, uid, *buttons(uid))
+            return
+        shown = history + [{"role": "user", "content": text}]
+        out: list[dict] = []
+        yield (shown, "", history, uid, *buttons(uid))
+        for out in respond(text, history, uid):
+            yield (shown + out, "", history, uid, *buttons(uid))
+        final = shown + out
+        yield (final, "", final, uid, *buttons(uid))
+
+    def clear(uid: str) -> tuple:
+        uid = ensure(uid)
+        router.reset(uid)
+        return ([], [], uid, *buttons(uid))
+
+    def load(saved: list[dict] | None, uid: str) -> tuple:
+        uid = ensure(uid)
+        return (saved or [], uid, *buttons(uid))
+
+    with gr.Blocks(title="三国志问答") as demo:
+        gr.Markdown(f"# 三国志问答\n{description}")
+        saved = gr.BrowserState([], storage_key="sanguozhi_chat_history")
+        uid = gr.BrowserState("", storage_key="sanguozhi_browser_id")
+        chatbot = gr.Chatbot(height=560, placeholder="依据《三国志》(陈寿正文和裴松之注) 回答三国历史问题. 中文或英文提问都可以."
+                                                     " 点下面的按钮可以玩猜人物或海龟汤.")
+        box = gr.Textbox(placeholder="问一个三国历史问题, 或者回答游戏里的问题", show_label=False,
+                         submit_btn=True, stop_btn=True)
+        with gr.Row():
+            btns = [gr.Button(label, size="sm") for label, _ in GAME_BUTTONS]
+            clear_btn = gr.Button("清除对话", size="sm", variant="stop")
+        gr.Examples(EXAMPLES, box, label="示例问题")
+        outs = [chatbot, box, saved, uid, *btns]
+        ev = box.submit(send, [box, saved, uid], outs, concurrency_limit=4)
+        box.stop(None, cancels=[ev])
+        for b, (_, cmd) in zip(btns, GAME_BUTTONS):
+            b.click(lambda h, u, c=cmd: (yield from send(c, h, u)), [saved, uid], outs, concurrency_limit=4)
+        clear_btn.click(clear, [uid], [chatbot, saved, uid, *btns])
+        chatbot.clear(clear, [uid], [chatbot, saved, uid, *btns])  # 聊天框自带的垃圾桶图标也同样清掉存下的记录和游戏
+        demo.load(load, [saved, uid], [chatbot, uid, *btns])
+    return demo
 
 
 if __name__ == "__main__":

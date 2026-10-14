@@ -205,6 +205,10 @@ class Router:
             self._end(sid)
         return reply
 
+    def reset(self, sid: str) -> None:
+        """结束这个会话正在玩的游戏 (界面上 "清除对话" 时调用), 不揭晓."""
+        self._end(sid)
+
     def _end(self, sid: str) -> None:
         with self.lock:
             self.sessions.pop(sid, None)
