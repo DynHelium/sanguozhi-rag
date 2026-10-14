@@ -254,13 +254,60 @@ class GuessGame:
         return f"谜底是 {self.p['person']}{note}. 出处: {', '.join(self.p['bio'])}."
 
 
+NOT_THREE_KINGDOMS = {"孔子", "公孙述"}  # 别名表里收了、但不是三国时代的人 (原文只是提到), 不出题
+
+
+def people_in(text: str, people: list[Any]) -> list[Any]:
+    """一段原文里出现的别名表人物 (rag/alias 的 people): 姓名, 字, 或别名表记下的原文称呼 (orig) 出现在原文里就算.
+    原文和名字都转简体再比; 单字的称呼 (如 "權") 太容易误认, 不算."""
+    t = to_simplified(text)
+    out = []
+    for p in people:
+        forms = {p.get("name", "")} | {f.get("orig", "") for f in p.get("forms", [])}
+        if p.get("zi") and p.get("surname"):
+            forms.add(p["surname"] + p["zi"])
+        if any(len(f) >= 2 and to_simplified(f) in t for f in forms):
+            out.append(p)
+    return out
+
+
+_COUNTS: dict[str, int] = {}  # 别名表人物 id -> 在全书正文块里出现的块数 (random_person 第一次调用时算)
+
+
+def random_person(lib: Library, rng: random.Random | None = None, tries: int = 50) -> tuple[Person, str]:
+    """真随机出题: 从全书正文块里随机抽一块, 找出其中出现的别名表人物 (people_in), 再随机挑一个; 一个都没有就重抽.
+    挑人的权重 = 1 / 这个人出现的块数: 不然曹操 (魏书大量段落有 "太祖") 会占约 15%, 加权后各人被选中的机会接近.
+    返回 (谜底, 抽到的块 id). 谜底的 bio = [本传首段源 id, 抽到的块的源 id] (裁判预载这两处原文);
+    aliases = 别名表里的称呼. 挑人用代码随机而不交给模型: 模型总偏向一块里最有名的人 (魏书大量段落都有曹操)."""
+    from rag.alias import load_aliases
+    r = rng or random
+    people = [p for p in load_aliases().get("people", [])
+              if len(p.get("name", "")) >= 2 and p.get("id") and p["name"] not in NOT_THREE_KINGDOMS]
+    body = [c for c in lib.chunks if c.get("tier") == 1]
+    if not _COUNTS:
+        for c in body:
+            for p in people_in(c["text"], people):
+                _COUNTS[p["id"]] = _COUNTS.get(p["id"], 0) + 1
+    for _ in range(tries):
+        c = r.choice(body)
+        found = people_in(c["text"], people)
+        if found:
+            p = r.choices(found, weights=[1 / _COUNTS.get(x["id"], 1) for x in found])[0]
+            aliases = sorted({f["form"] for f in p.get("forms", []) if f.get("form")} - {p["name"]})
+            bio = [p["id"]] + [s for s in c["sources"] if s != p["id"]][:1]
+            note = f"字{p['zi']}" if p.get("zi") else ""
+            return {"id": p["id"], "person": p["name"], "aliases": aliases, "bio": bio, "note": note}, c["id"]
+    raise RuntimeError(f"抽了 {tries} 块都没找到别名表里的人")
+
+
 def new_game(lib: Library, complete: Callable[..., Any], rng: random.Random | None = None,
              pool: list[Person] | None = None) -> GuessGame:
-    """从谜底池随机抽一个人开一局. known_names 取别名表里的人名, 用来认出 "刘备？" 这种只说名字的猜测."""
+    """开一局 "Agent 出题": 默认用 random_person 从全书随机出题; 给了 pool 时从 pool 里抽 (测试用).
+    known_names 取别名表里的人名, 用来认出 "刘备？" 这种只说名字的猜测."""
     from rag.alias import load_aliases
-    people = pool if pool is not None else load_pool()
+    person = (rng or random).choice(pool) if pool is not None else random_person(lib, rng)[0]
     known = {to_simplified(p["name"]) for p in load_aliases().get("people", []) if len(p.get("name", "")) >= 2}
-    return GuessGame((rng or random).choice(people), lib, complete, known_names=known)
+    return GuessGame(person, lib, complete, known_names=known)
 
 
 AGENT_MAX = 25        # Agent 来猜时最多几次 (问问题和猜名字都算)

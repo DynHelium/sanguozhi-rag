@@ -224,6 +224,15 @@ def test_agent_guess_free_answer():
     assert g.msgs[-2] == {"role": "user", "content": "是"}
 
 
+
+def test_people_in_finds_names_and_titles():
+    """原文里出现姓名、原文称呼 (如 "太祖") 或 "姓 + 字" 都算; 单字称呼不算."""
+    people = [{"id": "01-0000", "name": "曹操", "surname": "曹", "zi": "孟德", "forms": [{"form": "魏太祖", "orig": "太祖"}]},
+              {"id": "47-0000", "name": "孙权", "surname": "孙", "zi": "仲谋", "forms": [{"form": "孙权", "orig": "權"}]},
+              {"id": "32-0000", "name": "刘备", "surname": "刘", "zi": "玄德", "forms": []}]
+    assert [p["name"] for p in guess.people_in("太祖軍譙，權遣使", people)] == ["曹操"]
+    assert [p["name"] for p in guess.people_in("劉玄德在新野", people)] == ["刘备"]
+
 if __name__ == "__main__":
     from tests._run import run as run_tests
     run_tests(globals())

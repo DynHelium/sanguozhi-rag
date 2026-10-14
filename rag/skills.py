@@ -252,6 +252,8 @@ def make_router(lib: Any, complete: Callable[..., Any], model: str | None = None
 
     puzzles = soup.load_puzzles()
     r = rng or random.Random()
+    # 猜人物随机出题要先统计各人在全书出现的块数 (约 8 秒), 启动时在后台先算好, 开局时不用等
+    threading.Thread(target=lambda: guess.random_person(lib, random.Random()), daemon=True).start()
     return Router({
         "guess_person": lambda: guess.GuessPerson(lambda: guess.new_game(lib, message_complete, rng=r),
                                                   lambda: guess.AgentGuessGame(lib, message_complete)),
