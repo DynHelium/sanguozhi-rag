@@ -178,13 +178,13 @@ class Game:
         self.asked = self.hints = 0
         self.over = False
 
-    def intro(self) -> str:
+    def intro(self, on_event: Callable[[str, Any], None] | None = None) -> str:
         """开局说明: 汤面和玩法 (聊天里的 skill 用; 网页另有按钮)."""
         return (f"**汤面**: {self.p['surface']}\n\n问能用 是 / 不是 回答的问题, 最多 {self.p['max_questions']} 个."
                 " 想好了就输入 \"/答 你的完整解释\"; /提示 要一条提示, /放弃 揭晓汤底, /退出 结束游戏.")
 
-    def ask(self, question: str) -> str:
-        """回答一个是非问题, 返回页面上显示的一行 (只有判词, 不含模型的其他文字)."""
+    def ask(self, question: str, on_event: Callable[[str, Any], None] | None = None) -> str:
+        """回答一个是非问题, 返回页面上显示的一行 (只有判词, 不含模型的其他文字). 裁判只请求一次模型, 不发进度事件."""
         question = question.strip()
         if self.over:
             return "这一局已经结束, 换一道题吧."

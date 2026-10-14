@@ -164,6 +164,34 @@ def test_guess_person_mode_choice():
     assert r.handle("v", "2").endswith("第 1 问: q?")
 
 
+def test_play_reports_thinking_and_tools():
+    """Agent 来猜: 推理文字和工具调用 (带检索词) 作为进度事件发出; 裁判只发 "查原文", 不发推理和检索词."""
+    call = SimpleNamespace(id="c1", function=SimpleNamespace(name="search", arguments='{"query": "浚儀"}'))
+    replies = [SimpleNamespace(content="", tool_calls=[call], reasoning="先查一下"),
+               SimpleNamespace(content='{"ask": "他是魏国人吗？"}', tool_calls=None, reasoning="再问阵营")]
+    events = []
+    g = guess.AgentGuessGame(LIB, lambda m, tools=None: replies.pop(0))
+    assert g.intro(on_event=lambda k, i: events.append((k, i))).endswith("第 1 问: 他是魏国人吗？")
+    assert [k for k, _ in events] == ["think", "tool", "think"] and events[1][1]["args"] == {"query": "浚儀"}
+    judge = [SimpleNamespace(content="", tool_calls=[call], reasoning="谜底是刘备"),
+             SimpleNamespace(content='{"verdict": "是"}', tool_calls=None, reasoning="刘备是男的")]
+    seen = []
+    r = guess.judge_question(LIB, PERSON, "他是男的吗", lambda m, tools=None: judge.pop(0), lambda k, i: seen.append((k, i)))
+    assert r["verdict"] == "是" and seen == [("stage", "查原文")]
+
+
+def test_agent_guess_timeout_recovers():
+    """想下一问超时: 对话历史恢复原样, 玩家下一句话不当回答, 直接重试."""
+    def slow(m, tools=None):
+        raise TimeoutError("慢")
+    g = guess.AgentGuessGame(LIB, agent_says('{"ask": "q1"}', '{"ask": "q2"}'))
+    g.intro()
+    g.complete, before = slow, list(g.msgs)
+    assert "想得太久" in g.ask("是") and g.pending and g.msgs[:len(before)] == before
+    g.complete = agent_says('{"ask": "q2"}')
+    assert g.ask("继续").endswith("第 2 问: q2") and not g.pending
+
+
 if __name__ == "__main__":
     from tests._run import run as run_tests
     run_tests(globals())

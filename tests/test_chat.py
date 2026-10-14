@@ -145,6 +145,21 @@ def test_stop_cancels_remaining_requests():
     time.sleep(0.5)
     assert len(script.seen) == 1, "停止后不应再请求模型"
 
+def test_respond_routes_game_with_progress():
+    """触发词交给游戏 (不调问答 agent); 游戏这一问的进度显示在 "思考过程" 折叠框里, 最后是游戏的回复."""
+    class FakeRouter:
+        def claims(self, sid, text):
+            return text == "猜人物"
+
+        def handle(self, sid, text, on_event=None):
+            on_event("tool", {"tool": "search", "args": {"query": "刘备"}, "chunks": ["32-0000"], "error": None})
+            return "第 1 问: 他是男性吗？"
+    respond = chat.make_respond(LIB, complete_factory=lambda: Script(), router=FakeRouter())
+    out = list(respond("猜人物", [], "s1"))
+    assert out[-1][-1]["content"] == "第 1 问: 他是男性吗？"
+    assert out[-1][0]["metadata"]["title"] == "思考过程 (1 步)" and "搜索: 刘备" in out[-1][0]["content"]
+
+
 if __name__ == "__main__":
     from tests._run import run as run_tests
     run_tests(globals())

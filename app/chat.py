@@ -102,6 +102,9 @@ def describe(kind: str, info: Any) -> str | None:
             return f"· {what} (出错: {info['error']})"
         n = len(info.get("chunks") or [])
         return f"· {what}" + (f" → {n} 段" if n else "")
+    if kind == "think":  # 模型的推理文字 (游戏 skill 里 Agent 来猜时); 压成一段, 太长截断
+        text = " ".join(str(info).split())
+        return "💭 " + (text if len(text) <= 600 else text[:600] + "……")
     if kind == "stage":
         return {"nudge": "· 资料还不够, 再查一次", "nudge_notfound": "· 回答说没找到, 换说法再搜",
                 "retry": "· 回答不完整, 重新作答", "review": "· 核对回答 (逐句对照资料)",
@@ -204,15 +207,53 @@ def make_respond(lib: agent.Library, model: str | None = None, effort: str | Non
     router (rag/skills.Router) 不为 None 时, 先把消息交给它: 触发词开一局游戏, 游戏进行中的消息由游戏回答
     (只 yield 一条游戏的回复), 不归游戏管的才走问答 agent. sid 是会话 id (Gradio 的 session_hash), 区分各人的游戏."""
 
+    def play_game(question: str, sid: str) -> Iterator[list[dict]]:
+        """游戏这一问: 在后台线程里跑 router.handle, 进度 (推理, 工具调用) 实时显示在 "思考过程" 折叠框里."""
+        assert router is not None
+        events: queue.Queue = queue.Queue()
+        box: dict = {}
+
+        def work() -> None:
+            try:
+                box["reply"] = router.handle(sid, question, on_event=lambda k, i: events.put((k, i)))
+            except Exception as e:  # 网络/服务商出错: 显示出来, 不让页面卡住
+                box["reply"] = f"出错了: {type(e).__name__}: {e}"
+            finally:
+                events.put(("done", None))
+
+        threading.Thread(target=work, daemon=True).start()
+        lines: list[str] = []
+
+        def progress(status: str) -> dict:
+            return {"role": "assistant", "content": "\n".join(lines) or "· 思考中……",
+                    "metadata": {"title": f"思考过程 ({len(lines)} 步)", "status": status}}
+
+        first = True
+        while True:
+            try:
+                kind, info = events.get(timeout=1.0)
+            except queue.Empty:  # 一秒内没有事件: 第一次时先显示 "思考中", 免得页面空着
+                if first:
+                    first = False
+                    yield [progress("pending")]
+                continue
+            if kind == "done":
+                break
+            line = describe(kind, info)
+            if line:
+                lines.append(line)
+                first = False
+                yield [progress("pending")]
+        reply = box.get("reply") or "(没有回复)"
+        yield ([progress("done")] if lines else []) + [{"role": "assistant", "content": reply}]
+
     def respond(message: Any, history: list[dict] | None, sid: str = "default") -> Iterator[list[dict]]:
         question = text_of(message.get("text") if isinstance(message, dict) else message).strip()
         if not question:
             return
-        if router is not None:
-            game_reply = router.handle(sid, question)
-            if game_reply is not None:
-                yield [{"role": "assistant", "content": game_reply}]
-                return
+        if router is not None and router.claims(sid, question):
+            yield from play_game(question, sid)
+            return
         limit = check_limits(question, history or [], budget)
         if limit:
             yield [{"role": "assistant", "content": limit}]

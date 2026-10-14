@@ -20,6 +20,7 @@
 import json
 import random
 import re
+import time
 from pathlib import Path
 from collections.abc import Mapping
 from typing import Any, Callable, TypedDict
@@ -34,6 +35,8 @@ CHECKS = config.DATA_DIR / "guess" / "checks.jsonl"
 VERDICTS = ("是", "不是", "无法判断", "请问是非题")
 MAX_QUESTIONS = 20
 JUDGE_ROUNDS = 3  # 裁判每个问题最多几轮工具调用
+TURN_BUDGET = 90.0  # 一问 (一次 play) 最多花几秒: 超过后不再发新请求, 抛 TimeoutError, 由游戏提示玩家再说一次
+OnEvent = Callable[[str, Any], None]  # on_event(kind, info): 进度事件, kind 是 "tool" / "stage" / "think" (见 play)
 
 JUDGE_SYS = """你是 "猜人物" 游戏的裁判. 谜底是《三国志》里的 {person} (原文里也称 {aliases}; 本传或出处 {bio}). 玩家不知道谜底,
 会问是非问题. 你手边有检索《三国志》原文的工具: 先用工具查这个人的原文 (可以直接 read 上面的出处 id), 再判断.
@@ -109,26 +112,53 @@ def tool_runner(lib: Library, seen: Seen, log: list[dict]) -> Callable[[str, str
     return run
 
 
-def play(msgs: list[dict], lib: Library, seen: Seen, log: list[dict], complete: Callable[..., Any], rounds: int) -> str:
+def play(msgs: list[dict], lib: Library, seen: Seen, log: list[dict], complete: Callable[..., Any], rounds: int,
+         on_event: OnEvent | None = None, show: bool = True, budget: float = TURN_BUDGET) -> str:
     """跑一轮 agent_loop, 再删掉它追加的 developer 提醒 ("工具调用次数已经用完" 等).
-    同一段对话要接着用时, 这些提醒留在历史里会让模型以为再也不能查原文."""
-    reply = agent_loop(msgs, agent.TOOLS, complete, tool_runner(lib, seen, log), max_rounds=rounds)
+    同一段对话要接着用时, 这些提醒留在历史里会让模型以为再也不能查原文.
+
+    on_event 不为 None 时, 每次模型回复后发 ("think", 推理文字) (OpenRouter 在 message.reasoning 里返回, 没有就不发),
+    每次工具调用后发 ("tool", {"tool", "args", "chunks", "error"}) (格式同 rag/agent.run_agent 的事件, app/chat.describe 能显示).
+    show=False 时 (裁判知道谜底, 推理和检索词会泄底) 不发推理, 工具调用只发 ("stage", "查原文").
+    budget 秒后不再发新请求, 抛 TimeoutError; msgs 此时可能停在半截, 调用方要自己恢复."""
+    start = time.time()
+
+    def call(messages: list[dict], tools: list[dict] | None = None) -> Any:
+        if time.time() - start > budget:
+            raise TimeoutError(f"这一问超过 {budget:.0f} 秒")
+        msg = complete(messages, tools)
+        reasoning = getattr(msg, "reasoning", None)
+        if on_event and show and reasoning:
+            on_event("think", reasoning)
+        return msg
+
+    run = tool_runner(lib, seen, log)
+
+    def run_tool(name: str, arguments: str) -> str:
+        text = run(name, arguments)
+        if on_event:
+            on_event(*(("tool", log[-1]) if show else ("stage", "查原文")))
+        return text
+
+    reply = agent_loop(msgs, agent.TOOLS, call, run_tool, max_rounds=rounds)
     msgs[:] = [m for m in msgs if m.get("role") != "developer"]
     return reply
 
 
-def judge_question(lib: Library, person: Person, question: str, complete: Callable[..., Any]) -> dict:
+def judge_question(lib: Library, person: Person, question: str, complete: Callable[..., Any],
+                   on_event: OnEvent | None = None) -> dict:
     """裁判一个是非问题. 返回 {"verdict": VERDICTS 之一, "by": "code" | "model", "tools": [工具调用记录], "raw": 模型回答末尾}.
 
     complete(messages, tools=None) -> 模型的一条回复 message (rag/loop.agent_loop 的约定). 打听谜底本身的问题由代码判
-    "请问是非题", 不请求模型. 每个问题单独开一段对话 (裁判互不记忆); 模型输出解析不了或判词不在 VERDICTS 里时判 "无法判断"."""
+    "请问是非题", 不请求模型. 每个问题单独开一段对话 (裁判互不记忆); 模型输出解析不了或判词不在 VERDICTS 里时判 "无法判断".
+    on_event 只收到 ("stage", "查原文") (裁判的推理和检索词会泄底, 不发). 超过 TURN_BUDGET 时抛 TimeoutError."""
     if is_meta(question) or _META_NAME.search(question):
         return {"verdict": "请问是非题", "by": "code", "tools": [], "raw": None}
     seen, log = Seen(lib.notes), []
     sys = JUDGE_SYS.format(person=person["person"], aliases="、".join(person.get("aliases", [])) or "无",
                            bio=", ".join(person["bio"]))
     reply = play([{"role": "system", "content": sys}, {"role": "user", "content": question}], lib, seen, log,
-                 complete, JUDGE_ROUNDS)
+                 complete, JUDGE_ROUNDS, on_event, show=False)
     verdict = field(reply, "verdict")
     return {"verdict": verdict if verdict in VERDICTS else "无法判断", "by": "model", "tools": log, "raw": reply[-300:]}
 
@@ -158,13 +188,14 @@ class GuessGame:
         self.asked = 0
         self.over = False
 
-    def intro(self) -> str:
+    def intro(self, on_event: OnEvent | None = None) -> str:
         """开局说明."""
         return (f"我心里想好了一个《三国志》里的人物. 你可以问 {self.max} 个是非问题 (我只答 是 / 不是 / 无法判断),"
                 " 猜名字时说 \"猜 某某\" 或直接说名字. 输入 /放弃 揭晓答案, /退出 结束游戏.")
 
-    def ask(self, text: str) -> str:
-        """处理玩家的一句话: 猜名字就由代码比对, 否则当作是非问题交给裁判. 返回界面上显示的一行."""
+    def ask(self, text: str, on_event: OnEvent | None = None) -> str:
+        """处理玩家的一句话: 猜名字就由代码比对, 否则当作是非问题交给裁判. 返回界面上显示的一行.
+        裁判超时时这一问不计数, 请玩家再问一次."""
         text = text.strip()
         if self.over:
             return "这一局已经结束了."
@@ -179,7 +210,10 @@ class GuessGame:
             return f"不是 {name}. ({self.asked}/{self.max})" + self._left()
         if self.asked >= self.max:
             return f"{self.max} 个问题用完了, 猜一个名字吧, 或者输入 /放弃 揭晓."
-        r = judge_question(self.lib, self.p, text, self.complete)
+        try:
+            r = judge_question(self.lib, self.p, text, self.complete, on_event)
+        except TimeoutError:
+            return "这一问查原文太久了, 没判出来 (不计数). 请再问一次."
         if r["verdict"] != "请问是非题":
             self.asked += 1
         return f"{r['verdict']}  ({self.asked}/{self.max})" + self._left()
@@ -237,13 +271,24 @@ class AgentGuessGame:
         self.turns: list[dict] = []
         self.seen = Seen(lib.notes)
         self.over = False
+        self.pending = False  # 上一次想下一问时超时了: 玩家下一句话不当回答, 直接重试
 
-    def intro(self) -> str:
+    def intro(self, on_event: OnEvent | None = None) -> str:
         """开局: 说明玩法, 并给出第一个问题."""
         return ("你心里想好一个《三国志》里的人物, 我来问. 请回答 是 / 不是 / 不知道; 我猜名字时回答 对 / 错."
-                f" 我最多问 {self.max} 次. /放弃 我认输, /退出 结束游戏.\n\n" + self._next())
+                f" 我最多问 {self.max} 次. /放弃 我认输, /退出 结束游戏.\n\n" + self._next(on_event))
 
-    def _next(self) -> str:
+    def _next(self, on_event: OnEvent | None = None) -> str:
+        """让 Agent 想下一问 (或猜名字). 超时时恢复对话历史, 标记 pending, 请玩家随便说一句再试."""
+        snapshot = list(self.msgs)
+        try:
+            return self._think(on_event)
+        except TimeoutError:
+            self.msgs[:] = snapshot
+            self.pending = True
+            return "这一问我想得太久了, 没想出来. 请随便回复一句 (如 \"继续\") 让我再想一次."
+
+    def _think(self, on_event: OnEvent | None) -> str:
         n = len(self.turns) + 1
         if n > self.max:
             self.over = True
@@ -251,10 +296,10 @@ class AgentGuessGame:
         if n > self.hint_after:
             self.msgs[-1]["content"] += f"\n(还剩 {self.max - n + 1} 次.)"
         log: list[dict] = []
-        reply = play(self.msgs, self.lib, self.seen, log, self.complete, AGENT_ROUNDS)
+        reply = play(self.msgs, self.lib, self.seen, log, self.complete, AGENT_ROUNDS, on_event)
         if not field(reply, "guess") and not field(reply, "ask"):
             self.msgs += [{"role": "assistant", "content": reply}, {"role": "user", "content": _REMIND}]
-            reply = play(self.msgs, self.lib, self.seen, log, self.complete, 1)
+            reply = play(self.msgs, self.lib, self.seen, log, self.complete, 1, on_event)
         self.msgs.append({"role": "assistant", "content": reply})
         name = field(reply, "guess")
         turn: dict[str, Any] = ({"n": n, "guess": name, "desc": field(reply, "desc") or ""} if name
@@ -266,10 +311,13 @@ class AgentGuessGame:
             return f"第 {n} 次: 我猜是 {name}{desc}. 对吗?"
         return f"第 {n} 问: {turn['ask'] or '(我没想好问题, 请随便回答一句让我继续)'}"
 
-    def ask(self, text: str) -> str:
+    def ask(self, text: str, on_event: OnEvent | None = None) -> str:
         """玩家的回答: 上一轮是问题就答 是 / 不是 / 不知道, 是猜名字就答 对 / 错. 返回 Agent 的下一问 (或结局)."""
         if self.over:
             return "这一局已经结束了."
+        if self.pending:
+            self.pending = False
+            return self._next(on_event)
         kind = _answer_kind(text)
         last = self.turns[-1]
         if "guess" in last:
@@ -284,7 +332,7 @@ class AgentGuessGame:
                 return "请回答 是 / 不是 / 不知道."
             last["answer"] = kind
             self.msgs.append({"role": "user", "content": kind})
-        return self._next()
+        return self._next(on_event)
 
     def reveal(self) -> str:
         """玩家让 Agent 认输."""
@@ -306,12 +354,12 @@ class GuessPerson:
     def over(self) -> bool:
         return self._over or bool(self.game and self.game.over)
 
-    def intro(self) -> str:
+    def intro(self, on_event: OnEvent | None = None) -> str:
         return "两种玩法: 回复 1 = 我想一个人, 你来猜; 回复 2 = 你想一个人, 我来猜."
 
-    def ask(self, text: str) -> str:
+    def ask(self, text: str, on_event: OnEvent | None = None) -> str:
         if self.game is not None:
-            return self.game.ask(text)
+            return self.game.ask(text, on_event)
         t = re.sub(r"[\s。.!！?？]+", "", text)
         if t in self._USER:
             self.game = self.user_game()
@@ -319,7 +367,7 @@ class GuessPerson:
             self.game = self.agent_game()
         else:
             return "请回复 1 (我出题, 你来猜) 或 2 (你出题, 我来猜)."
-        return self.game.intro()
+        return self.game.intro(on_event)
 
     def reveal(self) -> str:
         if self.game is None:

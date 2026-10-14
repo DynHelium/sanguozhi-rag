@@ -31,7 +31,9 @@ Router 按会话 id 保存每个会话正在玩的游戏, 只放在服务端内�
 import argparse
 import random
 import re
+import sys
 import threading
+import time
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Callable, Protocol
@@ -49,6 +51,8 @@ COMMANDS = {
     "help": ("/帮助", "/help"),
 }
 ANSWER = re.compile(r"^/(?:答|answer)\s*(.*)$", re.S | re.I)
+REQUEST_TIMEOUT = 60  # 游戏里单次模型请求的超时 (秒); 问答 agent 用 rag/openrouter 的默认 300 秒
+OnEvent = Callable[[str, Any], None]
 
 
 class GameLike(Protocol):
@@ -57,8 +61,8 @@ class GameLike(Protocol):
     @property
     def over(self) -> bool: ...
 
-    def intro(self) -> str: ...
-    def ask(self, text: str, /) -> str: ...
+    def intro(self, on_event: OnEvent | None = None) -> str: ...
+    def ask(self, text: str, /, on_event: OnEvent | None = None) -> str: ...
     def reveal(self) -> str: ...
 
 
@@ -118,14 +122,19 @@ class Router:
         s = self.sessions.get(sid)
         return s[0] if s else None
 
-    def handle(self, sid: str, text: str) -> str | None:
-        """处理会话 sid 的一句话, 返回要显示的文字; None 表示不归游戏管 (没在玩, 也不是触发词)."""
+    def claims(self, sid: str, text: str) -> bool:
+        """这句话归不归游戏管 (是触发词, 或这个会话正在玩). 界面用它决定走游戏还是问答 agent, 不改状态."""
+        return match_skill(text, self.skills) is not None or self.active(sid) is not None
+
+    def handle(self, sid: str, text: str, on_event: OnEvent | None = None) -> str | None:
+        """处理会话 sid 的一句话, 返回要显示的文字; None 表示不归游戏管 (没在玩, 也不是触发词).
+        on_event(kind, info) 收游戏这一问的进度 (Agent 的推理, 工具调用), 见 rag/guess.play."""
         sk = match_skill(text, self.skills)
         if sk:
             game = self.factories[sk.name]()
             with self.lock:
                 self.sessions[sid] = (sk, game)
-            return f"【{sk.title}】{game.intro()}"
+            return f"【{sk.title}】{game.intro(on_event)}"
         with self.lock:
             cur = self.sessions.get(sid)
         if not cur:
@@ -146,9 +155,9 @@ class Router:
         m = ANSWER.match(text.strip())
         if m:
             submit = getattr(game, "guess", None)
-            reply = submit(m.group(1).strip()) if submit else game.ask("猜 " + m.group(1).strip())
+            reply = submit(m.group(1).strip()) if submit else game.ask("猜 " + m.group(1).strip(), on_event)
         else:
-            reply = game.ask(text)
+            reply = game.ask(text, on_event)
         if game.over:
             self._end(sid)
         return reply
@@ -165,12 +174,20 @@ def make_router(lib: Any, complete: Callable[..., Any], model: str | None = None
     from rag import guess, soup
 
     def message_complete(messages: list[dict], tools: list[dict] | None = None) -> Any:
-        kw: dict[str, Any] = {"model": model}
+        kw: dict[str, Any] = {"model": model, "timeout": REQUEST_TIMEOUT}
         if effort:
             kw["reasoning_effort"] = effort
         if tools:
             kw["tools"] = tools
-        return complete(messages, **kw).choices[0].message
+        t = time.time()
+        try:
+            msg = complete(messages, **kw).choices[0].message
+        except Exception as e:  # 记一行再抛: 网页卡住时能从日志看出卡在哪次请求
+            print(f"[skill] 模型请求失败 {time.time() - t:.1f}s: {type(e).__name__}: {e}", file=sys.stderr, flush=True)
+            raise
+        calls = len(getattr(msg, "tool_calls", None) or [])
+        print(f"[skill] 模型请求 {time.time() - t:.1f}s, 消息 {len(messages)} 条, 工具调用 {calls} 个", file=sys.stderr, flush=True)
+        return msg
 
     puzzles = soup.load_puzzles()
     r = rng or random.Random()
