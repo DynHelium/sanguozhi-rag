@@ -45,10 +45,14 @@ JUDGE_SYS = """你是 "猜人物" 游戏的裁判. 谜底是《三国志》里�
 最后只输出一行 JSON: {{"verdict": "是 | 不是 | 无法判断 | 请问是非题", "evidence": [依据的资料编号 n]}}"""
 
 GUESS_SYS = """你在玩 "猜人物": 对方心里想了一个《三国志》里的人物 (正文或裴注里出现的人), 你要用是非问题猜出是谁.
-对方只会回答 "是" "不是" "不知道". 你最多问 {n} 次 (猜名字也算一次).
+对方通常回答 "是" "不是" "不知道", 也可能说得更具体 (如 "都待过" "前期是, 后来不是" "算是吧"): 按意思理解,
+不要硬当成是或不是; 人物可能先后属于不同阵营 (投降, 归附), 回答里有 "部分是" 时想到这种可能. 你最多问 {n} 次 (猜名字也算一次).
 你手边有检索《三国志》原文的工具. 前几问范围还很大, 只问不查; 等回答里出现能落到原文的条件 (哪一书、正文还是裴注、
 出现在谁的传里、和谁有关、什么事件) 再查, 搜索词从这些回答里来, 不要凭记忆撒网搜名字. 冷门人物常常只在裴注里出现一两次,
 不查原文想不到; 猜名字前用工具核对候选人确实符合全部回答.
+一个问题只问一件事, 不要把两个条件放进同一问 (如 "他是刘备去世前就跟随他的元从旧部吗" 含两个条件, 对方没法答).
+想清楚但别想太久: 不要在心里逐个列举候选人的生平, 需要核对时直接用工具查.
+有把握时直接猜名字, 不要用 "就是某某吗" 这种是非问题去确认 (那会多用一次机会).
 每一轮只做一件事, 最后只输出一行 JSON:
   问问题: {{"ask": "一个是非问题"}}
   猜名字: {{"guess": "人名", "desc": "一句话说明是哪一位 (同名的人很多, 如几个马忠)"}}
@@ -244,9 +248,11 @@ def new_game(lib: Library, complete: Callable[..., Any], rng: random.Random | No
 AGENT_MAX = 25        # Agent 来猜时最多几次 (问问题和猜名字都算)
 AGENT_HINT_AFTER = 20  # 问过这么多次以后, 每轮告诉模型还剩几次 (模型自己不数)
 AGENT_ROUNDS = 4       # Agent 每一轮最多几轮工具调用
-_YES = {"是", "是的", "对", "对的", "嗯", "有", "yes", "y"}
-_NO = {"不是", "否", "不对", "错", "没有", "no", "n"}
-_UNKNOWN = {"不知道", "不清楚", "不确定", "无法判断", "没写", "unknown"}
+_YES = {"是", "是的", "对", "对的", "对了", "嗯", "有", "属于", "算", "算是", "没错", "正确", "猜对了", "是他", "是她",
+        "yes", "y", "yep", "correct"}
+_NO = {"不是", "否", "不对", "错", "错了", "没有", "不属于", "不算", "不是他", "不是她", "猜错了", "no", "n", "nope", "wrong"}
+_UNKNOWN = {"不知道", "不清楚", "不确定", "无法判断", "没写", "说不准", "unknown"}
+FREE_MAX = 40  # 认不出的回答在这个字数以内就原话交给 Agent (如 "都待过"); 更长的多半跑题了, 请玩家就问题作答
 _REMIND = "请只输出一行 JSON: {\"ask\": ...} 或 {\"guess\": ..., \"desc\": ...}."
 
 
@@ -275,7 +281,8 @@ class AgentGuessGame:
 
     def intro(self, on_event: OnEvent | None = None) -> str:
         """开局: 说明玩法, 并给出第一个问题."""
-        return ("你心里想好一个《三国志》里的人物, 我来问. 请回答 是 / 不是 / 不知道; 我猜名字时回答 对 / 错."
+        return ("你心里想好一个《三国志》里的人物, 我来问. 请回答 是 / 不是 / 不知道, 也可以简短说明 (如 \"都待过\");"
+                " 我猜名字时回答 对 / 错."
                 f" 我最多问 {self.max} 次. /放弃 我认输, /退出 结束游戏.\n\n" + self._next(on_event))
 
     def _next(self, on_event: OnEvent | None = None) -> str:
@@ -312,7 +319,9 @@ class AgentGuessGame:
         return f"第 {n} 问: {turn['ask'] or '(我没想好问题, 请随便回答一句让我继续)'}"
 
     def ask(self, text: str, on_event: OnEvent | None = None) -> str:
-        """玩家的回答: 上一轮是问题就答 是 / 不是 / 不知道, 是猜名字就答 对 / 错. 返回 Agent 的下一问 (或结局)."""
+        """玩家的回答, 返回 Agent 的下一问 (或结局). 上一轮是问题时: 认得出的归成 是 / 不是 / 不知道 (_YES / _NO / _UNKNOWN),
+        认不出但不超过 FREE_MAX 字的原话交给 Agent (如 "都待过", GUESS_SYS 让它按意思理解), 更长的请玩家就问题作答.
+        上一轮是猜名字时只认 对 / 错."""
         if self.over:
             return "这一局已经结束了."
         if self.pending:
@@ -320,18 +329,20 @@ class AgentGuessGame:
             return self._next(on_event)
         kind = _answer_kind(text)
         last = self.turns[-1]
+        text = text.strip()
         if "guess" in last:
             if kind is None or kind == "不知道":
-                return "请回答 对 / 错."
+                return "请回答 对 / 错 (猜名字时只认对错)."
             if kind == "是":
                 self.over = True
                 return f"太好了, 是 {last['guess']}! 我用了 {last['n']} 次."
             self.msgs.append({"role": "user", "content": f"不是 {last['guess']}."})
         else:
-            if kind is None:
-                return "请回答 是 / 不是 / 不知道."
-            last["answer"] = kind
-            self.msgs.append({"role": "user", "content": kind})
+            if kind is None and (not text or len(text) > FREE_MAX):
+                return f"请就这个问题回答: 是 / 不是 / 不知道, 或者简短说明 ({FREE_MAX} 字以内, 如 \"都待过\" \"前期是\")."
+            answer = kind or text  # 认得出的归成三种之一, 认不出的短回答原话交给 Agent
+            last["answer"] = answer
+            self.msgs.append({"role": "user", "content": answer})
         return self._next(on_event)
 
     def reveal(self) -> str:

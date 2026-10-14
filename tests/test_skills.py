@@ -138,9 +138,9 @@ def test_agent_guess_flow():
     c = agent_says('{"ask": "这个人是男性吗？"}', '{"guess": "曹操", "desc": "魏武帝"}', '{"guess": "刘备", "desc": "先主"}')
     g = guess.AgentGuessGame(LIB, c)
     assert g.intro().endswith("第 1 问: 这个人是男性吗？")
-    assert g.ask("也许") == "请回答 是 / 不是 / 不知道."
+    assert g.ask("x" * 41).startswith("请就这个问题回答")
     assert g.ask("是的").startswith("第 2 次: 我猜是 曹操 (魏武帝)")
-    assert g.ask("嗯哼") == "请回答 对 / 错."
+    assert g.ask("嗯哼").startswith("请回答 对 / 错")
     assert g.ask("错").startswith("第 3 次: 我猜是 刘备")
     assert g.ask("对").startswith("太好了") and g.over
     assert all(m["role"] != "developer" for m in c.last)
@@ -210,6 +210,18 @@ def test_router_writes_trace():
     assert [x["type"] for x in rows] == ["user", "tool", "reply"]
     assert {(x["sid"], x["skill"], x["turn"]) for x in rows} == {("t", "guess_person", 1)}
     assert rows[1]["args"] == {"query": "浚儀"} and rows[2]["text"].endswith("第 1 问: q?")
+
+
+
+def test_agent_guess_free_answer():
+    """认不出的短回答 (如 "都待过") 原话交给 Agent; "属于" 归成 "是"."""
+    c = agent_says('{"ask": "他属于蜀汉吗？"}', '{"ask": "他降过魏吗？"}', '{"ask": "q3"}')
+    g = guess.AgentGuessGame(LIB, c)
+    g.intro()
+    g.ask("都待过, 先蜀后魏")
+    assert g.msgs[-2] == {"role": "user", "content": "都待过, 先蜀后魏"}
+    g.ask("属于")
+    assert g.msgs[-2] == {"role": "user", "content": "是"}
 
 
 if __name__ == "__main__":
