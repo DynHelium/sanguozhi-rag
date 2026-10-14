@@ -1,4 +1,4 @@
-"""rag/soup.py 的测试: 元问题拦截, 裁判输出的解析和降级, 汤底判定. 假模型, 不连网:
+"""rag/soup.py 的测试: 裁判回答的解析、降级和防泄底检查, 汤底判定. 假模型, 不连网:
 
     uv run python -m tests.test_soup
 """
@@ -95,7 +95,7 @@ def test_puzzle_bank_quotes_are_in_source():
 
 
 def test_game_flow_counts_questions_and_hides_truth():
-    """一局游戏: 是非问题计数 (元问题不计), 提示按顺序给, 没猜中时不透露缺哪条, 猜中后揭晓汤底和原文."""
+    """一局游戏: 是非问题计数 (没法回答的问题不计), 提示按顺序给, 没猜中时不透露缺哪条, 猜中后揭晓汤底和原文."""
     from rag.soup import Game
     c = fake('{"verdict": "是", "evidence": [0]}', '{"verdict": "请问是非题"}',
              json.dumps({"covered": ["f1"], "contradiction": False}),

@@ -2,36 +2,36 @@
     1. Agent 出题, 玩家来猜 (GuessGame): Agent 心里定一个《三国志》人物, 玩家问是非问题, 最后说出名字.
     2. 玩家出题, Agent 来猜 (AgentGuessGame): 玩家心里想一个人, Agent 问是非问题 (GUESS_SYS, 可以查原文), 最后猜名字.
 
-    uv run python -m rag.skills          # 命令行里玩 (输入 "猜人物" 开局), 见 rag/skills.py
-    uv run python -m tests.test_skills   # 假模型测试, 不连网
+    uv run python -m rag.skills --openrouter   # 命令行里玩 (输入 "猜人物" 开局; 不带 --openrouter 用 .env 的模型), 见 rag/skills.py
+    uv run python -m tests.test_skills         # 假模型测试, 不连网
 
-玩法 1 的谜底池 data/guess/checks.jsonl, 一行一个人物, 只有 "playable": true 的人会被抽到 (身份明确, 原文有足够记载):
-    {"id": "g-06", "tier": "rare", "person": "马忠", "aliases": ["狐笃", "马德信"], "bio": ["43-0011"],
-     "homonym": true, "note": "...", "playable": true, "questions": [...]}
-    bio      这个人本传或出处的源 id, 裁判先读这些段落
-    homonym  有同名的人 (如蜀汉马忠 / 孙吴马忠): 揭晓时说明是哪一位
-    note     一句话说明是哪一位, 揭晓时显示; 没有就只显示名字和出处
+玩法 1 的谜底由 random_person 从全书随机出: 随机抽一块正文, 找出其中出现的别名表 (data/aliases.json) 人物,
+按 1 / 这个人出现的块数加权挑一个. 抽到的谜底 (Person) 例如:
+    {"id": "32-0000",                       别名表的人物 id, 也是本传首段 (没有传的人是提到他的一处) 的源 id
+     "person": "刘备",
+     "aliases": ["先主", "刘玄德", "刘豫州", "汉中王", "蜀汉昭烈皇帝"],   别名表里的称呼, 猜这些也算对
+     "bio": ["32-0000", "32-0028"],         裁判预先读的原文: 本传首段 + 抽到的那一块的源 id
+     "note": "字玄德"}                       揭晓时显示的一句说明
+    notrans (可选) 为 true 时, 这个人在《三国志》里没有自己的传, bio 第一个 id 只是提到他的一处.
 
-玩法 1 的裁判 (judge_question): 每个问题单独开一段对话, 谜底的出处原文预先给它, 需要时再用工具查; 它回一句话
-(是 / 不是, 二选一的答选项, 原文没有的答 "没有记载", 问法有歧义时说明按哪种意思理解), 页面只显示这一句和计数.
+玩法 1 的裁判 (judge_question): 每个问题单独开一段对话, 谜底的出处原文预先给它, 需要时再用工具查; 它回一句话,
+只写结论 (是 / 不是, 二选一的答选项, 原文没有的答 "没有记载", 问法有歧义时只用几个字说明按哪种意思理解),
+不提供问题以外的信息; 页面只显示这一句和计数.
 代码只检查这句话里有没有谜底的名字或称呼 (rag/soup.leaks), 有就换成 LEAK_REPLY. 玩家猜名字时由代码比对人名和称呼 (matches),
 不交给模型判断.
 """
-import json
 import random
 import re
 import time
-from pathlib import Path
 from collections.abc import Mapping
 from typing import Any, Callable, TypedDict
 
-from rag import agent, config
+from rag import agent
 from rag.library import Library, Seen
 from rag.loop import agent_loop
 from rag.normalize import to_simplified
 from rag.soup import LEAK_REPLY, _parse_json, leaks
 
-CHECKS = config.DATA_DIR / "guess" / "checks.jsonl"
 VERDICTS = ("是", "不是", "选择", "没有记载", "没法回答")  # 判词类别; 给玩家看的是 answer 那一句话
 NOT_COUNTED = "没法回答"  # 这一类不算一问
 MAX_QUESTIONS = 20
@@ -48,11 +48,12 @@ JUDGE_SYS = """你是 "猜人物" 游戏的裁判. 谜底是《三国志》里�
 怎么答 (只答结论, 不介绍, 不解释):
 - 是非题答 "是" 或 "不是"; 二选一的问题只答选项.
 - 原文没有记载、推不出来的, 答 "没有记载".
-- 问法有歧义时, 按你的理解回答, 并说明你是按哪种意思理解的.
+- 不提供问题以外的任何信息 (官职、时期、经历、事件都不说).
+- 问法有歧义时, 按你的理解回答, 只用几个字说明按哪种意思理解, 不附带别的信息.
 - 没法用是 / 不是或一个选项回答的问题, 请玩家换成是非题或二选一的问题.
 - 只依据查到的原文, 不用自己的历史知识. 注意同名的人, 不要查成别人.
 - 不能写出谜底的名字、字、称号, 也不能直接说出他的姓.
-最后只输出一行 JSON: {{"verdict": "是 | 不是 | 选择 | 没有记载 | 没法回答", "answer": "给玩家看的那一句话", "evidence": [依据的资料编号 n]}}"""
+最后只输出一行 JSON: {{"verdict": "是 | 不是 | 选择 | 没有记载 | 没法回答", "answer": "只写结论", "evidence": [依据的资料编号 n]}}"""
 
 GUESS_SYS = """你在玩 "猜人物": 对方心里想了一个三国人物 (多半是《三国志》里的人, 也可能是只在《三国演义》里出名的人物),
 你要用是非问题猜出是谁. 你最多问 {n} 次 (猜名字也算一次).
@@ -85,22 +86,13 @@ _GUESS = re.compile(r"^(?:/猜|猜|我猜|答案是)\s*(?:是|他是|她是)?\s*
 
 
 class Person(TypedDict, total=False):
-    """谜底池的一行, 字段见模块 docstring."""
+    """一局 "Agent 出题" 的谜底, 字段见模块 docstring."""
     id: str
-    tier: str
     person: str
     aliases: list[str]
     bio: list[str]
-    homonym: bool
     note: str
-    playable: bool
     notrans: bool  # 三国志里没有自己的传 (bio 第一个 id 只是提到他的一处), 揭晓时不说 "他的传在……"
-
-
-def load_pool(path: Path = CHECKS) -> list[Person]:
-    """谜底池里可以出题的人 (playable 为 true)."""
-    with open(path, encoding="utf-8") as f:
-        return [p for p in map(json.loads, (line for line in f if line.strip())) if p.get("playable")]
 
 
 def field(reply: str, key: str) -> str | None:
@@ -179,8 +171,8 @@ def judge_question(lib: Library, person: Person, question: str, complete: Callab
     complete(messages, tools=None) -> 模型的一条回复 message (rag/loop.agent_loop 的约定). 是非题、二选一、问法有歧义的问题
     都交给模型按意思回答, 代码不预先拦; 唯一的代码检查是 leaks: 回答里出现谜底的名字或称呼就换成 LEAK_REPLY.
     每个问题单独开一段对话 (裁判互不记忆); 谜底的出处原文 (bio_chunks, 经 Seen 编号) 预先放进
-    system prompt, 大多数问题不用再调工具, 资料以外的事才查; 模型输出解析不了或判词不在 VERDICTS 里时判 "无法判断".
-    on_event 只收到 ("stage", "查原文") (裁判的推理和检索词会泄底, 不发). 超过 TURN_BUDGET 时抛 TimeoutError."""
+    system prompt, 大多数问题不用再调工具, 资料以外的事才查. 模型给出的判词类别不在 VERDICTS 里 (或解析不了) 时记为
+    "没有记载"; answer 为空时用判词本身. on_event 只收到 ("stage", "查原文") (裁判的推理和检索词会泄底, 不发). 超过 TURN_BUDGET 时抛 TimeoutError."""
     seen, log = Seen(lib.notes), []
     sys = JUDGE_SYS.format(person=person["person"], aliases="、".join(person.get("aliases", [])) or "无",
                            bio=", ".join(person["bio"]), bio_text=seen.add(bio_chunks(lib, person["bio"])))
@@ -298,7 +290,9 @@ def people_in(text: str, people: list[Any]) -> list[Any]:
     return out
 
 
-_COUNTS: dict[str, int] = {}  # 别名表人物 id -> 在全书正文块里出现的块数 (random_person 第一次调用时算)
+# 别名表人物 id -> 在全书正文块里出现的块数. random_person 第一次调用时算 (rag/skills.make_router 启动时在后台线程先算);
+# 统计完成前另一个线程开局时, 按已统计的部分加权, 没统计到的人按 1 块算, 只影响这一局的权重.
+_COUNTS: dict[str, int] = {}
 
 
 def random_person(lib: Library, rng: random.Random | None = None, tries: int = 50) -> tuple[Person, str]:
@@ -332,7 +326,7 @@ def random_person(lib: Library, rng: random.Random | None = None, tries: int = 5
 
 def new_game(lib: Library, complete: Callable[..., Any], rng: random.Random | None = None,
              pool: list[Person] | None = None) -> GuessGame:
-    """开一局 "Agent 出题": 默认用 random_person 从全书随机出题; 给了 pool 时从 pool 里抽 (测试用).
+    """开一局 "Agent 出题": 默认用 random_person 从全书随机出题; 给定谜底列表 pool 时从中抽 (测试用).
     known_names 取别名表里的人名, 用来认出 "刘备？" 这种只说名字的猜测."""
     from rag.alias import load_aliases
     person = (rng or random).choice(pool) if pool is not None else random_person(lib, rng)[0]

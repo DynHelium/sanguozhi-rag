@@ -13,8 +13,8 @@ from tests.test_agent import LIB
 
 skills.TRACE_DIR = Path(tempfile.mkdtemp())  # 测试的逐步记录写到临时目录, 不进 data/
 
-PERSON: guess.Person = {"id": "g-01", "tier": "common", "person": "刘备", "aliases": ["先主", "刘玄德"],
-                        "bio": ["32-0000"], "note": "蜀汉昭烈皇帝", "playable": True}
+PERSON: guess.Person = {"id": "g-01", "person": "刘备", "aliases": ["先主", "刘玄德"], "bio": ["32-0000"],
+                        "note": "蜀汉昭烈皇帝"}
 PUZZLE = {"id": "soup-x", "tier": "common", "person": "曹冲", "title": "t", "surface": "一个孩子把衣服戳破了.",
           "truth": "为救库吏.", "facts": [{"id": "f1", "text": "救库吏", "evidence": [0]}],
           "evidence": [{"source_id": "20-0003", "quote": "庫吏懼必死"}], "hints": ["和老鼠有关"], "max_questions": 20}
@@ -212,7 +212,6 @@ def test_router_writes_trace():
     assert rows[1]["args"] == {"query": "浚儀"} and rows[2]["text"].endswith("第 1 问: q?")
 
 
-
 def test_agent_guess_free_answer():
     """认不出的短回答 (如 "都待过") 原话交给 Agent; "属于" 归成 "是"."""
     c = agent_says('{"ask": "他属于蜀汉吗？"}', '{"ask": "他降过魏吗？"}', '{"ask": "q3"}')
@@ -222,7 +221,6 @@ def test_agent_guess_free_answer():
     assert g.msgs[-2] == {"role": "user", "content": "都待过, 先蜀后魏"}
     g.ask("属于")
     assert g.msgs[-2] == {"role": "user", "content": "是"}
-
 
 
 def test_people_in_finds_names_and_titles():

@@ -58,6 +58,7 @@ REQUEST_TIMEOUT = 60  # 游戏里单次模型请求的超时 (秒); 问答 agent
 TRACE_DIR = config.DATA_DIR / "processed" / "game_logs"  # 每局游戏的逐步记录, 按天一个 jsonl (不进 git)
 _ctx = threading.local()  # 当前线程正在处理的那一问: sid, skill, turn; 模型请求的记录靠它知道属于哪一问
 _trace_lock = threading.Lock()
+OnEvent = Callable[[str, Any], None]  # on_event(kind, info): 游戏一问的进度事件, 见 rag/guess.play
 
 
 def trace(record: dict) -> None:
@@ -77,7 +78,6 @@ def trace(record: dict) -> None:
             f.write(json.dumps(rec, ensure_ascii=False, default=str) + "\n")
     except OSError:
         pass
-OnEvent = Callable[[str, Any], None]
 
 
 class GameLike(Protocol):
@@ -268,7 +268,7 @@ def make_router(lib: Any, complete: Callable[..., Any], model: str | None = None
 
     puzzles = soup.load_puzzles()
     r = rng or random.Random()
-    # 猜人物随机出题要先统计各人在全书出现的块数 (约 8 秒), 启动时在后台先算好, 开局时不用等
+    # 猜人物随机出题要先统计各人在全书出现的块数 (需要几秒), 启动时在后台先算好, 开局时不用等
     threading.Thread(target=lambda: guess.random_person(lib, random.Random()), daemon=True).start()
     return Router({
         "guess_person": lambda: guess.GuessPerson(lambda: guess.new_game(lib, message_complete, rng=r),

@@ -23,6 +23,10 @@
 
 一题约 1 分钟 (请求模型约 5 次), 所以 run_agent 放在后台线程跑, on_event 回调把进度放进队列,
 前台每收到一条就刷新一次 "检索过程", 用户不用干等.
+
+聊天里还能玩游戏 (猜人物, 海龟汤): 消息先交给 rag/skills.Router, 整句是触发词 (或点 "猜人物" "海龟汤" 按钮) 就开一局,
+游戏中的消息由游戏回答, 不走问答 agent; 提示 / 放弃 / 退出 三个按钮只在游戏中可点. 对话历史和浏览器 id 存在
+gr.BrowserState (浏览器 localStorage) 里, 刷新页面后对话和正在玩的游戏都还在; "清除对话" 清掉聊天记录和游戏 (见 build_ui).
 """
 import argparse
 from datetime import date
@@ -189,7 +193,7 @@ def check_limits(question: str, history: list[dict], budget: Budget | None) -> s
 def make_respond(lib: agent.Library, model: str | None = None, effort: str | None = None,
                  complete_factory: Callable[[], Callable[..., Any]] | None = None, budget: Budget | None = None,
                  router: "Router | None" = None) -> Callable[..., Iterator[list[dict]]]:
-    """返回给 gr.ChatInterface 的 respond(message, history).
+    """返回 build_ui 用的 respond(message, history, sid).
 
     message 是字符串或 {"text": ...} (多模态输入框); history 是页面上的消息列表 (格式见模块 docstring).
     respond 是生成器, 每次 yield 本轮要显示的全部 assistant 消息 (list), Gradio 用它整体替换本轮显示:
@@ -203,7 +207,8 @@ def make_respond(lib: agent.Library, model: str | None = None, effort: str | Non
     超出 check_limits 的限制时只 yield 一条说明, 不调模型. 用户点停止 (Gradio 关闭生成器) 时, 后台线程在下一次模型请求前
     抛 Cancelled 结束, 不再继续花钱; budget 不为 None 时, 每题结束后把这题的花费 (complete.stats["cost"]) 记进去.
     router (rag/skills.Router) 不为 None 时, 先把消息交给它: 触发词开一局游戏, 游戏进行中的消息由游戏回答
-    (只 yield 一条游戏的回复), 不归游戏管的才走问答 agent. sid 是会话 id (Gradio 的 session_hash), 区分各人的游戏."""
+    (先 yield "思考过程" 折叠块 (Agent 的推理和工具调用, 有进度时), 最后加上游戏的回复), 不归游戏管的才走问答 agent.
+    游戏的消息不经过 check_limits, 花费也不记进 budget. sid 是 BrowserState 里存的浏览器 id, 区分各人的游戏."""
 
     def play_game(question: str, sid: str) -> Iterator[list[dict]]:
         """游戏这一问: 在后台线程里跑 router.handle, 进度 (推理, 工具调用) 实时显示在 "思考过程" 折叠框里."""

@@ -10,6 +10,7 @@ data/processed/sanguozhi.jsonl
 data/processed/chunks.jsonl
 data/processed/chunks-trans.jsonl
 data/processed/eval_runs/
+data/processed/game_logs/
 data/index/*
 !data/index/.gitkeep
 
