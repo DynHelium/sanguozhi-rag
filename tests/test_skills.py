@@ -233,6 +233,20 @@ def test_people_in_finds_names_and_titles():
     assert [p["name"] for p in guess.people_in("太祖軍譙，權遣使", people)] == ["曹操"]
     assert [p["name"] for p in guess.people_in("劉玄德在新野", people)] == ["刘备"]
 
+
+def test_again_starts_same_game():
+    """一局结束后说 "再猜一个": 照上一局的玩法再开一局; 没玩过时这句话交给问答 agent; 清除对话后也不再生效."""
+    r = skills.Router({"guess_person": lambda: guess.GuessPerson(
+        lambda: guess.GuessGame(PERSON, LIB, judge_says()), lambda: guess.AgentGuessGame(LIB, agent_says('{"ask": "q?"}')))})
+    assert not r.claims("a", "再猜一个") and r.handle("a", "再猜一个") is None
+    r.handle("a", "猜人物")
+    r.handle("a", "1")
+    r.handle("a", "猜 刘备")
+    assert r.active("a") is None and r.claims("a", "再猜一个！")
+    assert "你可以问" in r.handle("a", "再猜一个！") and r.active("a") is not None
+    r.reset("a")
+    assert r.handle("a", "再猜一个") is None
+
 if __name__ == "__main__":
     from tests._run import run as run_tests
     run_tests(globals())

@@ -90,6 +90,7 @@ class Person(TypedDict, total=False):
     homonym: bool
     note: str
     playable: bool
+    notrans: bool  # 三国志里没有自己的传 (bio 第一个 id 只是提到他的一处), 揭晓时不说 "他的传在……"
 
 
 def load_pool(path: Path = CHECKS) -> list[Person]:
@@ -249,9 +250,27 @@ class GuessGame:
         return self.reveal_text()
 
     def reveal_text(self) -> str:
-        """谜底: 人名, 说明 (同名时说清是哪一位), 原文出处."""
-        note = f" ({self.p['note']})" if self.p.get("note") else ""
-        return f"谜底是 {self.p['person']}{note}. 出处: {', '.join(self.p['bio'])}."
+        """揭晓谜底, 给人看的写法 (不出现 chunk id):
+            谜底是 曹操 (字孟德; 又称 魏太祖、曹公、魏武帝).
+            他的传在《三国志·魏书·武帝纪》, 开头是:「太祖武皇帝，沛國譙人也，姓曹，諱操，字孟德，漢相國參之後。」
+        说明取 note (同名时说清是哪一位, 如 "孙吴潘璋的司马"), 别称取 aliases 前三个; 出处取 bio 第一个源 id 所在块的卷名,
+        和那一块里第一句提到他 (名字或别称) 的话, 没有就取首句; 太长截到 60 字. 找不到那一块时只说名字.
+        notrans 的人 (三国志里没有传) 说 "提到他的一处在……"."""
+        extra = [self.p["note"]] if self.p.get("note") else []
+        if self.p.get("aliases"):
+            extra.append("又称 " + "、".join(self.p["aliases"][:3]))
+        out = f"谜底是 {self.p['person']}" + (f" ({'; '.join(extra)})" if extra else "") + "."
+        idx = self.lib.by_source.get(self.p["bio"][0], []) if self.p.get("bio") else []
+        if idx:
+            c = self.lib.chunks[idx[0]]
+            title = to_simplified(c.get("juan_title", "")).replace("•", "·").replace(" ", "·")
+            sentences = [x for x in re.split(r"(?<=。)", c["text"]) if x.strip()] or [c["text"]]
+            names = [to_simplified(n) for n in [self.p["person"], *self.p.get("aliases", [])] if len(n) >= 2]
+            first = next((x for x in sentences if any(n in to_simplified(x) for n in names)), sentences[0])
+            first = first if len(first) <= 60 else first[:60] + "……"
+            where = "《三国志》里没有他的传, 提到他的一处在" if self.p.get("notrans") else "他的传在"
+            out += f"\n{where}《三国志·{title}》:「{first}」" if c.get("tier") == 1 else ""
+        return out
 
 
 NOT_THREE_KINGDOMS = {"孔子", "公孙述"}  # 别名表里收了、但不是三国时代的人 (原文只是提到), 不出题
@@ -296,7 +315,10 @@ def random_person(lib: Library, rng: random.Random | None = None, tries: int = 5
             aliases = sorted({f["form"] for f in p.get("forms", []) if f.get("form")} - {p["name"]})
             bio = [p["id"]] + [s for s in c["sources"] if s != p["id"]][:1]
             note = f"字{p['zi']}" if p.get("zi") else ""
-            return {"id": p["id"], "person": p["name"], "aliases": aliases, "bio": bio, "note": note}, c["id"]
+            person: Person = {"id": p["id"], "person": p["name"], "aliases": aliases, "bio": bio, "note": note}
+            if p.get("notrans"):
+                person["notrans"] = True
+            return person, c["id"]
     raise RuntimeError(f"抽了 {tries} 块都没找到别名表里的人")
 
 
@@ -443,6 +465,17 @@ class GuessPerson:
             self.game = self.agent_game()
         else:
             return "请回复 1 (我出题, 你来猜) 或 2 (你出题, 我来猜)."
+        return self.game.intro(on_event)
+
+    def again_like(self, old: Any, on_event: OnEvent | None = None) -> str:
+        """"再来一局": 上一局选过玩法就沿用 (直接开局), 没选过就照常问."""
+        prev = getattr(old, "game", None)
+        if isinstance(prev, GuessGame):
+            self.game = self.user_game()
+        elif isinstance(prev, AgentGuessGame):
+            self.game = self.agent_game()
+        else:
+            return self.intro(on_event)
         return self.game.intro(on_event)
 
     def reveal(self) -> str:

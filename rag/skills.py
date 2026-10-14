@@ -23,7 +23,8 @@
     /提示 /hint                要一条提示 (游戏有提示时)
     /答 <解释> /answer <解释>   提交完整解释 (海龟汤); 猜人物里等同于猜名字
     /帮助 /help                再看一遍 SKILL.md 的玩法
-其他消息都交给游戏的 ask(). 再说一次触发词就换一局 (同一个或另一个游戏).
+其他消息都交给游戏的 ask(). 再说一次触发词就换一局 (同一个或另一个游戏). 一局结束后说 "再猜一个" "再来一局" 等 (AGAIN)
+就照上一局再开一局 (猜人物沿用上一局选的玩法).
 
 Router 按会话 id 保存每个会话正在玩的游戏, 只放在服务端内存里; 界面 (app/chat.py, 命令行) 只需要把会话 id 和用户消息交进来,
 拿回要显示的文字. handle 返回 None 表示这句话不归游戏管, 由调用方照常交给问答 agent.
@@ -52,6 +53,7 @@ COMMANDS = {
     "help": ("/帮助", "/help"),
 }
 ANSWER = re.compile(r"^/(?:答|answer)\s*(.*)$", re.S | re.I)
+AGAIN = {"再猜一个", "再来一个", "再来一局", "再玩一次", "再玩一局", "再来", "再猜", "again", "one more"}  # 游戏刚结束时: 再开一局同样的
 REQUEST_TIMEOUT = 60  # 游戏里单次模型请求的超时 (秒); 问答 agent 用 rag/openrouter 的默认 300 秒
 TRACE_DIR = config.DATA_DIR / "processed" / "game_logs"  # 每局游戏的逐步记录, 按天一个 jsonl (不进 git)
 _ctx = threading.local()  # 当前线程正在处理的那一问: sid, skill, turn; 模型请求的记录靠它知道属于哪一问
@@ -139,6 +141,7 @@ class Router:
         self.factories = factories
         self.sessions: dict[str, tuple[Skill, GameLike]] = {}
         self.turns: dict[str, int] = {}  # 每个会话说了几句 (记录里的 turn)
+        self.last: dict[str, tuple[Skill, Any]] = {}  # 每个会话刚结束的那局 (skill, 游戏): "再来一局" 时照着开
         self.lock = threading.Lock()
 
     def active(self, sid: str) -> Skill | None:
@@ -147,14 +150,16 @@ class Router:
         return s[0] if s else None
 
     def claims(self, sid: str, text: str) -> bool:
-        """这句话归不归游戏管 (是触发词, 或这个会话正在玩). 界面用它决定走游戏还是问答 agent, 不改状态."""
-        return match_skill(text, self.skills) is not None or self.active(sid) is not None
+        """这句话归不归游戏管 (是触发词, 或这个会话正在玩, 或刚玩完一局说 "再来一局"). 界面用它决定走游戏还是问答 agent, 不改状态."""
+        return (match_skill(text, self.skills) is not None or self.active(sid) is not None
+                or (sid in self.last and _norm(text) in AGAIN))
 
     def handle(self, sid: str, text: str, on_event: OnEvent | None = None) -> str | None:
         """处理会话 sid 的一句话, 返回要显示的文字; None 表示不归游戏管 (没在玩, 也不是触发词).
         on_event(kind, info) 收游戏这一问的进度 (Agent 的推理, 工具调用), 见 rag/guess.play."""
         cur0 = self.sessions.get(sid)
-        sk0 = match_skill(text, self.skills) or (cur0[0] if cur0 else None)
+        again = cur0 is None and sid in self.last and _norm(text) in AGAIN
+        sk0 = match_skill(text, self.skills) or (cur0[0] if cur0 else None) or (self.last[sid][0] if again else None)
         if sk0 is None:
             return None
         self.turns[sid] = self.turns.get(sid, 0) + 1
@@ -173,6 +178,14 @@ class Router:
 
     def _handle(self, sid: str, text: str, on_event: OnEvent | None) -> str | None:
         sk = match_skill(text, self.skills)
+        if sk is None and sid not in self.sessions and sid in self.last and _norm(text) in AGAIN:
+            sk, old = self.last[sid]
+            game = self.factories[sk.name]()
+            again = getattr(game, "again_like", None)  # 猜人物: 照上一局的玩法直接开, 不再问选哪种
+            intro = again(old, on_event) if again else game.intro(on_event)
+            with self.lock:
+                self.sessions[sid] = (sk, game)
+            return f"【{sk.title}】{intro}"
         if sk:
             game = self.factories[sk.name]()
             with self.lock:
@@ -206,12 +219,15 @@ class Router:
         return reply
 
     def reset(self, sid: str) -> None:
-        """结束这个会话正在玩的游戏 (界面上 "清除对话" 时调用), 不揭晓."""
+        """结束这个会话正在玩的游戏 (界面上 "清除对话" 时调用), 不揭晓; 也忘掉上一局 ("再来一局" 不再生效)."""
         self._end(sid)
+        self.last.pop(sid, None)
 
     def _end(self, sid: str) -> None:
         with self.lock:
-            self.sessions.pop(sid, None)
+            cur = self.sessions.pop(sid, None)
+            if cur:
+                self.last[sid] = cur
 
 
 def make_router(lib: Any, complete: Callable[..., Any], model: str | None = None, effort: str | None = None,
