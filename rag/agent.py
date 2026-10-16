@@ -62,7 +62,7 @@ REVIEW_TEXT = ("请逐句核对你刚才的回答, 只能用上面工具返回�
 #   "patch"    核对标准同 layered, 但不重写整篇, 只列出要改的句子 ("原文 / 改为"), 由 apply_patch 逐条替换 (REVIEW_TEXT_PATCH).
 #              重写整篇要吐出约 3000 token, 是一题里最慢的一步; 只列改动时输出短得多. 抄的原文在回答里找不到的那条跳过.
 REVIEW_MODE = "layered"
-REVIEW_EFFORT: str | None = None  # 作答之后几步 (自查, 改引文) 的 reasoning_effort; None = 和作答相同. 自查的时间大多花在推理上
+REVIEW_EFFORT: str | None = None  # 作答之后几步 (自查, 改引文) 的 reasoning_effort; None = 和作答相同. 自查的时间大多花在推理上, 所以单独设: 调低它能缩短每题用时 (eval.bench_latency --review-effort 对比时间, 再跑留出题看正确率)
 REVIEW_OK = "无误"
 REVIEW_TEXT_SHORT = REVIEW_TEXT.replace(
     "直接输出修改后的完整回答 (格式同前), 不要说明改了什么, 不要调用工具.",
