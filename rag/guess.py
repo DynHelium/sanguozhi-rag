@@ -185,7 +185,7 @@ def judge_question(lib: Library, person: Person, question: str, complete: Callab
     complete(messages, tools=None) -> 模型的一条回复 message (rag/loop.agent_loop 的约定). 是非题、二选一、问法有歧义的问题
     都交给模型按意思回答, 代码不预先拦; 唯一的代码检查是 leaks: 回答里出现谜底的名字或称呼就换成 LEAK_REPLY.
     msgs 是这一局的裁判对话 (judge_messages 开头, 之前的问答和工具调用都在里面), 这一问和回答原地追加, 超时时恢复原样;
-    不传时单独开一段 (seen 同时新建). 谜底的出处原文预先放在 system prompt 里, 大多数问题不用再调工具, 资料以外的事才查. 模型给出的判词类别不在 VERDICTS 里 (或解析不了) 时记为
+    不传时单独开一段 (seen 同时新建). msgs 和 seen 要成对传 (GuessGame 的 self.msgs / self.seen): 只传 msgs 时工具查到的段落会从 [1] 重新编号, 和 system prompt 里已编好的号撞上. 谜底的出处原文预先放在 system prompt 里, 大多数问题不用再调工具, 资料以外的事才查. 模型给出的判词类别不在 VERDICTS 里 (或解析不了) 时记为
     "没有记载"; answer 为空时用判词本身. on_event 只收到 ("stage", "查原文") (裁判的推理和检索词会泄底, 不发). 超过 TURN_BUDGET 时抛 TimeoutError."""
     if msgs is None:
         seen = Seen(lib.notes)
