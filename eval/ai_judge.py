@@ -28,9 +28,11 @@
 
 判决 batchNN.out.jsonl (一行一个回答; 新题集另有 yanyi_flagged / bg_errors):
 
-    {"model": "deepseek-v4.1-flash", "qid": "r-03", "verdict": "对" | "部分" | "错", "errors": ["..."], "comment": "一句话"}
+    {"model": "deepseek-v4.1-flash", "qid": "r-03", "verdict": "对" | "部分" | "错", "errors": ["..."], "comment": "一句话",
+     "fiction_as_fact": false, "unsupported": ["..."], "uncertain": ""}
+     把演义说成正史  原文查不到却说得很确定的事实  判卷人拿不准的原因 (拿得准为 "")
 
-merge 后的 <name>.judged.jsonl 每行是判决加上 "reply_sha1" 和 "judge": "ai" (区别于 eval/judge.py 的人工判读);
+merge 后的 <name>.judged.jsonl 每行是判决加上 "reply_sha1" 和 "judge" (--judge 给的判卷模型名, 默认 "ai"; 区别于 eval/judge.py 的人工判读);
 eval/run_agent.py --summary 读其中的 verdict.
 """
 import hashlib
@@ -138,10 +140,10 @@ def prep(name: str, questions_path: Path = QUESTIONS_PATH, carry_from: str | Non
           f" 沿用 {len(rows) - sum(len(x['answers']) for x in items)} 个")
 
 
-def merge(name: str, carry_from: str | None = None) -> None:
+def merge(name: str, carry_from: str | None = None, judge: str = "ai") -> None:
     """合并各包的 batchNN.out.jsonl 和可沿用的旧判决, 重写 <name>.judged.jsonl, 打印每个模型的 对 / 部分 / 错.
 
-    结果文件里有, 却既没有新判决也不能沿用的回答列为 "没判的".
+    结果文件里有, 却既没有新判决也不能沿用的回答列为 "没判的". judge 写进新判决的 "judge" 字段 (判卷模型的名字, 默认 "ai").
     """
     rows = {(r["model"], r["qid"]): r for r in load_jsonl(OUT_DIR / f"{name}.jsonl") if not r.get("error")}
     old = load_judged(name)
@@ -155,7 +157,7 @@ def merge(name: str, carry_from: str | None = None) -> None:
     for k, r in rows.items():
         j = new.get(k)
         if j:
-            out[k] = {**j, "reply_sha1": sha1(r["reply"]), "judge": "ai"}
+            out[k] = {**j, "reply_sha1": sha1(r["reply"]), "judge": judge}
         elif old.get(k) and old[k].get("reply_sha1") == sha1(r["reply"]):
             out[k] = old[k]
         else:
@@ -177,8 +179,9 @@ if __name__ == "__main__":
     ap.add_argument("--carry", help="沿用另一次实验里回答相同的判决")
     ap.add_argument("--questions", type=Path, default=QUESTIONS_PATH, help="题目文件 (prep 用)")
     ap.add_argument("--per-batch", type=int, default=PER_BATCH, help=f"每包几道题 (prep 用, 默认 {PER_BATCH})")
+    ap.add_argument("--judge", default="ai", help="判卷模型的名字, 写进判决的 judge 字段 (merge 用)")
     a = ap.parse_args()
     if a.cmd == "prep":
         prep(a.name, a.questions, carry_from=a.carry, per_batch=a.per_batch)
     else:
-        merge(a.name, carry_from=a.carry)
+        merge(a.name, carry_from=a.carry, judge=a.judge)
