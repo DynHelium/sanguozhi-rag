@@ -136,9 +136,10 @@ def save_matrix(path: Path | str, matrix: npt.NDArray) -> None:
 
 def load_matrix(path: Path | str) -> npt.NDArray:
     """读回 save_matrix 存的矩阵, dtype 和 shape 与存之前一样.
-    用 mmap 只读打开 (np.memmap): 不把整个文件复制进进程内存, 几个进程 (并行评测, 网页聊天) 同时用同一份缓存时共享操作系统的页缓存.
-    矩阵只读, 检索只做 matrix @ q; 重建缓存时 save_matrix 换上新文件, 不改旧文件."""
-    return np.load(path, mmap_mode="r")
+    macOS / Linux 上用 mmap 只读打开 (np.memmap): 不把整个文件复制进进程内存, 几个进程 (并行评测, 网页聊天) 同时用同一份缓存时
+    共享操作系统的页缓存; 矩阵只读, 检索只做 matrix @ q; 重建缓存时 save_matrix 换上新文件, 不改旧文件.
+    Windows 上整份读进内存: 那里被 mmap 打开的文件不能删除, 也不能被 os.replace 覆盖, 缓存重建和临时目录清理都会失败."""
+    return np.load(path, mmap_mode=None if os.name == "nt" else "r")
 
 
 # ---------- 文本准备, 缓存, 接线 ----------
