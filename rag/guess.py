@@ -5,8 +5,9 @@
     uv run python -m rag.skills --openrouter   # 命令行里玩 (输入 "猜人物" 开局; 不带 --openrouter 用 .env 的模型), 见 rag/skills.py
     uv run python -m tests.test_skills         # 假模型测试, 不连网
 
-玩法 1 的谜底由 random_person 从全书随机出: 随机抽一块正文, 找出其中出现的别名表 (data/aliases.json) 人物,
-按 1 / 这个人出现的块数加权挑一个. 抽到的谜底 (Person) 例如:
+玩法 1 的谜底由 random_person 从别名表 (data/aliases.json, 有传的人和原文多处记载的无传人物) 里随机出:
+先统计每个人在全书正文块里出现的块数 (person_forms 去掉多人共用的称呼, 如 "都亭侯"), 按 块数 ** POP_WEIGHT 加权挑人
+(名人稍多, 但不独占), 再从他出现的块里随机取一块给裁判预读. 抽到的谜底 (Person) 例如:
     {"id": "32-0000",                       别名表的人物 id, 也是本传首段 (没有传的人是提到他的一处) 的源 id
      "person": "刘备",
      "aliases": ["先主", "刘玄德", "刘豫州", "汉中王", "蜀汉昭烈皇帝"],   别名表里的称呼, 猜这些也算对
@@ -14,15 +15,17 @@
      "note": "字玄德"}                       揭晓时显示的一句说明
     notrans (可选) 为 true 时, 这个人在《三国志》里没有自己的传, bio 第一个 id 只是提到他的一处.
 
-玩法 1 的裁判 (judge_question): 每个问题单独开一段对话, 谜底的出处原文预先给它, 需要时再用工具查; 它回一句话,
-只写结论 (是 / 不是, 二选一的答选项, 原文没有的答 "没有记载", 问法有歧义时只用几个字说明按哪种意思理解),
-不提供问题以外的信息; 页面只显示这一句和计数.
+玩法 1 的裁判 (judge_question): 一局是同一段对话 (GuessGame.msgs), 谜底和它的出处原文在 system prompt 里, 需要时再用工具查;
+前面的问答和玩家猜错的名字都留在对话里, 裁判据此保持前后一致. 它只写结论 (是 / 不是, 二选一的答选项, 原文没有的答
+"没有记载", 问题有两种以上理解时在括号里注明按哪种理解), 不提供问题以外的信息; 页面只显示这一句和计数.
 代码只检查这句话里有没有谜底的名字或称呼 (rag/soup.leaks), 有就换成 LEAK_REPLY. 玩家猜名字时由代码比对人名和称呼 (matches),
 不交给模型判断.
 """
 import random
 import re
+import threading
 import time
+from collections import Counter
 from collections.abc import Mapping
 from typing import Any, Callable, TypedDict
 
@@ -32,7 +35,8 @@ from rag.loop import agent_loop
 from rag.normalize import to_simplified
 from rag.soup import LEAK_REPLY, _parse_json, leaks
 
-VERDICTS = ("是", "不是", "选择", "没有记载", "没法回答")  # 判词类别; 给玩家看的是 answer 那一句话
+VERDICTS = ("是", "不是", "选择", "没有记载", "没法回答", "非游戏")  # 判词类别; 给玩家看的是 answer 那一句话
+NOT_GAME = "非游戏"  # 这句话不是游戏里的问题: GuessGame.ask 返回 None, 交给问答 agent
 NOT_COUNTED = "没法回答"  # 这一类不算一问
 MAX_QUESTIONS = 20
 JUDGE_ROUNDS = 3  # 裁判每个问题最多几轮工具调用
@@ -45,15 +49,18 @@ JUDGE_SYS = """你是 "猜人物" 游戏的裁判. 谜底是《三国志》里�
 
 {bio_text}
 
-怎么答 (只答结论, 不介绍, 不解释):
+一局里玩家会一个一个地提问, 也会猜名字 (猜名字由程序判对错, 结果会告诉你). 怎么答 (只答结论, 不介绍, 不解释):
 - 是非题答 "是" 或 "不是"; 二选一的问题只答选项.
 - 原文没有记载、推不出来的, 答 "没有记载".
+- 句末是 "吗" 的问题是是非题, 句子里有 "或者" 也一样: 符合其中任何一项就答 "是". 用 "还是" 连接选项的才是二选一.
 - 不提供问题以外的任何信息 (官职、时期、经历、事件都不说).
-- 问法有歧义时, 按你的理解回答, 只用几个字说明按哪种意思理解, 不附带别的信息.
+- 问题有两种以上理解、按不同理解答案不同时, 在结论后用括号注明按哪种理解, 括号里只写理解, 不附带别的信息.
+- 这是一局里的连续问答, 前面的问题和你的回答都在对话里; 回答要和前面一致.
 - 没法用是 / 不是或一个选项回答的问题, 请玩家换成是非题或二选一的问题.
+- 不是在问这个人的话 (问玩法、闲聊、想结束或换游戏、问和谜底无关的历史问题) -> verdict 填 "非游戏", answer 留空; 这句话会交给别人处理.
 - 只依据查到的原文, 不用自己的历史知识. 注意同名的人, 不要查成别人.
 - 不能写出谜底的名字、字、称号, 也不能直接说出他的姓.
-最后只输出一行 JSON: {{"verdict": "是 | 不是 | 选择 | 没有记载 | 没法回答", "answer": "只写结论", "evidence": [依据的资料编号 n]}}"""
+每个问题最后只输出一行 JSON: {{"verdict": "是 | 不是 | 选择 | 没有记载 | 没法回答 | 非游戏", "answer": "结论 (必要时加括号注明按哪种理解)", "evidence": [依据的资料编号 n]}}"""
 
 GUESS_SYS = """你在玩 "猜人物": 对方心里想了一个三国人物 (多半是《三国志》里的人, 也可能是只在《三国演义》里出名的人物),
 你要用是非问题猜出是谁. 你最多问 {n} 次 (猜名字也算一次).
@@ -163,23 +170,41 @@ def bio_chunks(lib: Library, ids: list[str]) -> list[Any]:
     return out
 
 
+def judge_messages(lib: Library, person: Person, seen: Seen) -> list[dict]:
+    """一局裁判对话的开头: system prompt 里放谜底和它的出处原文 (bio_chunks, 经 seen 编号, 之后工具查到的段落接着编号)."""
+    sys = JUDGE_SYS.format(person=person["person"], aliases="、".join(person.get("aliases", [])) or "无",
+                           bio=", ".join(person["bio"]), bio_text=seen.add(bio_chunks(lib, person["bio"])))
+    return [{"role": "system", "content": sys}]
+
+
 def judge_question(lib: Library, person: Person, question: str, complete: Callable[..., Any],
-                   on_event: OnEvent | None = None) -> dict:
+                   on_event: OnEvent | None = None, msgs: list[dict] | None = None, seen: Seen | None = None) -> dict:
     """裁判玩家的一个问题. 返回 {"verdict": VERDICTS 之一 (类别), "answer": 给玩家看的一句话, "by": "model",
     "tools": [工具调用记录], "raw": 模型回答末尾}.
 
     complete(messages, tools=None) -> 模型的一条回复 message (rag/loop.agent_loop 的约定). 是非题、二选一、问法有歧义的问题
     都交给模型按意思回答, 代码不预先拦; 唯一的代码检查是 leaks: 回答里出现谜底的名字或称呼就换成 LEAK_REPLY.
-    每个问题单独开一段对话 (裁判互不记忆); 谜底的出处原文 (bio_chunks, 经 Seen 编号) 预先放进
-    system prompt, 大多数问题不用再调工具, 资料以外的事才查. 模型给出的判词类别不在 VERDICTS 里 (或解析不了) 时记为
+    msgs 是这一局的裁判对话 (judge_messages 开头, 之前的问答和工具调用都在里面), 这一问和回答原地追加, 超时时恢复原样;
+    不传时单独开一段 (seen 同时新建). 谜底的出处原文预先放在 system prompt 里, 大多数问题不用再调工具, 资料以外的事才查. 模型给出的判词类别不在 VERDICTS 里 (或解析不了) 时记为
     "没有记载"; answer 为空时用判词本身. on_event 只收到 ("stage", "查原文") (裁判的推理和检索词会泄底, 不发). 超过 TURN_BUDGET 时抛 TimeoutError."""
-    seen, log = Seen(lib.notes), []
-    sys = JUDGE_SYS.format(person=person["person"], aliases="、".join(person.get("aliases", [])) or "无",
-                           bio=", ".join(person["bio"]), bio_text=seen.add(bio_chunks(lib, person["bio"])))
-    reply = play([{"role": "system", "content": sys}, {"role": "user", "content": question}], lib, seen, log,
-                 complete, JUDGE_ROUNDS, on_event, show=False)
+    if msgs is None:
+        seen = Seen(lib.notes)
+        msgs = judge_messages(lib, person, seen)
+    seen = seen if seen is not None else Seen(lib.notes)
+    log: list[dict] = []
+    snapshot = list(msgs)
+    msgs.append({"role": "user", "content": question})
+    try:
+        reply = play(msgs, lib, seen, log, complete, JUDGE_ROUNDS, on_event, show=False)
+    except BaseException:  # 超时, 用户停止 (rag/skills.Cancelled): 这一问作废, 对话回到问之前
+        msgs[:] = snapshot
+        raise
+    msgs.append({"role": "assistant", "content": reply})
     verdict = field(reply, "verdict")
     verdict = verdict if verdict in VERDICTS else "没有记载"
+    if verdict == NOT_GAME:
+        msgs[:] = snapshot  # 不是游戏里的问题: 不留在裁判对话里
+        return {"verdict": verdict, "answer": "", "by": "model", "tools": log, "raw": reply[-300:]}
     answer = (field(reply, "answer") or "").strip() or verdict
     if leaks(answer, [person["person"], *person.get("aliases", [])]):
         answer = LEAK_REPLY
@@ -210,15 +235,19 @@ class GuessGame:
         self.known_names = known_names or set()
         self.asked = 0
         self.over = False
+        self.seen = Seen(lib.notes)
+        self.msgs = judge_messages(lib, person, self.seen)  # 整局的裁判对话, 每问接着往下问
 
     def intro(self, on_event: OnEvent | None = None) -> str:
         """开局说明."""
-        return (f"我心里想好了一个《三国志》里的人物. 你可以问 {self.max} 个问题 (是非题或二选一, 我查原文回答),"
+        return (f"我心里想好了一个《三国志》里出现过的人物. 除了魏蜀吴的人, 也可能是东汉末年 (如董卓部下、汉朝大臣)"
+                " 或西晋 (如晋朝开国的将相) 的人."
+                f" 你可以问 {self.max} 个问题 (是非题或二选一, 我查原文回答),"
                 " 猜名字时说 \"猜 某某\" 或直接说名字. 输入 /放弃 揭晓答案, /退出 结束游戏.")
 
-    def ask(self, text: str, on_event: OnEvent | None = None) -> str:
+    def ask(self, text: str, on_event: OnEvent | None = None) -> str | None:
         """处理玩家的一句话: 猜名字就由代码比对, 否则当作是非问题交给裁判. 返回界面上显示的一行.
-        裁判超时时这一问不计数, 请玩家再问一次."""
+        裁判超时时这一问不计数, 请玩家再问一次. 裁判判断不是游戏里的问题 (NOT_GAME) 时返回 None, 不计数."""
         text = text.strip()
         if self.over:
             return "这一局已经结束了."
@@ -230,13 +259,17 @@ class GuessGame:
                 self.over = True
                 return "猜对了! " + self.reveal_text()
             self.asked += 1
+            self.msgs.append({"role": "user", "content": f"(玩家猜是 {name}, 程序判定猜错了. 这一条不用回答.)"})
+            self.msgs.append({"role": "assistant", "content": "好的."})
             return f"不是 {name}. ({self.asked}/{self.max})" + self._left()
         if self.asked >= self.max:
             return f"{self.max} 个问题用完了, 猜一个名字吧, 或者输入 /放弃 揭晓."
         try:
-            r = judge_question(self.lib, self.p, text, self.complete, on_event)
+            r = judge_question(self.lib, self.p, text, self.complete, on_event, self.msgs, self.seen)
         except TimeoutError:
             return "这一问查原文太久了, 没判出来 (不计数). 请再问一次."
+        if r["verdict"] == NOT_GAME:
+            return None
         if r["verdict"] != NOT_COUNTED and r["answer"] != LEAK_REPLY:
             self.asked += 1
         return f"{r['answer']}  ({self.asked}/{self.max})" + self._left()
@@ -276,52 +309,71 @@ class GuessGame:
 NOT_THREE_KINGDOMS = {"孔子", "公孙述"}  # 别名表里收了、但不是三国时代的人 (原文只是提到), 不出题
 
 
-def people_in(text: str, people: list[Any]) -> list[Any]:
-    """一段原文里出现的别名表人物 (rag/alias 的 people): 姓名, 字, 或别名表记下的原文称呼 (orig) 出现在原文里就算.
-    原文和名字都转简体再比; 单字的称呼 (如 "權") 太容易误认, 不算."""
-    t = to_simplified(text)
-    out = []
+def person_forms(people: list[Any]) -> list[set[str]]:
+    """每个人用来在原文里认人的写法 (简体): 姓名, 姓 + 字, 别名表记下的原文称呼 (orig).
+    去掉三种容易误认的: 单字 (如 "權"); 官称 (kind 为 "官称", 如 "大将军", 同一官职很多人做过); 表里两个人以上共用的写法
+    (如 "都亭侯" "太祖": 多人都封过 / 都被这样称呼, 认出来也不知道是谁)."""
+    raw = []
     for p in people:
-        forms = {p.get("name", "")} | {f.get("orig", "") for f in p.get("forms", [])}
+        forms = {p.get("name", "")} | {f.get("orig", "") for f in p.get("forms", []) if f.get("kind") != "官称"}
         if p.get("zi") and p.get("surname"):
             forms.add(p["surname"] + p["zi"])
-        if any(len(f) >= 2 and to_simplified(f) in t for f in forms):
-            out.append(p)
-    return out
+        raw.append({to_simplified(f) for f in forms if len(f) >= 2})
+    shared = {f for f, n in Counter(f for fs in raw for f in fs).items() if n > 1}
+    return [fs - shared if fs - shared else fs for fs in raw]  # 全被去掉时 (名字和别人相同) 保留原样, 免得这个人认不出来
 
 
-# 别名表人物 id -> 在全书正文块里出现的块数. random_person 第一次调用时算 (rag/skills.make_router 启动时在后台线程先算);
-# 统计完成前另一个线程开局时, 按已统计的部分加权, 没统计到的人按 1 块算, 只影响这一局的权重.
-_COUNTS: dict[str, int] = {}
+def people_in(text: str, people: list[Any], forms: list[set[str]] | None = None) -> list[Any]:
+    """一段原文里出现的别名表人物 (rag/alias 的 people): person_forms 里的任一写法出现在原文 (转简体) 里就算.
+    forms 是 person_forms(people) 的结果, 反复调用时传进来省得重算."""
+    t = to_simplified(text)
+    forms = forms if forms is not None else person_forms(people)
+    return [p for p, fs in zip(people, forms) if any(f in t for f in fs)]
 
 
-def random_person(lib: Library, rng: random.Random | None = None, tries: int = 50) -> tuple[Person, str]:
-    """真随机出题: 从全书正文块里随机抽一块, 找出其中出现的别名表人物 (people_in), 再随机挑一个; 一个都没有就重抽.
-    挑人的权重 = 1 / 这个人出现的块数: 不然曹操 (魏书大量段落有 "太祖") 会占约 15%, 加权后各人被选中的机会接近.
-    返回 (谜底, 抽到的块 id). 谜底的 bio = [本传首段源 id, 抽到的块的源 id] (裁判预载这两处原文);
-    aliases = 别名表里的称呼. 挑人用代码随机而不交给模型: 模型总偏向一块里最有名的人 (魏书大量段落都有曹操)."""
+POP_WEIGHT = 0.5  # 挑人的权重 = 出现块数 ** POP_WEIGHT: 0 = 人人机会相同; 0.5 时模拟 2 万局曹操约 1.7%, 出现最多的 50 人合计约 28%
+# 别名表人物 -> 在全书正文块里出现的块 (下标), 按 people 列表的位置存. random_person 第一次调用时算
+# (rag/skills.make_router 启动时在后台线程先算); 统计完成前开局的那一局会等它算完 (加锁).
+_APPEAR: list[list[int]] = []
+_PEOPLE: list[Any] = []
+_appear_lock = threading.Lock()
+
+
+def _pool(lib: Library) -> tuple[list[Any], list[list[int]]]:
+    """出题用的人和他们出现的正文块 (只算 tier 1 的正文块; 一次都没出现的人不出题)."""
     from rag.alias import load_aliases
+    with _appear_lock:
+        if not _PEOPLE:
+            people = [p for p in load_aliases().get("people", [])
+                      if len(p.get("name", "")) >= 2 and p.get("id") and p["name"] not in NOT_THREE_KINGDOMS]
+            forms = person_forms(people)
+            appear: list[list[int]] = [[] for _ in people]
+            for i, c in enumerate(lib.chunks):
+                if c.get("tier") == 1:
+                    t = to_simplified(c["text"])
+                    for k, fs in enumerate(forms):
+                        if any(f in t for f in fs):
+                            appear[k].append(i)
+            _PEOPLE[:], _APPEAR[:] = people, appear
+        return _PEOPLE, _APPEAR
+
+
+def random_person(lib: Library, rng: random.Random | None = None) -> tuple[Person, str]:
+    """随机出题: 在别名表里在正文出现过的人中挑一个, 权重 = 出现块数 ** POP_WEIGHT (名人稍多, 但不独占);
+    再从他出现的正文块里随机取一块. 返回 (谜底, 这一块的 id). 谜底的 bio = [本传首段源 id, 这一块的源 id]
+    (裁判预载这两处原文); aliases = 别名表里的称呼. 挑人用代码随机而不交给模型: 模型总偏向最有名的几个人."""
     r = rng or random
-    people = [p for p in load_aliases().get("people", [])
-              if len(p.get("name", "")) >= 2 and p.get("id") and p["name"] not in NOT_THREE_KINGDOMS]
-    body = [c for c in lib.chunks if c.get("tier") == 1]
-    if not _COUNTS:
-        for c in body:
-            for p in people_in(c["text"], people):
-                _COUNTS[p["id"]] = _COUNTS.get(p["id"], 0) + 1
-    for _ in range(tries):
-        c = r.choice(body)
-        found = people_in(c["text"], people)
-        if found:
-            p = r.choices(found, weights=[1 / _COUNTS.get(x["id"], 1) for x in found])[0]
-            aliases = sorted({f["form"] for f in p.get("forms", []) if f.get("form")} - {p["name"]})
-            bio = [p["id"]] + [s for s in c["sources"] if s != p["id"]][:1]
-            note = f"字{p['zi']}" if p.get("zi") else ""
-            person: Person = {"id": p["id"], "person": p["name"], "aliases": aliases, "bio": bio, "note": note}
-            if p.get("notrans"):
-                person["notrans"] = True
-            return person, c["id"]
-    raise RuntimeError(f"抽了 {tries} 块都没找到别名表里的人")
+    people, appear = _pool(lib)
+    ks = [k for k, a in enumerate(appear) if a]
+    k = r.choices(ks, weights=[len(appear[k]) ** POP_WEIGHT for k in ks])[0]
+    p, c = people[k], lib.chunks[r.choice(appear[k])]
+    aliases = sorted({f["form"] for f in p.get("forms", []) if f.get("form")} - {p["name"]})
+    bio = [p["id"]] + [s for s in c["sources"] if s != p["id"]][:1]
+    note = f"字{p['zi']}" if p.get("zi") else ""
+    person: Person = {"id": p["id"], "person": p["name"], "aliases": aliases, "bio": bio, "note": note}
+    if p.get("notrans"):
+        person["notrans"] = True
+    return person, c["id"]
 
 
 def new_game(lib: Library, complete: Callable[..., Any], rng: random.Random | None = None,
@@ -383,6 +435,9 @@ class AgentGuessGame:
             self.msgs[:] = snapshot
             self.pending = True
             return "这一问我想得太久了, 没想出来. 请随便回复一句 (如 \"继续\") 让我再想一次."
+        except BaseException:  # 用户停止: 对话回到这一轮之前
+            self.msgs[:] = snapshot
+            raise
 
     def _think(self, on_event: OnEvent | None) -> str:
         n = len(self.turns) + 1
@@ -407,9 +462,9 @@ class AgentGuessGame:
             return f"第 {n} 次: 我猜是 {name}{desc}. 对吗?"
         return f"第 {n} 问: {turn['ask'] or '(我没想好问题, 请随便回答一句让我继续)'}"
 
-    def ask(self, text: str, on_event: OnEvent | None = None) -> str:
+    def ask(self, text: str, on_event: OnEvent | None = None) -> str | None:
         """玩家的回答, 返回 Agent 的下一问 (或结局). 上一轮是问题时: 认得出的归成 是 / 不是 / 不知道 (_YES / _NO / _UNKNOWN),
-        认不出但不超过 FREE_MAX 字的原话交给 Agent (如 "都待过", GUESS_SYS 让它按意思理解), 更长的请玩家就问题作答.
+        认不出但不超过 FREE_MAX 字的原话交给 Agent (如 "都待过", GUESS_SYS 让它按意思理解); 更长的返回 None, 交给问答 agent.
         上一轮是猜名字时只认 对 / 错."""
         if self.over:
             return "这一局已经结束了."
@@ -428,7 +483,7 @@ class AgentGuessGame:
             self.msgs.append({"role": "user", "content": f"不是 {last['guess']}."})
         else:
             if kind is None and (not text or len(text) > FREE_MAX):
-                return f"请就这个问题回答: 是 / 不是 / 不知道, 或者简短说明 ({FREE_MAX} 字以内, 如 \"都待过\" \"前期是\")."
+                return None  # 太长的多半不是在回答这个问题 (问玩法, 想结束……), 交给问答 agent
             answer = kind or text  # 认得出的归成三种之一, 认不出的短回答原话交给 Agent
             last["answer"] = answer
             self.msgs.append({"role": "user", "content": answer})
@@ -441,7 +496,7 @@ class AgentGuessGame:
 
 
 class GuessPerson:
-    """猜人物 skill 的一局: 先让玩家选玩法 (1 = Agent 出题玩家猜, GuessGame; 2 = 玩家出题 Agent 猜, AgentGuessGame), 之后转交."""
+    """猜人物 skill 的一局: 先让玩家选玩法 (或 start_game 带 mode 时由 choose 直接定) (1 = Agent 出题玩家猜, GuessGame; 2 = 玩家出题 Agent 猜, AgentGuessGame), 之后转交."""
     _USER = {"1", "我猜", "你出题", "我来猜"}
     _AGENT = {"2", "你猜", "我出题", "你来猜"}
 
@@ -457,7 +512,10 @@ class GuessPerson:
     def intro(self, on_event: OnEvent | None = None) -> str:
         return "两种玩法: 回复 1 = 我想一个人, 你来猜; 回复 2 = 你想一个人, 我来猜."
 
-    def ask(self, text: str, on_event: OnEvent | None = None) -> str:
+    MODES = {"player_guesses": "1", "agent_guesses": "2"}  # SKILL.md 的 modes -> 开局时回复的编号
+
+    def ask(self, text: str, on_event: OnEvent | None = None) -> str | None:
+        """还没选玩法时认 1 / 2 (和 _USER / _AGENT 里的说法), 认不出返回 None (交给问答 agent); 选了之后转交."""
         if self.game is not None:
             return self.game.ask(text, on_event)
         t = re.sub(r"[\s。.!！?？]+", "", text)
@@ -466,19 +524,12 @@ class GuessPerson:
         elif t in self._AGENT:
             self.game = self.agent_game()
         else:
-            return "请回复 1 (我出题, 你来猜) 或 2 (你出题, 我来猜)."
+            return None
         return self.game.intro(on_event)
 
-    def again_like(self, old: Any, on_event: OnEvent | None = None) -> str:
-        """"再来一局": 上一局选过玩法就沿用 (直接开局), 没选过就照常问."""
-        prev = getattr(old, "game", None)
-        if isinstance(prev, GuessGame):
-            self.game = self.user_game()
-        elif isinstance(prev, AgentGuessGame):
-            self.game = self.agent_game()
-        else:
-            return self.intro(on_event)
-        return self.game.intro(on_event)
+    def choose(self, mode: str, on_event: OnEvent | None = None) -> str:
+        """按 mode (player_guesses = 玩家猜, agent_guesses = Agent 猜) 直接开局, 不再问选哪种 (start_game 带了 mode 时)."""
+        return self.ask(self.MODES[mode], on_event) or self.intro(on_event)
 
     def reveal(self) -> str:
         if self.game is None:

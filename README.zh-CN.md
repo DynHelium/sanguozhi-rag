@@ -4,6 +4,11 @@
 
 [![tests](https://github.com/DynHelium/sanguozhi-rag/actions/workflows/tests.yml/badge.svg)](https://github.com/DynHelium/sanguozhi-rag/actions/workflows/tests.yml)
 
+**一句话**：在一部 3 世纪的文言史书上做 agentic RAG。提问是白话或英文，原文是文言，两边用词很少重合。检索改搜大模型翻译的白话译文
+（document expansion），加上 BM25 + 向量混合检索和别名扩展，开发题 hit@10 从 0.40 提到 0.81（留出题 0.78 → 0.97）。同一模型、
+同 103 道中文题对照：闭卷全对 61 题（37 个回答夹带原文查不到的内容），检索一次 79 题，agent 101 题；32 道英文题分别为 26 / 15 / 31。
+回答里的每段引文都由代码对照原文核对。
+
 依据《三国志》（陈寿正文 + 裴松之注）回答三国历史问题的 RAG 项目：模型自己检索原文再作答，prompt 要求事实引原文、标出处，
 回答里抽到的引文由代码逐字核对。从数据准备（原文解析、切块、全书白话译文）、混合检索，到会调用工具的 agent、评测、网页聊天和
 基于史料的游戏（三国海龟汤、猜人物），整条链路都在这个仓库里。
@@ -39,8 +44,8 @@
 - **网页聊天**（`app/chat.py`，Gradio）：多轮对话，回答时实时显示检索过程，回答下面列出引用到的原文、白话和引文核对结果。
 
 - **三国海龟汤**（`rag/soup.py`、`app/soup.py`）：题目取自原文的推理游戏，见下文
-- **聊天里的游戏**（`rag/skills.py`、`skills/*/SKILL.md`）：在网页聊天里说"猜人物"或"海龟汤"（或点按钮）就开一局，
-  游戏中的消息交给游戏，不走问答 agent。猜人物（`rag/guess.py`）见下文
+- **聊天里的游戏**（`rag/skills.py`、`skills/*/SKILL.md`）：游戏是问答 agent 的 skill：agent 有 `start_game` / `end_game` 两个工具，
+  你用自己的话说想玩，它就开局（按钮直接开局）。游戏中的消息先交给游戏，游戏判断不是游戏里的话再交回 agent。猜人物（`rag/guess.py`）见下文
 
 设计和理由见 [docs/DESIGN.md](docs/DESIGN.md)，部署网页 demo 见 [docs/DEPLOY.md](docs/DEPLOY.md)。
 
@@ -169,29 +174,59 @@ uv run python -m rag.agent "桃园结义是真的吗？刘关张在正史里是�
 BM25 找不到。译文是现代汉语，用词和年份写法贴近白话提问（"薨" → "去世"，"七年" → "建安七年"），所以搜白话好得多；
 称谓（太祖、曹公、魏武）由别名扩展处理。这 48 题的问句停用词是照着它们挑的，算开发集。
 
+测试集：留出题（`eval/questions-holdout.jsonl`，没用来调参）里有 gold 段落的 37 题，原文 BM25 的 hit@10 为 0.78，agent 用的检索为 0.97
+（MRR 0.62 → 0.91；宽松口径，BM25 严格口径为 0.76 / 0.61，agent 用的检索两种口径相同）。英文题（`eval/questions-en.jsonl`，有 gold 的 28 题）直接用英文检索，hit@10 只有 0.50：索引是中文的，
+所以 agent 先把人名、术语译回中文再搜。
+
 ## 回答效果
 
-DeepSeek V4.1 Flash（思考 low），每套题跑一遍。每个回答由 AI 按成文的判卷规则逐题评定：对照原文，部分题（官职地理）对照参考答案，
-题目没要求的额外背景不计分。判卷规则见 `eval-judging` 分支的
-[`eval/judge_prompt.md`](https://github.com/DynHelium/sanguozhi-rag/blob/eval-judging/eval/judge_prompt.md)，逐题的回答和判卷结果也在
-[`eval-judging`](https://github.com/DynHelium/sanguozhi-rag/tree/eval-judging) 分支。
+五种配置，都是 DeepSeek V4.1 Flash（思考 low），各跑一遍（回答为空的续跑，最多三次）；同 103 道中文题（留出题 40；推断 / 演义 / 官职地理 30；
+事实级错误 24；人物 9）和 32 道英文题：
 
-| 题集 | 对 / 题数 | 每题用时 |
-|---|---|---|
-| 留出题（`eval/questions-holdout.jsonl`） | 40 / 40 | 约 41 秒 |
-| 推断 / 演义 / 官职地理（`eval/questions-reason.jsonl`） | 25 / 30（部分对 1，错 4） | 约 52 秒 |
-| 事实级错误：数字、年号、同名人物、裴注异说（`eval/questions-facts.jsonl`） | 22 / 24（部分对 2） | 约 36 秒 |
-| 人物（从常见到冷门）：从刘备、曹操到卑弥呼、吴皇后（`eval/questions-persons.jsonl`） | 9 / 9 | 约 48 秒 |
+| 配置 | 脚本 | 对 / 部分 / 错（103） | 英文对（32） | 含"说得很确定、原文查不到"内容的回答（103） | 引文在模型看过的原文里找到（103） | 每题请求次数 | 每题花费 |
+|---|---|---|---|---|---|---|---|
+| 闭卷：不给工具和资料，prompt 简短、允许凭记忆作答 | `eval/run_closed.py` | 61 / 33 / 9 | 26 | 37 | 不核对（没有资料） | 1 | $0.0037 |
+| 和下一行同一个 prompt，资料一栏写"没有资料" | `eval/run_single.py --no-context` | 6 / 10 / 87 | 2 | 0 | 0 / 18（0%） | 1 | $0.0008 |
+| 检索一次：拿原问题检索一次，前 10 组放进上下文，作答一次 | `eval/run_single.py` | 79 / 17 / 7 | 15 | 0 | 590 / 607（97.2%） | 1 | $0.0024 |
+| agent 关掉代码介入（自查、引文修正、编号修正、提示再查） | `eval/run_agent.py --off ...` | 101 / 2 / 0 | 31 | 2 | 764 / 854（89.5%） | 3.5 | $0.0036 |
+| **agent（默认）** | `eval/run_agent.py` | **101 / 2 / 0** | **31** | **1** | **1202 / 1202（100%）** | 4.7 | $0.0081 |
 
-推断题错的 4 题：2 题添了原文没有的细节（一个年份、一处"夜袭"），2 题误读了原文的先后或所指（田丰进言的时序、孙盛按语针对的事）；
-和原文矛盾、或原文查不到却说得很确定的具体事实都算错。
-事实题的 2 题部分对，都是漏了一项（少列一个同名人物、漏了裴松之的考订）。题量小，一遍的结果有波动，只作参考。
+"说得很确定、原文查不到"的内容是判卷人列出的具体事实（年份、人名、引文、出处），当作事实写、却在原文里找不到；不给资料时模型多半直接说没有资料，所以第二行是 0。
+
+这几行分开了什么：
+
+- **只靠规则答不出题，靠的是检索到的原文。** 同一个 prompt，不给资料只对 6 题，检索一次对 79 题。闭卷 prompt 允许凭记忆作答，能对 61 题
+  （正文大概在模型的训练语料里），但 37 个回答夹带原文查不到的引文、出处或细节。
+- **正确率来自 agent 的检索。** 从检索一次到关掉代码介入的 agent，模型可以自己写检索词、再搜、读前后文、用工具换算年号。100 道有答案的题里，
+  检索一次有 86 题的 gold 段落在上下文里，agent 是 100 题；英文题检索一次是直接拿英文去搜，只对 15 / 32，agent 先把术语译回中文再搜，对 31 / 32。
+- **代码介入保证的是引文，不是正确率。** 关掉之后这几套题的正确率不变，但只有 89.5% 的引文能在模型看过的原文里找到；开着时全部核对通过。
+  代价是每题花费约翻一倍。
+
+默认 agent 分题集：留出题 39 / 1 / 0，推断等 30 / 0 / 0，事实级 23 / 1 / 0，人物 9 / 0 / 0。每题用时中位 34.5 秒（平均 36.8 秒；
+`eval.bench_latency` 逐题跑 10 道留出题）：约三分之一是检索循环，其余是作答后的自查。闭卷有 5 题三次都没给出回答（推理用完 8192 token 的输出上限），按错计。
+
+**判卷**：由 Claude Sonnet subagent 按成文规则（[`eval/judge_prompt.md`](https://github.com/DynHelium/sanguozhi-rag/blob/eval-judging/eval/judge_prompt.md)）对照原文判，
+可以用 `eval.find` 查原文；官职地理题里原文没写的点对照参考答案。盲判：每道题的闭卷、检索一次、agent 三份回答换成随机标签放进同一个包
+（英文题是检索一次和 agent 两份，闭卷英文题单独判），两行消融也照此合包。"部分"的口径：答到了题目的核心，但漏了一项，或夹带编造、
+张冠李戴的引文、出处、细节。三组对照里判卷人标为拿不准的 46 条由作者逐条看过，并定了这些边界规则，之后的几组按同样的规则判；
+每处改判都和原判一起记录。逐题回答、判卷结果（含每题 token 和花费）和判卷工具在 [`eval-judging`](https://github.com/DynHelium/sanguozhi-rag/tree/eval-judging) 分支。
 
 ```bash
-uv run python -m eval.run_agent --openrouter --models deepseek-v4.1-flash --effort low \
-    --questions eval/questions-holdout.jsonl --name ho1        # 跑题, 结果在 data/processed/eval_runs/answers/ho1.jsonl
-uv run python -m eval.run_agent --summary --name ho1           # 汇总: 看到 / 找全 gold 段落的比例
+uv run python -m eval.run_agent --openrouter --models deepseek-v4.1-flash --effort low --questions eval/questions-*.jsonl --name cv   # 一个进程跑完, 结果按题集分文件: cv-holdout.jsonl, ...
+uv run python -m eval.run_agent ... --off nudge nudge_notfound review quote_fix cite_fix --name off               # 关掉代码介入
+uv run python -m eval.run_single --openrouter --models deepseek-v4.1-flash --effort low --questions eval/questions-*.jsonl --name ss  # 检索一次 (--no-context: 同 prompt 不给资料)
+uv run python -m eval.run_closed --openrouter --models deepseek-v4.1-flash --effort low --questions eval/questions-*.jsonl --name cb  # 闭卷
+uv run python -m eval.run_agent --summary --name cv --questions eval/questions-*.jsonl                         # 汇总: 看到 / 找全 gold 段落的比例
 ```
+
+## 设计取舍
+
+- **搜白话，引原文。** 提问是白话，原文是文言，所以检索搜全书白话译文，它的用词和年份写法贴近提问（document expansion）。
+  模型看到每段的原文和白话，但只能引原文，代码按原文核对，译文的错进不了引文。
+- **扩展查询另加一路，不替换原查询。** 别名扩展（曹操 → 太祖、曹公）作为另外的 BM25 和向量两路，和原查询一起用 RRF 融合；
+  替换原查询会把原查询排第一的块挤下去。
+- **限制写在代码里，不靠 prompt。** 循环最后一次请求不带 tools，模型只能用文字作答；`tool_choice="none"` 不可靠。引文和编号核对是纯代码。
+- **检索决定答得对不对，校验决定引得准不准。** 上面的消融就是代码介入虽然费时仍然保留的原因：关掉之后约十分之一的引文对不上原文。
 
 ## 三国海龟汤
 
@@ -210,19 +245,19 @@ uv run python -m app.soup --openrouter --model deepseek-v4.1-flash --effort low 
   唯一的代码检查是防泄底：回答里出现谜底人名就换成一句"不能说"。
 - 提交汤底时按"必需要点"逐条判，全说到且没有矛盾才算猜中；没猜中时只说说到了几条，不说缺哪条。
 - `uv run python -m eval.soup --openrouter` 用每题的标准问答测裁判判得准不准。
-- 也可以在网页聊天（`app/chat.py`）里玩：说"海龟汤"或点按钮开局，"/答 你的解释"提交汤底。
+- 也可以在网页聊天（`app/chat.py`）里玩：用自己的话说想玩或点按钮开局，"/答 你的解释"提交汤底。
 
 ![三国海龟汤：对一道题连问几个是非问题](docs/images/soup.gif)
 
 ## 猜人物
 
-在网页聊天里说"猜人物"或点按钮开局（命令行：`uv run python -m rag.skills --openrouter`），有两种玩法：
+在网页聊天里说想玩（如"我们玩猜人物吧"）或点按钮开局（命令行：`uv run python -m rag.skills --openrouter`），有两种玩法：
 
 - **你来猜**：程序随机定一个《三国志》人物，你最多问 20 个是非题或二选一的问题，再说出名字。出题由代码随机：
   从全书正文里随机抽一段，找出其中出现的别名表人物，按 1 / 这个人在全书出现的段数加权挑一个（不加权的话曹操会占很大比例）。
 - **我来猜**：你心里想一个人，Agent 问是非问题（最多 25 次），可以用检索工具查原文，最后猜名字。
 
-谜底只在代码里：聊天里的模型不知道谜底，裁判是另开的一段对话，预先拿到谜底的出处原文，每个问题单独判，只答结论
+谜底只在代码里：聊天里的模型不知道谜底，裁判是另开的一段对话，预先拿到谜底的出处原文，一局从头到尾是同一段对话（记得前面答过什么），只答结论
 （是 / 不是、选项、没有记载）；回答里出现谜底的名字或称呼就由代码拦下。你猜名字时由代码比对人名和别名表里的称呼，
 揭晓时给出这个人在《三国志》里的出处。
 
@@ -249,9 +284,11 @@ uv run python -m app.soup --openrouter --model deepseek-v4.1-flash --effort low 
 - 只依据《三国志》和裴注。问题超出这个范围（其他史书、后世评价）时，prompt 要求模型说没找到，代码不强制。
 - 白话译文由大模型翻译、只对照原文校对，难免有错；它只用来检索和帮助理解，回答里的引文一律用原文。
 - 引文核对只证明"这段文字原文里有、出处编号对"，不能保证转述和对史实的解释都对。
-- 评测题量小，每套只跑一遍。
+- 评测题量小（中文 103 题、英文 32 题），每种配置只跑一遍，判卷是大模型；一两题的差别在误差之内。
 
 ## 分工
 
 作者手写接入大模型（`rag/llm.py`）、agent 循环（`rag/loop.py`）和检索算法（分词、BM25、向量、融合、查询扩展）。
 Claude（Anthropic 的 AI 助手）编写 prompt、数据准备脚本、工具背后的数据查询、agent 接线、评测框架、网页、海龟汤、猜人物和 skill 路由、测试和文档。
+
+本仓库由一个私有工作仓库（约 290 个提交，含不公开的实验和数据）整理而来，提交历史从公开版开始。

@@ -345,6 +345,32 @@ def test_on_event_reports_tools_and_stages():
     agent.run_agent("你好", LIB, complete=Script(resp("我只讲三国历史.")), on_event=lambda k, i: 1 / 0)  # 回调出错不影响
 
 
+
+def test_apply_patch():
+    """patch 自查的输出逐条套用: 改句, 删句 (多余空行合并), 抄错的原文跳过并计数; "无误" 之类没有改动的输出不改回答."""
+    reply = "甲做了A。乙做了B。\n\n以下不是《三国志》的记载: 丙在今天某地。"
+    patch = "原文: 乙做了B。\n改为: 乙做了C [2]。\n原文: 以下不是《三国志》的记载: 丙在今天某地。\n改为: 删除（这是背景段, 不需要）\n原文: 丁做了D。\n改为: 丁没做。"
+    new, done, missed = agent.apply_patch(reply, patch)
+    assert new == "甲做了A。乙做了C [2]。" and (done, missed) == (2, 1)
+    assert agent.apply_patch(reply, "无误") == (reply.strip(), 0, 0)
+    noisy = "原文: 甲做了A。\n改为: 无误\n原文: 乙做了B。\n改为: 乙做了B [1]。（事实，依据 [1]，无误）\n原文: 以下不是《三国志》的记载: 丙在今天某地。\n改为: （保留）"
+    assert agent.apply_patch(reply, noisy) == ("甲做了A。乙做了B [1]。\n\n以下不是《三国志》的记载: 丙在今天某地。", 1, 0)
+
+
+def test_patch_review_and_draft_event():
+    """REVIEW_MODE = "patch": 先发 draft 事件 (初稿), 自查只回改动, 代码替换后作为最终回答."""
+    old_mode, agent.REVIEW_MODE = agent.REVIEW_MODE, "patch"
+    try:
+        events = []
+        script = Script(resp(calls=[tc("c1", "search", query="浚儀")]), resp(calls=[tc("c2", "search", query="譙")]),
+                        resp("太祖至浚仪 [1]。另有一句没依据的话。"), resp("原文: 另有一句没依据的话。\n改为: 删除"))
+        res = agent.run_agent("曹操去过浚仪吗", LIB, complete=script, review=True, on_event=lambda k, i: events.append((k, i)))
+        assert ("draft", "太祖至浚仪 [1]。另有一句没依据的话。") in events
+        assert res["reply"] == "太祖至浚仪 [1]。"
+        assert any(r["tool"] == "review" and r["args"].get("edits") == 1 for r in res["rounds"])
+    finally:
+        agent.REVIEW_MODE = old_mode
+
 if __name__ == "__main__":
     from tests._run import run as run_tests
     run_tests(globals())

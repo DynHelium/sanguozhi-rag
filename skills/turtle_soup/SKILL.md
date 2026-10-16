@@ -2,7 +2,7 @@
 name: turtle_soup
 title: 三国海龟汤
 description: 给一个取自《三国志》的离奇情境 (汤面), 玩家问是非问题, 最后说出完整真相 (汤底).
-triggers: ["海龟汤", "/海龟汤", "/turtle_soup"]
+triggers: ["/海龟汤", "/turtle_soup"]
 ---
 玩法: 我给你一段离奇的情境 (汤面), 真相 (汤底) 都出自《三国志》原文. 你要猜出事情的完整经过.
 

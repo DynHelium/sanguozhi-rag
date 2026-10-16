@@ -4,6 +4,13 @@ English | [中文](README.zh-CN.md)
 
 [![tests](https://github.com/DynHelium/sanguozhi-rag/actions/workflows/tests.yml/badge.svg)](https://github.com/DynHelium/sanguozhi-rag/actions/workflows/tests.yml)
 
+**TL;DR** — Agentic RAG over a 3rd-century Classical Chinese history. Questions come in modern Chinese or English, the corpus
+is Classical Chinese, so the two share little vocabulary. Indexing an LLM-made modern-Chinese translation (document expansion)
+with hybrid BM25 + dense retrieval and alias expansion lifts hit@10 from 0.40 to 0.81 on the development questions (0.78 → 0.97
+on held-out ones). Against baselines with the same model on the same 103 questions: closed-book 61 fully correct (with
+unsupported claims in 37 answers), one-shot retrieval 79, the agent 101; on 32 English questions 26 / 15 / 31. Every
+quotation in an answer is checked against the source text by code.
+
 A RAG project that answers questions about Three Kingdoms history from Chen Shou's *Records of the Three Kingdoms*
 (*Sanguozhi*, 三国志) together with Pei Songzhi's annotations (裴松之注). A tool-using agent searches the original text
 itself before answering. The model is asked to support facts with quotations from the original text, cited as `[n]`,
@@ -60,8 +67,9 @@ Main parts:
   lists the cited original text, its translation and the quotation-check results below each answer.
 - **Three Kingdoms Turtle Soup** (`rag/soup.py`, `app/soup.py`): a reasoning game with puzzles taken from the original
   text; see below.
-- **Games in the chat** (`rag/skills.py`, `skills/*/SKILL.md`): saying "猜人物" or "海龟汤" in the web chat (or clicking
-  a button) starts a game; while it runs, messages go to the game instead of the Q&A agent. Guess the Person
+- **Games in the chat** (`rag/skills.py`, `skills/*/SKILL.md`): the games are skills of the Q&A agent: it has
+  `start_game` / `end_game` tools and starts a game when you ask for one in your own words (the buttons start one directly).
+  While a game runs, messages go to the game first; anything the game judges is not part of it goes back to the agent. Guess the Person
   (`rag/guess.py`) is described below.
 
 Design and rationale: [docs/DESIGN.md](docs/DESIGN.md) (in Chinese). Deploying the web demo: [docs/DEPLOY.md](docs/DEPLOY.md) (in Chinese).
@@ -214,33 +222,82 @@ it. The translation is in modern Chinese, and its wording and date formats are c
 for the same person (太祖, 曹公, 魏武) are handled by alias expansion. The query stop-word list was chosen with these 48
 questions in view, so they count as a development set.
 
+As a test set, the 37 held-out questions that have gold passages (`eval/questions-holdout.jsonl`, never used for tuning)
+give hit@10 0.78 for BM25 over the original text and 0.97 for the agent's retriever (MRR 0.62 → 0.91; loose; strict 0.76 / 0.61
+for BM25, unchanged for the agent's retriever). Searching the English questions directly (`eval/questions-en.jsonl`, 28 with gold passages) gives hit@10 0.50:
+the index is Chinese, which is why the agent translates names and terms back into Chinese before it searches.
+
 ### Answer quality
 
-DeepSeek V4.1 Flash (reasoning effort low), one run per question set. Each answer was judged by an AI model following
-written judging rules, against the original text; for some questions (official titles and geography) against reference
-answers, and extra background the question did not ask for is not scored. The rules are in
-[`eval/judge_prompt.md`](https://github.com/DynHelium/sanguozhi-rag/blob/eval-judging/eval/judge_prompt.md) on the
-[`eval-judging`](https://github.com/DynHelium/sanguozhi-rag/tree/eval-judging) branch, together with the per-question
-answers and judgments.
+Five configurations, all DeepSeek V4.1 Flash (reasoning effort low), one run each (an empty answer was retried up to
+three times), on the same 103 Chinese questions (held-out 40; inference / the novel / official titles and geography 30;
+fact-level errors 24; people 9) and 32 English questions:
 
-| Question set | Correct / total | Time per question |
-|---|---|---|
-| Held-out (`eval/questions-holdout.jsonl`) | 40 / 40 | about 41 s |
-| Inference / the novel / official titles and geography (`eval/questions-reason.jsonl`) | 25 / 30 (1 partial, 4 wrong) | about 52 s |
-| Fact-level errors: numbers, reign eras, people with the same name, variant accounts in the annotations (`eval/questions-facts.jsonl`) | 22 / 24 (2 partial) | about 36 s |
-| People, from well-known to obscure: from Liu Bei and Cao Cao to Himiko (卑弥呼) and Empress Wu (吴皇后) (`eval/questions-persons.jsonl`) | 9 / 9 | about 48 s |
+| Configuration | Script | Correct / partial / wrong (103) | English correct (32) | Answers with a confident claim not found in the source (103) | Quotations found in the passages the model saw (103) | Model calls per question | Cost per question |
+|---|---|---|---|---|---|---|---|
+| Closed-book: no tools, no context, a short prompt that allows answering from memory | `eval/run_closed.py` | 61 / 33 / 9 | 26 | 37 | not checked (no passages) | 1 | $0.0037 |
+| Same prompt as the next row, but the context says "no material" | `eval/run_single.py --no-context` | 6 / 10 / 87 | 2 | 0 | 0 / 18 (0%) | 1 | $0.0008 |
+| One-shot retrieval: the question itself is searched once, top 10 groups in the context, one answer | `eval/run_single.py` | 79 / 17 / 7 | 15 | 0 | 590 / 607 (97.2%) | 1 | $0.0024 |
+| Agent with code interventions off (no self-review, quotation fix, citation fix, search nudge) | `eval/run_agent.py --off ...` | 101 / 2 / 0 | 31 | 2 | 764 / 854 (89.5%) | 3.5 | $0.0036 |
+| **Agent (default)** | `eval/run_agent.py` | **101 / 2 / 0** | **31** | **1** | **1202 / 1202 (100%)** | 4.7 | $0.0081 |
 
-Of the 4 wrong answers in the inference set, 2 add a detail the original text does not contain (a year, and a "night
-raid"), and 2 misread the order or the target of a passage (the timing of Tian Feng's advice, and what Sun Sheng's comment
-is about); a confidently stated fact that cannot be found in the source, or that contradicts
-it, counts as wrong. The 2 partial answers in the fact set each miss one item (one person sharing a name; one of Pei
-Songzhi's corrections). The question sets are small and results vary between runs; treat them as indicative only.
+"A confident claim not found in the source" is the judge's list of specific facts (years, names, quotations, sources)
+stated as fact that it could not find in the text; without material the model mostly says it has none, hence 0 in the
+second row.
+
+What the rows separate:
+
+- **Rules alone do not answer questions; retrieved text does.** With the same prompt, no material gives 6 correct and
+  one search gives 79. The closed-book prompt does let the model answer from memory (61 correct; the main text appears to
+  be in the model's training data),
+  but 37 of its answers contain quotations, sources or details that cannot be found in the text.
+- **Accuracy comes from the agent's searching.** Between one-shot retrieval and the agent with interventions off, the
+  model writes its own queries, searches again, reads the surrounding passages and converts reign years with a tool. The
+  gold passage is in the context for 86 of 100 answerable questions with one search and for all 100 with the agent; on
+  English questions one search uses the English wording and gets 15 / 32, while the agent translates terms back into
+  Chinese first (31 / 32).
+- **The code interventions buy quotation accuracy, not correctness.** Turning them off leaves accuracy unchanged on these
+  sets, but only 89.5% of quotations are then found in the passages the model saw; with them every quotation checks out.
+  They roughly double the cost per question.
+
+Per question set, the default agent gets 39 / 1 / 0 on the held-out set, 30 / 0 / 0 on the reasoning set, 23 / 1 / 0
+on the fact-level set and 9 / 0 / 0 on people. One question takes 34.5 s at the median (36.8 s mean; 10 held-out
+questions run one at a time with `eval.bench_latency`): about a third is the search loop and the rest is the self-review
+after the answer. 5 closed-book questions got no answer in three attempts (reasoning used up the 8192-token output
+limit) and count as wrong.
+
+**Judging.** Answers were judged by Claude Sonnet subagents following written rules
+([`eval/judge_prompt.md`](https://github.com/DynHelium/sanguozhi-rag/blob/eval-judging/eval/judge_prompt.md)), against the original text, which they search
+with `eval.find`; for official titles and geography, points the text does not cover are judged against reference
+answers. The judging is blind: for each question, the closed-book, one-shot and agent answers went into one package under
+random labels (the English questions: one-shot and agent; the closed-book English answers were judged separately), and
+the two ablation rows were packaged together the same way. "Partial" means the core of the question is answered but an
+item is missing, or a fabricated or misattributed quotation, source or detail is added. The author reviewed the 46
+verdicts the judges marked as uncertain in the main comparison and fixed these borderline rules; the later runs were
+judged with them. Each change is recorded next to the original verdict. Answers, verdicts (with token usage and cost per
+question) and the judging tools are on the [`eval-judging`](https://github.com/DynHelium/sanguozhi-rag/tree/eval-judging) branch.
 
 ```bash
-uv run python -m eval.run_agent --openrouter --models deepseek-v4.1-flash --effort low \
-    --questions eval/questions-holdout.jsonl --name ho1        # run the questions; results in data/processed/eval_runs/answers/ho1.jsonl
-uv run python -m eval.run_agent --summary --name ho1           # summary: share of gold passages seen / fully found
+uv run python -m eval.run_agent --openrouter --models deepseek-v4.1-flash --effort low --questions eval/questions-*.jsonl --name cv   # one process, results per set: cv-holdout.jsonl, ...
+uv run python -m eval.run_agent ... --off nudge nudge_notfound review quote_fix cite_fix --name off               # interventions off
+uv run python -m eval.run_single --openrouter --models deepseek-v4.1-flash --effort low --questions eval/questions-*.jsonl --name ss  # one-shot retrieval (--no-context: same prompt, no material)
+uv run python -m eval.run_closed --openrouter --models deepseek-v4.1-flash --effort low --questions eval/questions-*.jsonl --name cb  # closed-book
+uv run python -m eval.run_agent --summary --name cv --questions eval/questions-*.jsonl                         # share of gold passages seen / fully found
 ```
+
+## Design notes
+
+- **Search the translation, quote the original.** The questions are modern Chinese and the text is Classical Chinese, so
+  retrieval runs over a full modern-Chinese translation, which shares wording and date formats with the questions
+  (document expansion). The model sees both versions of each passage but may quote only the original, and code checks the
+  quotations against it, so translation errors cannot enter a quotation.
+- **Expanded queries are an extra ranked list, not a replacement.** Alias expansion (曹操 → 太祖, 曹公) runs as additional
+  BM25 and dense lists fused by RRF next to the original query; replacing the query pushed down the chunk the original
+  query had ranked first.
+- **Limits are enforced in code, not in the prompt.** The last request of the loop carries no tools, so the model has to
+  answer in text; asking for `tool_choice="none"` was not reliable. Quotation and citation checks are plain code.
+- **Retrieval decides accuracy, the checks decide citations.** The ablations above are the reason the interventions stay
+  on even though they cost time: without them about one quotation in ten does not match the source.
 
 ## Three Kingdoms Turtle Soup
 
@@ -266,14 +323,14 @@ uv run python -m app.soup --openrouter --model deepseek-v4.1-flash --effort low 
   only if all of them are covered with no contradiction. If not, the game says how many points were covered, not which
   ones are missing.
 - `uv run python -m eval.soup --openrouter` tests the judge's accuracy against each puzzle's reference questions and answers.
-- It can also be played in the web chat (`app/chat.py`): say "海龟汤" or click the button to start, and submit a
+- It can also be played in the web chat (`app/chat.py`): ask for it in your own words or click the button to start, and submit a
   solution with "/答 your explanation".
 
 ![Three Kingdoms Turtle Soup: asking yes/no questions about a puzzle](docs/images/soup.gif)
 
 ## Guess the Person
 
-Say "猜人物" in the web chat or click the button to start (command line: `uv run python -m rag.skills --openrouter`).
+Ask for it in the web chat (e.g. "let's play guess the person") or click the button to start (command line: `uv run python -m rag.skills --openrouter`).
 There are two modes:
 
 - **You guess**: the program picks a person from the *Sanguozhi* at random; you may ask up to 20 yes-no or either-or
@@ -284,7 +341,7 @@ There are two modes:
   to look things up in the original text, and finally guesses a name.
 
 The answer stays in code: the chat model does not know it. The judge is a separate conversation that gets the original
-passages about the person up front, judges each question on its own, and gives only the conclusion (yes / no, an
+passages about the person up front, keeps one conversation for the whole game (so it remembers earlier answers), and gives only the conclusion (yes / no, an
 option, or "not recorded"); if its answer contains the person's name or any of their other names, code blocks it.
 When you guess a name, code compares it with the person's name and the names in the alias table, and the reveal shows
 where the person appears in the *Sanguozhi*.
@@ -310,7 +367,8 @@ cannot guarantee that paraphrases or interpretations of the history are correct.
   errors; it is used only for retrieval and to aid understanding, and quotations in answers always use the original text.
 - The quotation check only proves that "this text is in the original and the citation number is right"; it cannot
   guarantee that paraphrases and interpretations are correct.
-- The evaluation question sets are small, and each was run only once.
+- The evaluation question sets are small (103 Chinese and 32 English questions), each configuration was run once, and the
+  judge is an LLM; differences of one or two questions are within noise.
 
 ## Data and licenses
 
@@ -331,3 +389,6 @@ The author hand-wrote the LLM access (`rag/llm.py`), the agent loop (`rag/loop.p
 (tokenization, BM25, dense retrieval, fusion, query expansion). Claude (Anthropic's AI assistant) wrote the prompts, data
 preparation scripts, data queries behind the tools, agent wiring, evaluation framework, web pages, the Turtle Soup game,
 Guess the Person and the skill routing, tests and documentation.
+
+This repository was created from a private working repository (about 290 commits, including experiments and data that are
+not published); its history starts with the public release.

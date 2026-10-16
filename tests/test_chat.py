@@ -7,11 +7,15 @@
 """
 from types import SimpleNamespace
 
+import tempfile
+from pathlib import Path
+
 from app import chat
-from rag import agent
+from rag import agent, skills
 from tests.test_agent import LIB, Script, resp, tc
 
 agent.REVIEW = False
+skills.TRACE_DIR = Path(tempfile.mkdtemp())  # 逐步记录写到临时目录, 不进 data/
 
 
 def run(question: str, history: list[dict], *replies: SimpleNamespace) -> tuple[list[list[dict]], Script]:
@@ -148,7 +152,7 @@ def test_respond_routes_game_with_progress():
         def claims(self, sid, text):
             return text == "猜人物"
 
-        def handle(self, sid, text, on_event=None):
+        def handle(self, sid, text, on_event=None, cancel=None):
             on_event("tool", {"tool": "search", "args": {"query": "刘备"}, "chunks": ["32-0000"], "error": None})
             return "第 1 问: 他是男性吗？"
     respond = chat.make_respond(LIB, complete_factory=lambda: Script(), router=FakeRouter())
@@ -156,6 +160,56 @@ def test_respond_routes_game_with_progress():
     assert out[-1][-1]["content"] == "第 1 问: 他是男性吗？"
     assert out[-1][0]["metadata"]["title"] == "思考过程 (1 步)" and "搜索: 刘备" in out[-1][0]["content"]
 
+
+
+class EchoGame:
+    """假游戏: 开局说 "开局了"; "怎么玩" 不算游戏里的话 (返回 None), 别的都答 "是"."""
+    over = False
+
+    def intro(self, on_event=None):
+        return "开局了"
+
+    def ask(self, text, on_event=None):
+        return None if "怎么玩" in text else "是"
+
+    def reveal(self):
+        return "谜底是 X"
+
+
+def test_agent_starts_game_and_takes_non_game_messages():
+    """问答 agent 调 start_game 就开局 (显示游戏的开局说明); 游戏中游戏不管的话交给 agent, system prompt 里带着正在玩的游戏."""
+    router = skills.Router({"guess_person": EchoGame}, skills.load_skills())
+    script = Script(resp(calls=[tc("c1", "start_game", game="guess_person")]))
+    respond = chat.make_respond(LIB, complete_factory=lambda: script, router=router)
+    out = list(respond("我们来玩猜人物吧", [], "u"))
+    assert out[-1][-1]["content"] == "【猜人物】开局了" and router.active("u") is not None
+    assert any(t["function"]["name"] == "start_game" for t in script.seen[0]["kw"]["tools"])
+    assert list(respond("他是男的吗", [], "u"))[-1][-1]["content"] == "是"
+    script2 = Script(resp("先问是非题, 最后说名字."))
+    respond2 = chat.make_respond(LIB, complete_factory=lambda: script2, router=router)
+    assert list(respond2("这游戏怎么玩", [], "u"))[-1][-1]["content"].startswith("先问是非题")
+    assert "正在玩 猜人物" in script2.seen[0]["messages"][0]["content"]
+
+
+def test_new_message_interrupts_old_one():
+    """同一个 sid 发新消息时, 还在进行的那一问被取消: 不再请求模型, 也不再刷新页面."""
+    import threading
+    gate = threading.Event()
+    old_script = Script(resp(calls=[tc("c1", "search", query="浚儀")]), resp("旧回答"))
+    new_script = Script(resp("新回答"))
+
+    def slow(*a, **kw):  # 旧的一问: 第一次请求等新消息来了才返回
+        r = old_script(*a, **kw)
+        gate.wait(5)
+        return r
+    factories = iter([lambda: slow, lambda: new_script])
+    respond = chat.make_respond(LIB, complete_factory=lambda: next(factories)())
+    old = respond("曹操去过浚仪吗", [], "s")
+    next(old)
+    new = list(respond("刘备是谁", [], "s"))
+    gate.set()
+    assert list(old) == [] and new[-1][-1]["content"] == "新回答"
+    assert len(old_script.seen) == 1, "被打断后不再请求模型"
 
 if __name__ == "__main__":
     from tests._run import run as run_tests

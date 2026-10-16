@@ -59,7 +59,10 @@ REVIEW_TEXT = ("请逐句核对你刚才的回答, 只能用上面工具返回�
 #   "short"    没有问题只回 REVIEW_OK, 有问题才输出完整回答 (REVIEW_TEXT_SHORT); 大多数回答不用改, 省掉重写整篇的时间.
 #   "layered"  默认. 配合分层的 system prompt (事实 / 推断 / 背景分开写, 即 SYSTEM), 分三类核对, 一律输出改后的完整回答
 #              (REVIEW_TEXT_LAYERED); REVIEW_TEXT 会一律删掉推断和背景, 把分层 prompt 允许写的内容删光.
+#   "patch"    核对标准同 layered, 但不重写整篇, 只列出要改的句子 ("原文 / 改为"), 由 apply_patch 逐条替换 (REVIEW_TEXT_PATCH).
+#              重写整篇要吐出约 3000 token, 是一题里最慢的一步; 只列改动时输出短得多. 抄的原文在回答里找不到的那条跳过.
 REVIEW_MODE = "layered"
+REVIEW_EFFORT: str | None = None  # 作答之后几步 (自查, 改引文) 的 reasoning_effort; None = 和作答相同. 自查的时间大多花在推理上
 REVIEW_OK = "无误"
 REVIEW_TEXT_SHORT = REVIEW_TEXT.replace(
     "直接输出修改后的完整回答 (格式同前), 不要说明改了什么, 不要调用工具.",
@@ -67,17 +70,52 @@ REVIEW_TEXT_SHORT = REVIEW_TEXT.replace(
     "如果有要改的, 直接输出修改后的完整回答 (格式同前), 不要说明改了什么, 不要调用工具.")
 _REVIEW_OK_RE = re.compile(rf"^\W*{REVIEW_OK}\W*$")
 REVIEW_TEXT_LAYERED = ("请逐句核对你刚才的回答, 只能用上面工具返回的资料. 回答里的内容分三类, 分别核对: "
-                       "1. 事实 (人名, 谁做了什么, 年份和公元年, 官职, 书名和作者): 每一条都要在资料里有原文依据; "
+                       "1. 事实 (人名, 谁做了什么, 年份和公元年, 官职, 书名和作者): 每一条都要在资料里有原文依据, 时间要是原文记在这件事上的时间; "
                        "没有依据的删掉, 和资料不符的改成资料的说法. 写在背景段以外, 又没有标明是推断的内容, 都按事实核对. "
                        "2. 推断 (写明 \"据此推断\" 的部分): 保留, 但检查它依据的事实是否都引出了, 结论是否越过了证据 "
                        "(只有先后不能说成因果, 没有记载不能说成没有发生); 越过的改成证据能支持的说法. "
                        "该推断却停在 \"没有直接记载\" 的, 把结论推出来并标明是推断. "
-                       "3. 背景段 (以 \"以下不是《三国志》的记载:\" 开头的最后一段): 逐句看, 只保留三种句子: 某情节或称号出自《三国演义》或戏曲; "
+                       "3. 背景段 (以 \"以下不是《三国志》的记载:\" 开头的最后一段): 逐句看, 只保留三种句子: 问题里提到、原文确实没有或记载不同的说法可能出自《三国演义》或其他非正史 (说成演义的事如果资料里有记载, 这句删掉, 事实放回正文); "
                        "某地在今天哪里; 某官职负责什么. 句子里出现具体人物做了什么, 任过什么官, 哪一年, 当时有没有某种说法的, 整句删掉 "
                        "(这些是史实, 资料里有的放回正文并引原文); 不需要背景的不要加. "
                        "另外: 问题要的每一项都答到了吗? 资料里有却漏了的补上. 「」里的引文必须一字不差来自原文, "
                        "出处只用方括号里的数字, 不要出现资料的 id. "
                        "直接输出修改后的完整回答 (格式同前), 不要说明改了什么, 不要调用工具.")
+REVIEW_TEXT_PATCH = REVIEW_TEXT_LAYERED.replace(
+    "直接输出修改后的完整回答 (格式同前), 不要说明改了什么, 不要调用工具.",
+    "不要重写整篇回答, 只列出要改的地方, 每处写两行:\n"
+    "原文: 回答里要改的那一句, 从回答里一字不差地抄下来\n"
+    "改为: 改好的句子本身 (整句删掉就只写 删除; 要补漏的内容, 就把它接在抄下来的那句后面一起写)\n"
+    "只列出真要改的句子, 没问题的句子不要列出; \"改为\" 后面只写会出现在回答里的文字, 不写 \"无误\" \"保留\" 或括号里的理由. "
+    f"几处就写几组, 不要写别的说明, 不要调用工具. 三类都没有问题时只输出两个字: {REVIEW_OK}")
+_KEEP = re.compile(r"^[(（]?\s*(?:无误|保留|不变|不改|不用改|不需要改)")  # "改为" 写的是 "不用改": 跳过这条
+_NOTE = re.compile(r"\s*[(（][^()（）]*(?:无误|保留|此句|删去|删除|核对|移至|不改)[^()（）]*[)）]\s*$")  # 句末括号里的自查说明
+_PATCH = re.compile(r"原文[:：][ \t]*(.*?)[ \t]*\n\s*改为[:：][ \t]*(.*?)(?=\n\s*原文[:：]|\Z)", re.S)
+
+
+def apply_patch(reply: str, patch: str) -> tuple[str, int, int]:
+    """把 patch 模式自查的输出 ("原文: …\n改为: …" 若干组) 套到回答上, 返回 (新回答, 套上的条数, 没找到原文的条数).
+
+    原文在回答里逐字出现才替换 (只换第一处); "改为" 以 "删除" 开头时删掉这句 (后面常跟着括号里的理由), 删完留下的多余空行合并.
+    原文为空或找不到的那条跳过, 回答保持原样 (宁可不改, 也不改错地方). 模型常把自查的话写进 "改为": "改为" 是 "无误" "保留"
+    之类 (_KEEP) 的跳过; 句末括号里的自查说明 (_NOTE, 如 "(事实, 依据 [1], 无误)") 去掉再替换; 删句后留下的空 "****" 行删掉."""
+    done = missed = 0
+    for old, new in _PATCH.findall(patch or ""):
+        old, new = old.strip(), new.strip()
+        if _KEEP.match(new):
+            continue
+        new = _NOTE.sub("", new)
+        if not new or new == old:
+            continue
+        if not old or old not in reply:
+            missed += 1
+            continue
+        reply = reply.replace(old, "" if new.startswith("删除") else new, 1)  # 模型常在 "删除" 后面加括号说明理由
+        done += 1
+    reply = re.sub(r"^\s*\*\*\*\*\s*$", "", reply, flags=re.M)  # 删掉粗体标题里的整句后留下的空 "****"
+    return re.sub(r"\n{3,}", "\n\n", reply).strip(), done, missed
+
+
 QUOTE_FIX = ("下面这些「」里的引文, 在你查到的资料原文里找不到 (可能有字记错, 或用省略号跳过了内容, 或引了白话译文):\n{quotes}\n"
              "请把它们改成资料原文里一字不差的句子; 找不到对应原文的, 去掉「」改成转述 (转述也要和原文一致). "
              "其他内容不要改. 直接输出修改后的完整回答, 不要说明改了什么, 不要调用工具.")
@@ -118,10 +156,10 @@ SYSTEM = """你是一位讲解三国历史的老师, 依据《三国志》(陈�
 4. 资料标题里写 "裴注" 的块 (id 带 n, 如 46-0016n0) 是给正文 46-0016 作的注. 搜到裴注, 却没看到它所注的那段正文时, 对这块裴注调用 read, 会附上它注的正文: 事情的主干 (谁, 哪一年, 结果) 常常在正文里, 不要只凭注文作答.
 5. 公元年只能来自 era 工具: 没有调用 era 就不写公元年; 白话译文里也没有公元年. 不要凭记忆写公元年, 也不要凭记忆补资料里没有的具体事实 (身份, 官职, 情节, 出处, 某个词当时用不用). 第 6 条的背景段只能写那里列出的三种句子, 其他凭记忆的内容一律不写.
 6. 回答里的内容分三类, 来源不同, 要分开写:
-   - 事实 (人名, 年份, 官职, 谁做了什么, 书名作者): 只能来自你查到的原文, 引原文并标编号 (第 7 条). 资料是你自己检索到的, 不是用户提供的. 换了几种说法都找不到, 才说《三国志》里没有找到相关记载; 不把记忆里的事实当成资料写.
+   - 事实 (人名, 年份, 官职, 谁做了什么, 书名作者): 只能来自你查到的原文, 引原文并标编号 (第 7 条). 一件事的时间只写原文记在这件事上的年月; 原文没给这件事写时间的, 不要从前后段落推定, 也不要把相关的另一件事的时间安到它身上 (如进攻某城的月份不等于起兵的月份); 要推就按推断写. 资料是你自己检索到的, 不是用户提供的. 换了几种说法都找不到, 才说《三国志》里没有找到相关记载; 不把记忆里的事实当成资料写.
    - 推断 (先后, 因果, 对比, 能不能, 是否可能): 可以做, 但只能从你已经引出的事实推, 写明 "据此推断", 并把推理过程写出来 (先列依据的几条事实, 再说由此可知什么). 不要越过证据: 资料只说 A 在 B 之前, 就不说 A 导致 B; 没有记载不等于没有发生; 几种说法不一致 (如正文和裴注年份不同) 时, 分别考虑每种说法, 不挑一种当定论.
-   - 背景段 (可选, 只在问题用到演义情节, 或问到今天的地名, 官职职能时才写): 放在回答最后, 以 "以下不是《三国志》的记载:" 开头, 不加「」, 不标编号. 只能是下面三种句子, 每种一两句:
-     (a) "某某 (情节, 称号) 是《三国演义》(或戏曲) 的说法." 只说出自哪里, 不复述正史里有没有这件事 (有没有由正文依据资料回答);
+   - 背景段 (可选, 只在问题里的说法在《三国志》里查不到或和《三国志》不同, 或问到今天的地名, 官职职能时才写): 放在回答最后, 以 "以下不是《三国志》的记载:" 开头, 不加「」, 不标编号. 只能是下面三种句子, 每种一两句:
+     (a) "问题里说的某某 (情节, 称号) 《三国志》里没有记载 (或记载不同), 可能出自《三国演义》或其他非正史的说法." 只用于问题里提到, 而你查过原文确认没有或不同的说法; 问题里的说法和《三国志》不冲突时不写这一句, 只陈述原文. 不要把原文里有的事说成演义的说法;
      (b) "某地 (当时的地名) 在今天的某省某地一带.";
      (c) "某官职 (泛指这个官) 负责什么.";
      背景段里不能出现具体人物做了什么, 任过什么官, 哪一年, 当时有没有某种说法: 这些是史实, 要么在正文里引原文回答, 要么不写.
@@ -302,16 +340,24 @@ def after_answer(reply: str, messages: list[dict], complete: Callable[..., Any],
     reply = strip_markup(reply)
     if review and "review" not in OFF and reply and any(x["by"] == "model" for x in rounds):
         # 作答后自查一遍: 针对补了资料外的背景/名单, 推错因果先后, 年份张冠李戴. 代价是每题多一次请求
+        emit("draft", reply)  # 先把初稿给界面看, 自查结果出来后再换
+        state["draft"] = reply
         emit("stage", "review")
         messages.append({"role": "assistant", "content": reply})
-        short = REVIEW_MODE == "short"
-        text = {"short": REVIEW_TEXT_SHORT, "layered": REVIEW_TEXT_LAYERED}.get(REVIEW_MODE, REVIEW_TEXT)
+        text = {"short": REVIEW_TEXT_SHORT, "layered": REVIEW_TEXT_LAYERED, "patch": REVIEW_TEXT_PATCH}.get(REVIEW_MODE, REVIEW_TEXT)
         messages.append({"role": "user", "content": text})
         checked = complete(messages).content or ""
-        ok = short and bool(_REVIEW_OK_RE.match(checked.strip()))
-        log("review", {"ok": True} if ok else None)
-        if not ok and usable(checked, reply):  # 自查时偶尔返回服务商的拒答模板, 不能覆盖原本对的回答
-            reply = strip_markup(checked)
+        state["review_raw"] = checked
+        ok = REVIEW_MODE in ("short", "patch") and bool(_REVIEW_OK_RE.match(checked.strip()))
+        if REVIEW_MODE == "patch":
+            new, done, missed = (reply, 0, 0) if ok else apply_patch(reply, strip_markup(checked))
+            log("review", {"ok": ok, "edits": done, "missed": missed})
+            if done and usable(new, reply):
+                reply = new
+        else:
+            log("review", {"ok": True} if ok else None)
+            if not ok and usable(checked, reply):  # 自查时偶尔返回服务商的拒答模板, 不能覆盖原本对的回答
+                reply = strip_markup(checked)
     quotes = verify_quotes(extract_quotes(reply), seen.chunks) if reply else []
     bad_q = [q for q, cid in quotes if cid is None]
     if bad_q and review and "quote_fix" not in OFF:
@@ -342,7 +388,8 @@ HISTORY_TURNS = 3  # 多轮对话时带上最近几轮问答 (每轮 = 用户问
 def run_agent(question: str, lib: Library, model: str | None = None, complete: Callable[..., Any] | None = None,
               system: str | None = None, effort: str | None = None, tools: list[dict] | None = None,
               review: bool | None = None, history: list[dict] | None = None,
-              on_event: Callable[[str, Any], None] | None = None) -> dict:
+              on_event: Callable[[str, Any], None] | None = None,
+              handlers: dict[str, Callable[[dict], str]] | None = None) -> dict:
     """回答一个问题: 组 messages -> agent_loop -> after_answer.
 
     参数:
@@ -354,11 +401,16 @@ def run_agent(question: str, lib: Library, model: str | None = None, complete: C
         effort    给了就作为 reasoning_effort 传给模型
         history   之前几轮的 user / assistant 消息 (只含最终回答), 取最后 HISTORY_TURNS 轮放在本轮问题之前,
                   让 "他儿子呢" 这类追问接得上; 资料编号 [n] 每轮从 1 重新开始
-        on_event  on_event(kind, info) 报进度, kind 为 "call" (第几次请求) / "tool" (工具日志) / "stage" (代码介入的名字);
+        on_event  on_event(kind, info) 报进度, kind 为 "call" (第几次请求) / "tool" (工具日志) / "stage" (代码介入的名字)
+                  / "draft" (自查前的初稿, 界面可以先显示);
                   回调里的异常被吞掉
+        handlers  TOOLS 以外的工具: {工具名: handler(参数 dict) -> 交给模型的文字}, schema 由调用方放进 tools.
+                  网页聊天用它接游戏 skill 的 start_game / end_game (rag/skills); handler 抛的异常不吞, 会结束这一问
+                  (rag/skills.SkillReply 就是这样把游戏的回复直接交给界面)
 
     返回 (列表有删节):
         {"question": "刘备从葭萌南下打刘璋时留霍峻守城，……", "reply": "**结论**：……",
+         "draft": "自查前的初稿 (没自查时为 None)", "review_raw": "自查那次请求的原始输出 (没自查时为 None)",
          "chunks": [<41-0000 的块>, ...],                 模型看过的块, [n] 指 chunks[n-1]
          "first": ["41-0000", "41-0017", ...],            第一次成功的 search 返回的块 id; 没有时为 []
          "quotes": [("小人頭可得，城不可得", "41-0000"), ...],   引文和所在块; 原文里找不到时为 None
@@ -386,25 +438,36 @@ def run_agent(question: str, lib: Library, model: str | None = None, complete: C
     messages = ([{"role": "system", "content": system or system_for(model)}] + past[-2 * HISTORY_TURNS:]
                 + [{"role": "user", "content": question}])
 
-    def call(msgs: list[dict], tools: list[dict] | None = None) -> Any:
-        """请求一次模型, 返回 message (agent_loop 和 after_answer 用): 带上 model / effort, tools 为 None 时不传;
-        计数, 记 prompt tokens 和 finish_reason, 报进度."""
+    def call(msgs: list[dict], tools: list[dict] | None = None, effort_: str | None = None) -> Any:
+        """请求一次模型, 返回 message (agent_loop 和 after_answer 用): 带上 model / effort (effort_ 给了就换成它),
+        tools 为 None 时不传; 计数, 记 prompt tokens 和 finish_reason, 报进度."""
         emit("call", state["calls"] + 1)
-        kw = {"tools": tools} if tools else {}
+        kw: dict[str, Any] = {"tools": tools} if tools else {}
+        if effort_:
+            kw["reasoning_effort"] = effort_
         try:
-            resp = base(msgs, model=model, **extra, **kw)
+            resp = base(msgs, model=model, **{**extra, **kw})
         except Exception as e:
             # 有的对话模板 (qwen3.8) 偶尔报 "no user query found in messages", 原因不明: 补一条用户消息重申问题, 再试一次
             if "no user query" not in str(e):
                 raise
             msgs.append({"role": "user", "content": f"请根据以上检索结果回答原问题: {question}"})
-            resp = base(msgs, model=model, **extra, **kw)
+            resp = base(msgs, model=model, **{**extra, **kw})
         state["calls"] += 1
         state["finish"] = getattr(resp.choices[0], "finish_reason", None)
         usage.append(getattr(getattr(resp, "usage", None), "prompt_tokens", None))
         return resp.choices[0].message
 
     def call_tool(name: str, arguments: str) -> str:
+        if handlers and name in handlers:
+            try:
+                args = json.loads(arguments or "{}")
+            except json.JSONDecodeError:
+                args = {}
+            log = {"tool": name, "args": args, "chunks": [], "error": None, "by": "model"}
+            rounds.append(log)
+            emit("tool", log)
+            return handlers[name](args if isinstance(args, dict) else {})
         text, log = run_tool(lib, seen, name, arguments)
         log["by"] = "model"
         rounds.append(log)
@@ -419,9 +482,11 @@ def run_agent(question: str, lib: Library, model: str | None = None, complete: C
         messages.append({"role": "assistant", "content": reply})
         messages.append({"role": "user", "content": hint})
         reply = agent_loop(messages, tools, call, call_tool, max_rounds=MAX_ROUNDS - state["calls"])
-    reply, quotes = after_answer(reply, messages, call, state, seen, rounds, emit, REVIEW if review is None else review)
+    after = (lambda m, tools=None: call(m, tools, REVIEW_EFFORT)) if REVIEW_EFFORT else call
+    reply, quotes = after_answer(reply, messages, after, state, seen, rounds, emit, REVIEW if review is None else review)
     first = next((r["chunks"] for r in rounds if r["tool"] == "search" and not r["error"]), [])
-    return {"question": question, "reply": reply, "chunks": seen.chunks, "first": first,
+    return {"question": question, "reply": reply, "draft": state.get("draft"), "review_raw": state.get("review_raw"),
+            "chunks": seen.chunks, "first": first,
             "quotes": quotes, "cites": check_cites(reply, seen.chunks), "rounds": rounds, "calls": state["calls"], "prompt_tokens": usage, "messages": messages}
 
 

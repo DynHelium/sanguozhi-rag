@@ -41,14 +41,14 @@ def chat_says(*texts: str):
 
 
 def test_load_and_match_triggers():
-    """仓库里的两个 SKILL.md 能读; 触发词整句匹配, 不分大小写, 句末标点不论; 普通提问不触发."""
+    """仓库里的两个 SKILL.md 能读; 快捷命令整句匹配, 不分大小写, 句末标点不论; 普通的话 (包括 "猜人物") 交给问答 agent 判断."""
     sk = skills.load_skills()
-    assert {"guess_person", "turtle_soup"} <= set(sk)
-    for text in ("猜人物", " 猜人物！", "/猜人物", "/guess_person", "/GUESS_PERSON"):
+    assert {"guess_person", "turtle_soup"} <= set(sk) and set(sk["guess_person"].modes) == {"player_guesses", "agent_guesses"}
+    for text in (" /猜人物！", "/guess_person", "/GUESS_PERSON"):
         assert skills.match_skill(text, sk).name == "guess_person", text
-    for text in ("海龟汤", "/海龟汤", "/Turtle_soup", "海龟汤?"):
+    for text in ("/海龟汤", "/Turtle_soup", "/海龟汤?"):
         assert skills.match_skill(text, sk).name == "turtle_soup", text
-    for text in ("猜人物怎么玩", "海龟汤是什么", "曹操因为什么逃离洛阳？", "猜"):
+    for text in ("猜人物", "海龟汤", "猜人物怎么玩", "曹操因为什么逃离洛阳？", "猜"):
         assert skills.match_skill(text, sk) is None, text
 
 
@@ -103,18 +103,19 @@ def test_router_soup_session():
     assert r.handle("a", "和库房有关吗").startswith("是")
     assert r.handle("a", "/提示").startswith("提示 1")
     assert r.handle("a", "/答 他是为了救库吏").startswith("猜中了") and r.active("a") is None
-    r.handle("b", "海龟汤")
+    r.handle("b", "/海龟汤")
     assert r.handle("b", "/退出").startswith("已退出") and r.active("b") is None
 
 
 def test_router_restart_and_unknown_skill():
-    """游戏中再说触发词就换一局; 没有游戏工厂的 skill 不触发."""
+    """游戏中再发快捷命令就换一局; 没有游戏工厂的 skill 不触发, 也不在 start_game 的选项里."""
     made = []
     r = skills.Router({"guess_person": lambda: made.append(1) or guess.GuessGame(PERSON, LIB, judge_says())})
-    r.handle("s", "猜人物")
-    r.handle("s", "猜人物")
+    r.handle("s", "/猜人物")
+    r.handle("s", "/猜人物")
     assert len(made) == 2
-    assert r.handle("x", "海龟汤") is None, "turtle_soup 没有工厂, 交回问答 agent"
+    assert r.handle("x", "/海龟汤") is None, "turtle_soup 没有工厂, 交回问答 agent"
+    assert r.tools()[0]["function"]["parameters"]["properties"]["game"]["enum"] == ["guess_person"]
 
 
 def test_new_game_draws_from_pool():
@@ -134,11 +135,11 @@ def agent_says(*replies: str):
 
 
 def test_agent_guess_flow():
-    """Agent 来猜: 开局给第一问; 认不出的回答要求重答; 猜错接着问; 猜对结束. 历史里没有 developer 提醒."""
+    """Agent 来猜: 开局给第一问; 太长的回答交给问答 agent (None); 猜错接着问; 猜对结束. 历史里没有 developer 提醒."""
     c = agent_says('{"ask": "这个人是男性吗？"}', '{"guess": "曹操", "desc": "魏武帝"}', '{"guess": "刘备", "desc": "先主"}')
     g = guess.AgentGuessGame(LIB, c)
     assert g.intro().endswith("第 1 问: 这个人是男性吗？")
-    assert g.ask("x" * 41).startswith("请就这个问题回答")
+    assert g.ask("x" * 41) is None
     assert g.ask("是的").startswith("第 2 次: 我猜是 曹操 (魏武帝)")
     assert g.ask("嗯哼").startswith("请回答 对 / 错")
     assert g.ask("错").startswith("第 3 次: 我猜是 刘备")
@@ -158,11 +159,11 @@ def test_agent_guess_runs_out():
 
 
 def test_guess_person_mode_choice():
-    """猜人物先选玩法: 1 = 玩家猜, 2 = Agent 猜; 别的回答要求重选."""
+    """猜人物先选玩法: 1 = 玩家猜, 2 = Agent 猜; 别的话交给问答 agent (None)."""
     r = skills.Router({"guess_person": lambda: guess.GuessPerson(
         lambda: guess.GuessGame(PERSON, LIB, judge_says("是")), lambda: guess.AgentGuessGame(LIB, agent_says('{"ask": "q?"}')))})
-    assert "两种玩法" in r.handle("u", "猜人物")
-    assert r.handle("u", "3").startswith("请回复 1")
+    assert "两种玩法" in r.handle("u", "/猜人物")
+    assert r.handle("u", "这游戏怎么玩") is None and r.active("u") is not None
     assert "你可以问" in r.handle("u", "1")
     assert r.handle("u", "他是男的吗").startswith("是")
     r.handle("v", "/guess_person")
@@ -205,7 +206,7 @@ def test_router_writes_trace():
         f.unlink()
     r = skills.Router({"guess_person": lambda: guess.AgentGuessGame(LIB, lambda m, tools=None: replies.pop(0))})
     assert r.handle("t", "曹操是谁") is None
-    r.handle("t", "猜人物")
+    r.handle("t", "/猜人物")
     rows = [json.loads(line) for f in skills.TRACE_DIR.glob("*.jsonl") for line in open(f, encoding="utf-8")]
     assert [x["type"] for x in rows] == ["user", "tool", "reply"]
     assert {(x["sid"], x["skill"], x["turn"]) for x in rows} == {("t", "guess_person", 1)}
@@ -232,18 +233,60 @@ def test_people_in_finds_names_and_titles():
     assert [p["name"] for p in guess.people_in("劉玄德在新野", people)] == ["刘备"]
 
 
-def test_again_starts_same_game():
-    """一局结束后说 "再猜一个": 照上一局的玩法再开一局; 没玩过时这句话交给问答 agent; 清除对话后也不再生效."""
+def test_shared_titles_and_offices_not_used():
+    """多人共用的称呼 (如两人都封过 "都亭侯") 和官称不用来认人, 否则一提 "都亭侯" 就算两人都出现."""
+    people = [{"id": "a", "name": "苏则", "forms": [{"orig": "都亭侯", "kind": "爵号"}]},
+              {"id": "b", "name": "任峻", "forms": [{"orig": "都亭侯", "kind": "爵号"}, {"orig": "大將軍", "kind": "官称"}]}]
+    assert guess.people_in("封都亭侯，拜大將軍", people) == []
+    assert [p["name"] for p in guess.people_in("任峻為都亭侯", people)] == ["任峻"]
+
+
+def test_agent_tools_start_and_end_game():
+    """问答 agent 的 start_game (带 mode 时直接按玩法开局) / end_game: handler 抛 SkillReply, 回复交给界面; 参数不对时返回错误文字."""
     r = skills.Router({"guess_person": lambda: guess.GuessPerson(
         lambda: guess.GuessGame(PERSON, LIB, judge_says()), lambda: guess.AgentGuessGame(LIB, agent_says('{"ask": "q?"}')))})
-    assert not r.claims("a", "再猜一个") and r.handle("a", "再猜一个") is None
-    r.handle("a", "猜人物")
-    r.handle("a", "1")
-    r.handle("a", "猜 刘备")
-    assert r.active("a") is None and r.claims("a", "再猜一个！")
-    assert "你可以问" in r.handle("a", "再猜一个！") and r.active("a") is not None
-    r.reset("a")
-    assert r.handle("a", "再猜一个") is None
+    h = r.handlers("a")
+    assert "没有这个游戏" in h["start_game"]({"game": "chess"}) and "没有在玩" in h["end_game"]({})
+    try:
+        h["start_game"]({"game": "guess_person", "mode": "agent_guesses"})
+        raise AssertionError("应该抛 SkillReply")
+    except skills.SkillReply as e:
+        assert e.text.startswith("【猜人物】") and e.text.endswith("第 1 问: q?")
+    assert "正在玩 猜人物" in r.agent_note("a") and "guess_person" in r.agent_note("b")
+    try:
+        h["end_game"]({"reveal": True})
+    except skills.SkillReply as e:
+        assert "认输" in e.text and r.active("a") is None
+
+
+def test_non_game_message_goes_to_agent():
+    """裁判判 "非游戏" 时 ask 返回 None, 不计数, 也不留在裁判对话里."""
+    g = guess.GuessGame(PERSON, LIB, judge_says("非游戏"))
+    n = len(g.msgs)
+    assert g.ask("这游戏怎么玩") is None and g.asked == 0 and len(g.msgs) == n
+
+
+def test_cancel_stops_before_request():
+    """取消标记 set 后, 游戏这一问不再请求模型 (抛 Cancelled), 裁判对话退回问之前."""
+    import threading
+    calls = []
+
+    def complete(messages, **kw):
+        calls.append(1)
+        raise AssertionError("不该请求")
+    r = skills.Router({"guess_person": lambda: guess.GuessGame(
+        PERSON, LIB, lambda m, tools=None: skills.logged_request(complete, m).choices[0].message)})
+    r.handle("c", "/猜人物")
+    stop = threading.Event()
+    stop.set()
+    g = r.sessions["c"][1]
+    n = len(g.msgs)
+    try:
+        r.handle("c", "他是男的吗", cancel=stop)
+        raise AssertionError("应该抛 Cancelled")
+    except skills.Cancelled:
+        pass
+    assert calls == [] and len(g.msgs) == n and g.asked == 0
 
 
 def test_judge_free_answer_and_leak():
@@ -253,6 +296,21 @@ def test_judge_free_answer_and_leak():
     g = guess.GuessGame(PERSON, LIB, lambda m, tools=None: replies.pop(0))
     assert g.ask("他是南方人还是北方人？").startswith("北方人  (1/20)")
     assert g.ask("他是不是开国皇帝").startswith(guess.LEAK_REPLY) and g.asked == 1
+
+
+def test_judge_keeps_one_conversation():
+    """一局的裁判是同一段对话: 第二问时模型能看到第一问的问题和回答, 以及玩家猜错的名字."""
+    seen_msgs = []
+
+    def complete(messages, tools=None):
+        seen_msgs.append([m.get("content") for m in messages])
+        return SimpleNamespace(content='{"verdict": "是", "answer": "是"}', tool_calls=None)
+    g = guess.GuessGame(PERSON, LIB, complete, known_names={"曹操"})
+    g.ask("他是皇帝吗")
+    g.ask("曹操")
+    g.ask("他是蜀国人吗")
+    last = "\n".join(c or "" for c in seen_msgs[-1])
+    assert "他是皇帝吗" in last and "曹操" in last and len(seen_msgs) == 2
 
 if __name__ == "__main__":
     from tests._run import run as run_tests

@@ -22,11 +22,11 @@ P: soup.Puzzle = {
 
 
 def fake(*replies: str):
-    """按顺序返回预设文字的假 complete; .prompts 记下每次收到的 prompt."""
+    """按顺序返回预设文字的假 complete; .prompts 记下每次收到的全部消息 (拼成一段文字)."""
     queue = list(replies)
 
     def complete(messages, **kw):
-        complete.prompts.append(messages[-1]["content"])
+        complete.prompts.append("\n".join(m["content"] for m in messages))
         return SimpleNamespace(choices=[SimpleNamespace(message=SimpleNamespace(content=queue.pop(0)))])
     complete.prompts = []
     return complete
@@ -95,7 +95,7 @@ def test_puzzle_bank_quotes_are_in_source():
 
 
 def test_game_flow_counts_questions_and_hides_truth():
-    """一局游戏: 是非问题计数 (没法回答的问题不计), 提示按顺序给, 没猜中时不透露缺哪条, 猜中后揭晓汤底和原文."""
+    """一局游戏: 裁判记得之前的问答, 是非问题计数 (没法回答的问题不计), 提示按顺序给, 没猜中时不透露缺哪条, 猜中后揭晓汤底和原文."""
     from rag.soup import Game
     c = fake('{"verdict": "是", "evidence": [0]}', '{"verdict": "请问是非题"}',
              json.dumps({"covered": ["f1"], "contradiction": False}),
@@ -103,6 +103,7 @@ def test_game_flow_counts_questions_and_hides_truth():
     g = Game(P, c)
     assert g.ask("和老鼠有关吗").startswith("是") and g.asked == 1
     assert g.ask("你为什么这样问").startswith("请问是非题") and g.asked == 1
+    assert "和老鼠有关吗" in c.prompts[1], "裁判带着本局之前的问答"
     assert g.hint() == "提示 1: 和老鼠有关" and "没有更多" in g.hint()
     miss = g.guess("库吏怕死")
     assert "1/3" in miss and "单衣" not in miss and "f2" not in miss and not g.over
