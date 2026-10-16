@@ -10,8 +10,8 @@ itself before answering. The model is asked to support facts with quotations fro
 and code checks every quotation it finds in the answer character by character.
 
 The whole pipeline lives in this repository: data preparation (parsing the original text, chunking, a full modern-Chinese
-translation of the book), hybrid retrieval, the tool-calling agent, evaluation, a web chat UI, and a history-based
-lateral-thinking game, "Three Kingdoms Turtle Soup" (三国海龟汤).
+translation of the book), hybrid retrieval, the tool-calling agent, evaluation, a web chat UI, and history-based
+games: "Three Kingdoms Turtle Soup" (三国海龟汤) and "Guess the Person" (猜人物).
 
 The model is fixed: **DeepSeek V4.1 Flash** via OpenRouter, reasoning effort low. Retrieval runs over the modern-Chinese
 translation, while the prompt asks the model to quote only the original Classical Chinese text, and code checks the
@@ -60,6 +60,9 @@ Main parts:
   lists the cited original text, its translation and the quotation-check results below each answer.
 - **Three Kingdoms Turtle Soup** (`rag/soup.py`, `app/soup.py`): a reasoning game with puzzles taken from the original
   text; see below.
+- **Games in the chat** (`rag/skills.py`, `skills/*/SKILL.md`): saying "猜人物" or "海龟汤" in the web chat (or clicking
+  a button) starts a game; while it runs, messages go to the game instead of the Q&A agent. Guess the Person
+  (`rag/guess.py`) is described below.
 
 Design and rationale: [docs/DESIGN.md](docs/DESIGN.md) (in Chinese). Deploying the web demo: [docs/DEPLOY.md](docs/DEPLOY.md) (in Chinese).
 
@@ -253,17 +256,41 @@ uv sync --extra ui
 uv run python -m app.soup --openrouter --model deepseek-v4.1-flash --effort low   # open http://localhost:7861
 ```
 
-- The judge (`rag/soup.py`) is given only this puzzle's soup base and the original-text evidence, and its prompt asks it
-  to decide from those alone and answer yes / no / irrelevant / cannot tell (not to force a true-or-false verdict on
-  things the original text does not say). Code parses the model's output into a fixed verdict and the page shows only
-  that verdict; questions that match keyword patterns for extracting the soup base directly (such as asking for its
-  first character) are blocked by code first.
+- The judge (`rag/soup.py`) is given only this puzzle's soup base and the original-text evidence. Its prompt asks it to
+  decide from those alone and give only the conclusion: yes / no for yes-no questions, the chosen option for
+  either-or questions, "irrelevant" for details that do not matter, "not recorded" for things the text does not say
+  (no forced true-or-false verdict), and for ambiguous questions an answer under its own reading, with a few words on
+  which reading it used. It gives no information beyond what was asked. Code does not pre-filter questions; its only check is against leaks: if the answer contains the name of
+  the person behind the puzzle, it is replaced with a "can't say that" reply.
 - When the player submits a solution, it is judged point by point against the required key points; it counts as solved
   only if all of them are covered with no contradiction. If not, the game says how many points were covered, not which
   ones are missing.
 - `uv run python -m eval.soup --openrouter` tests the judge's accuracy against each puzzle's reference questions and answers.
+- It can also be played in the web chat (`app/chat.py`): say "海龟汤" or click the button to start, and submit a
+  solution with "/答 your explanation".
 
 ![Three Kingdoms Turtle Soup: asking yes/no questions about a puzzle](docs/images/soup.gif)
+
+## Guess the Person
+
+Say "猜人物" in the web chat or click the button to start (command line: `uv run python -m rag.skills --openrouter`).
+There are two modes:
+
+- **You guess**: the program picks a person from the *Sanguozhi* at random; you may ask up to 20 yes-no or either-or
+  questions, then name the person. The pick is made by code: it draws a random passage from the main text, finds the
+  people from the alias table who appear in it, and picks one weighted by 1 / the number of passages that person appears
+  in across the book (without the weighting Cao Cao would come up far too often).
+- **The agent guesses**: you think of a person; the agent asks yes-no questions (up to 25), can use the retrieval tools
+  to look things up in the original text, and finally guesses a name.
+
+The answer stays in code: the chat model does not know it. The judge is a separate conversation that gets the original
+passages about the person up front, judges each question on its own, and gives only the conclusion (yes / no, an
+option, or "not recorded"); if its answer contains the person's name or any of their other names, code blocks it.
+When you guess a name, code compares it with the person's name and the names in the alias table, and the reveal shows
+where the person appears in the *Sanguozhi*.
+
+The conversation is stored in the browser, so after a page refresh the conversation and any game in progress are still
+there (a game is lost if the server restarts). "清除对话" (clear conversation) clears both the chat history and the game.
 
 ## Quotation checks
 
@@ -303,4 +330,4 @@ cannot guarantee that paraphrases or interpretations of the history are correct.
 The author hand-wrote the LLM access (`rag/llm.py`), the agent loop (`rag/loop.py`) and the retrieval algorithms
 (tokenization, BM25, dense retrieval, fusion, query expansion). Claude (Anthropic's AI assistant) wrote the prompts, data
 preparation scripts, data queries behind the tools, agent wiring, evaluation framework, web pages, the Turtle Soup game,
-tests and documentation.
+Guess the Person and the skill routing, tests and documentation.

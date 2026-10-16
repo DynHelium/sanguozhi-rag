@@ -3,67 +3,16 @@
     uv run python -m app.soup --openrouter --model deepseek-v4.1-flash --effort low   # 打开 http://localhost:7861
 
 游戏规则和裁判见 rag/soup.py. 每个会话的状态是服务端的一个 Game 对象 (含汤底和原文证据), 存在 gr.State 里,
-gr.State 不下发到浏览器; 汤底只在揭晓或猜中时显示. 游戏逻辑在 Game 里, 不依赖 gradio, 测试直接调它 (tests/test_soup.py).
+gr.State 不下发到浏览器; 汤底只在揭晓或猜中时显示. 游戏逻辑在 rag/soup.Game 里, 不依赖 gradio, 测试和聊天里的 skill (rag/skills.py) 直接调它.
 """
 import argparse
 import threading
-from typing import Any, Callable
+from typing import Any
 
 from rag import config, llm, soup
+from rag.soup import Game
 
 TIER_NAMES = {"common": "常见人物", "rare": "冷门人物", "obscure": "最冷门"}
-
-
-class Game:
-    """一局游戏: 题目, 已问的问题数, 用过的提示数, 是否结束. complete 签名同 rag.llm.complete."""
-
-    def __init__(self, puzzle: soup.Puzzle, complete: Callable[..., Any], model: str | None = None,
-                 effort: str | None = None) -> None:
-        self.p, self.complete, self.model, self.effort = puzzle, complete, model, effort
-        self.asked = self.hints = 0
-        self.over = False
-
-    def ask(self, question: str) -> str:
-        """回答一个是非问题, 返回页面上显示的一行 (只有判词, 不含模型的其他文字)."""
-        question = question.strip()
-        if self.over:
-            return "这一局已经结束, 换一道题吧."
-        if not question:
-            return ""
-        if self.asked >= self.p["max_questions"]:
-            return f"已经问了 {self.asked} 个问题, 用完了. 可以提交你的解释, 或者点揭晓."
-        r = soup.judge_question(self.p, question, self.complete, self.model, self.effort)
-        if r["verdict"] != "请问是非题":
-            self.asked += 1
-        return f"{r['verdict']}  ({self.asked}/{self.p['max_questions']})"
-
-    def hint(self) -> str:
-        """给下一条提示; 提示用完了就说没有了."""
-        if self.hints >= len(self.p["hints"]):
-            return "没有更多提示了."
-        self.hints += 1
-        return f"提示 {self.hints}: {self.p['hints'][self.hints - 1]}"
-
-    def guess(self, text: str) -> str:
-        """判玩家提交的汤底. 猜中就揭晓; 没猜中只说说到了几个要点, 不说缺哪个 (免得泄底)."""
-        if self.over:
-            return "这一局已经结束."
-        r = soup.judge_solution(self.p, text, self.complete, self.model, self.effort)
-        if r["solved"]:
-            self.over = True
-            return "猜中了!\n\n" + self.reveal_text()
-        n, total = len(r["covered"]), len(self.p["facts"])
-        return f"还差一点: 说到了 {n}/{total} 个要点" + ("; 有和真相矛盾的地方" if r["contradiction"] else "") + ". 继续问吧."
-
-    def reveal(self) -> str:
-        """放弃, 直接揭晓."""
-        self.over = True
-        return self.reveal_text()
-
-    def reveal_text(self) -> str:
-        """汤底 + 原文出处 (源 id 和逐字引文)."""
-        ev = "\n".join(f"- {e['source_id']}: 「{e['quote']}」" for e in self.p["evidence"])
-        return f"汤底: {self.p['truth']}\n\n《三国志》原文:\n{ev}"
 
 
 def main() -> None:

@@ -42,7 +42,7 @@ def make_complete(model: str, openrouter: bool, sem: threading.Semaphore) -> Cal
         sem         同一模型共用的信号量, 限制同时在途的请求数
 
     每次发请求前检查: 自创建起已超过 QUESTION_BUDGET 秒就抛 TimeoutError (在途的请求不中断, 一题实际耗时可略超);
-    单次请求另有 300 秒超时, 输出上限 MAX_TOKENS (调用方传了 max_tokens 时以调用方为准). 被限流 (错误信息含 "429", 或异常类型名含 "RateLimit") 时等 10, 20, 40, 80, 160 秒
+    单次请求另有超时 (默认 300 秒) 和输出上限 MAX_TOKENS, 调用方传了 timeout / max_tokens 时以调用方为准. 被限流 (错误信息含 "429", 或异常类型名含 "RateLimit") 时等 10, 20, 40, 80, 160 秒
     (各加 0~5 秒随机) 再试, 最多试 6 次; 其他错误直接抛出. 等待时不占 sem. 其他参数 (tools, reasoning_effort) 原样透传.
 
     返回的函数带 .stats, 累加每次响应的 usage (缺的字段当 0; 本地接口没有 cost):
@@ -75,7 +75,7 @@ def make_complete(model: str, openrouter: bool, sem: threading.Semaphore) -> Cal
                 raise TimeoutError(f"这题超过 {QUESTION_BUDGET} 秒")
             try:
                 with sem:
-                    return tally(llm.complete(messages, model=model, timeout=300, **{"max_tokens": MAX_TOKENS, **extra, **kw}))
+                    return tally(llm.complete(messages, model=model, **{"timeout": 300, "max_tokens": MAX_TOKENS, **extra, **kw}))
             except Exception as e:
                 if ("429" not in str(e) and "RateLimit" not in type(e).__name__) or attempt == 5:
                     raise

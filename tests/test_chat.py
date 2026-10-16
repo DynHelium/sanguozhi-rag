@@ -112,12 +112,9 @@ def test_describe_tolerates_non_object_args():
 # ---------- 限制和停止 ----------
 
 def test_limits_stop_before_calling_model():
-    """问题太长, 对话轮数到上限, 今天的预算用完: 只回一条说明, 不调模型."""
+    """问题太长, 今天的预算用完: 只回一条说明, 不调模型."""
     out, script = run("问" * (chat.MAX_QUESTION_CHARS + 1), [])
     assert len(out) == 1 and "太长" in out[0][0]["content"] and script.seen == []
-    many = [{"role": "user", "content": "q"}, {"role": "assistant", "content": "a"}] * chat.MAX_TURNS
-    out, script = run("曹操去过浚仪吗", many)
-    assert "轮" in out[0][0]["content"] and script.seen == []
     budget = chat.Budget(0.01)
     budget.add(0.02)
     respond = chat.make_respond(LIB, complete_factory=lambda: Script(), budget=budget)
@@ -144,6 +141,21 @@ def test_stop_cancels_remaining_requests():
     import time
     time.sleep(0.5)
     assert len(script.seen) == 1, "停止后不应再请求模型"
+
+def test_respond_routes_game_with_progress():
+    """触发词交给游戏 (不调问答 agent); 游戏这一问的进度显示在 "思考过程" 折叠框里, 最后是游戏的回复."""
+    class FakeRouter:
+        def claims(self, sid, text):
+            return text == "猜人物"
+
+        def handle(self, sid, text, on_event=None):
+            on_event("tool", {"tool": "search", "args": {"query": "刘备"}, "chunks": ["32-0000"], "error": None})
+            return "第 1 问: 他是男性吗？"
+    respond = chat.make_respond(LIB, complete_factory=lambda: Script(), router=FakeRouter())
+    out = list(respond("猜人物", [], "s1"))
+    assert out[-1][-1]["content"] == "第 1 问: 他是男性吗？"
+    assert out[-1][0]["metadata"]["title"] == "思考过程 (1 步)" and "搜索: 刘备" in out[-1][0]["content"]
+
 
 if __name__ == "__main__":
     from tests._run import run as run_tests
