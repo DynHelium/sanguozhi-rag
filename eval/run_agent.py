@@ -3,10 +3,12 @@
     # 默认配置: DeepSeek V4.1 Flash 经 OpenRouter (只用 rag/openrouter.PROVIDERS 指定的服务商), 思考 low, 留出题
     uv run python -m eval.run_agent --openrouter --models deepseek-v4.1-flash --effort low \
         --questions eval/questions-holdout.jsonl --name <名>
+    uv run python -m eval.run_agent --openrouter --models deepseek-v4.1-flash --effort low \
+        --questions eval/questions-holdout.jsonl eval/questions-en.jsonl --name cv    # 几套题一个进程跑完 (索引和 embedding 模型只加载一次) -> cv-holdout.jsonl, cv-en.jsonl
     uv run python -m eval.run_agent --models deepseek-v4.1-flash --ids r-03 r-16 --name dev   # 不加 --openrouter: 用 .env 里的 LLM_BASE_URL / LLM_API_KEY 直连
     uv run python -m eval.run_agent --off review ... --name <名>                # 消融: 关掉某个代码介入 (覆盖 agent.OFF)
     uv run python -m eval.run_agent --rescore --name <名> --questions eval/questions-holdout.jsonl   # 改了 gold / equiv 后重算覆盖字段, 不调模型; --questions 和 --index 要与当初运行时一致
-    uv run python -m eval.run_agent --summary --name <名>                       # 只打印汇总
+    uv run python -m eval.run_agent --summary --name <名> [--questions ...]     # 只打印汇总 (几套题一起跑的, 带上同样的 --questions)
 
 判对错的工具 (AI 判卷, 浏览器人工判读, 实验对比) 在 eval-judging 分支; 判卷结果写成 <名>.judged.jsonl 时, --summary 会一并统计.
 
@@ -59,7 +61,7 @@ from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
 from eval import metrics
-from eval.common import OUT_DIR, is_refusal, summary
+from eval.common import OUT_DIR, is_refusal, out_paths, summary
 from eval.run_retrieval import QUESTIONS_PATH, load_jsonl
 from rag import agent, llm
 from rag.openrouter import PER_MODEL, full_name, make_complete, use_openrouter
@@ -108,7 +110,8 @@ def main() -> None:
     ap = argparse.ArgumentParser(description="agent 评测")
     ap.add_argument("--models", nargs="+", help="必填 (--summary / --rescore 时不用)")
     ap.add_argument("--ids", nargs="+", help="只跑这些题")
-    ap.add_argument("--questions", type=Path, default=QUESTIONS_PATH, help="题目文件 (默认 eval/retrieval.jsonl)")
+    ap.add_argument("--questions", type=Path, nargs="+", default=[QUESTIONS_PATH],
+                    help="题目文件, 可以给几个 (默认 eval/retrieval.jsonl); 给几个时一个进程跑完, 结果按题集分文件 (见 eval.common.out_paths)")
     ap.add_argument("--name", default="agent")
     ap.add_argument("--index", default="trans", choices=["trans", "orig"], help="检索哪套切块 (默认白话)")
     ap.add_argument("--prompt", help="system prompt 换成 eval/agent_prompts/<名字>.txt (仓库里不带这个目录, 要自己建); 不给就用 rag/agent.py 的 SYSTEM")
@@ -117,21 +120,25 @@ def main() -> None:
     ap.add_argument("--alias", default=agent.ALIAS, help=f"检索的别名扩展方式 (默认 {agent.ALIAS}; \"\" = 不扩展)")
     ap.add_argument("--openrouter", action="store_true", help="走 OpenRouter (key 见 rag/openrouter.use_openrouter), 只用 rag/openrouter.PROVIDERS 指定的服务商")
     ap.add_argument("--jobs", type=int, default=1, help="同时跑几题 (单模型另有并发上限 PER_MODEL; --openrouter 时至少为 PER_MODEL x 模型数)")
-    ap.add_argument("--review-mode", default=agent.REVIEW_MODE, choices=["rewrite", "short", "layered"],
+    ap.add_argument("--review-mode", default=agent.REVIEW_MODE, choices=["rewrite", "short", "layered", "patch"],
                     help="自查的做法 (agent.REVIEW_MODE): rewrite = 一律重写整篇, short = 没问题只回 无误, "
-                         "layered = 事实 / 推断 / 背景分开核对 (配合把回答分成这三类的 system prompt)")
+                         "layered = 事实 / 推断 / 背景分开核对 (配合把回答分成这三类的 system prompt), "
+                         "patch = 核对标准同 layered, 只列出要改的句子由代码替换")
+    ap.add_argument("--review-effort", help="自查等作答之后几步的 reasoning_effort (agent.REVIEW_EFFORT); 不给就和作答相同")
     ap.add_argument("--off", nargs="+", choices=["nudge", "nudge_notfound", "review", "quote_fix", "cite_fix", "none"],
                     help=f"消融: 关掉这些代码介入, 覆盖 agent.OFF (默认 {sorted(agent.OFF)}); none = 全开")
     ap.add_argument("--tag", help="结果里 model 字段写这个 (盲判/同一文件放多种配置用); 只能配一个模型")
-    ap.add_argument("--summary", action="store_true", help="不跑模型, 只打印 <name>.jsonl 的汇总 (有判读结果时一并统计)")
+    ap.add_argument("--summary", action="store_true", help="不跑模型, 只打印汇总 (有判读结果时一并统计); 几套题的结果要带上跑时同样的 --questions")
     ap.add_argument("--rescore", action="store_true",
                     help="不跑模型: 按 --questions 指定的题目文件 (gold / equiv) 重算 <name>.jsonl 里已有结果的覆盖字段")
     args = ap.parse_args()
     if args.summary:
-        summary(OUT_DIR / f"{args.name}.jsonl")
+        for o in out_paths(args.name, args.questions):
+            summary(o)
         return
     if args.rescore:
-        rescore(OUT_DIR / f"{args.name}.jsonl", args.index, args.questions)
+        for qp, o in zip(args.questions, out_paths(args.name, args.questions)):
+            rescore(o, args.index, qp)
         return
     if not args.models:
         ap.error("--models 必填")
@@ -140,30 +147,35 @@ def main() -> None:
     if args.off is not None:
         agent.OFF = set(args.off) - {"none"}
     agent.REVIEW_MODE = args.review_mode
+    agent.REVIEW_EFFORT = args.review_effort
     if args.openrouter:
         use_openrouter()
         args.models = [full_name(m) for m in args.models]
         args.jobs = max(args.jobs, PER_MODEL * len(args.models))
-    out = OUT_DIR / f"{args.name}.jsonl"
     system = (PROMPTS / f"{args.prompt}.txt").read_text(encoding="utf-8").strip() if args.prompt else None
     tool_decl = json.loads((PROMPTS / f"{args.tools}.tools.json").read_text(encoding="utf-8")) if args.tools else None
-    questions = [q for q in load_jsonl(args.questions) if q["id"] not in SKIP]
-    if args.ids:
-        questions = [q for q in load_jsonl(args.questions) if q["id"] in args.ids]
-    done = {(r["model"], r["qid"]) for r in load_jsonl(out) if not r.get("error")} if out.exists() else set()
+    outs = out_paths(args.name, args.questions)
+    sets = []  # [(结果文件, 题目, 已跑完的 (模型, 题))], 每个题目文件一项
+    for qp, out in zip(args.questions, outs):
+        questions = [q for q in load_jsonl(qp) if q["id"] not in SKIP]
+        if args.ids:
+            questions = [q for q in load_jsonl(qp) if q["id"] in args.ids]
+        done = {(r["model"], r["qid"]) for r in load_jsonl(out) if not r.get("error")} if out.exists() else set()
+        sets.append((out, questions, done))
     lib = agent.load_library("" if args.index == "orig" else args.index, args.alias)
     by_id = {c["id"]: c for c in lib.chunks}
     sems = {m: threading.Semaphore(PER_MODEL) for m in args.models}
-    out.parent.mkdir(parents=True, exist_ok=True)
+    OUT_DIR.mkdir(parents=True, exist_ok=True)
     meta = {"prompt": args.prompt or "SYSTEM", "tools": args.tools or "TOOLS", "effort": args.effort, "index": args.index,
-            "alias": args.alias, "off": sorted(agent.OFF), "review_mode": agent.REVIEW_MODE,
+            "alias": args.alias, "off": sorted(agent.OFF), "review_mode": agent.REVIEW_MODE, "review_effort": agent.REVIEW_EFFORT,
             "system_sha": _sha(system or agent.system_for(args.models[0])),
-            "review_sha": _sha({"short": agent.REVIEW_TEXT_SHORT, "layered": agent.REVIEW_TEXT_LAYERED}
+            "review_sha": _sha({"short": agent.REVIEW_TEXT_SHORT, "layered": agent.REVIEW_TEXT_LAYERED,
+                                "patch": agent.REVIEW_TEXT_PATCH}
                                .get(agent.REVIEW_MODE, agent.REVIEW_TEXT))}
     label = lambda m: args.tag or m.split("/")[-1]  # noqa: E731
 
-    def one(job: tuple[str, dict]) -> None:
-        m, q = job
+    def one(job: tuple[str, dict, Path]) -> None:
+        m, q, out = job
         gold, equiv, t = q.get("gold", []), q.get("equiv", {}), time.time()
         complete = make_complete(m, args.openrouter, sems[m])
         try:
@@ -176,7 +188,7 @@ def main() -> None:
         row = {"model": label(m), "model_full": m, "qid": q["id"], "type": q.get("type", "?"), "q": q["q"], "gold": gold,
                "retrieved": [c["id"] for c in res["chunks"]], **cov,
                "gold_in_first": any(covered([by_id[cid]], g, equiv) for cid in res["first"] for g in gold),
-               "reply": res["reply"], "quotes": [list(x) for x in res["quotes"]], "cites": res.get("cites", []), "refused": is_refusal(res["reply"]),
+               "reply": res["reply"], "draft": res.get("draft"), "review_raw": res.get("review_raw"), "quotes": [list(x) for x in res["quotes"]], "cites": res.get("cites", []), "refused": is_refusal(res["reply"]),
                "sec": round(time.time() - t, 1), "rounds": res["rounds"], "calls": res["calls"],
                "prompt_tokens": res["prompt_tokens"], "usage": complete.stats, **meta}
         if err:
@@ -191,18 +203,21 @@ def main() -> None:
               + (f" 错误 {err}" if err else ""), file=sys.stderr, flush=True)
 
     lock_out = threading.Lock()
-    jobs = [(m, q) for q in questions for m in args.models if (label(m), q["id"]) not in done]
+    jobs = [(m, q, out) for out, questions, done in sets for q in questions for m in args.models if (label(m), q["id"]) not in done]
     print(f"要跑 {len(jobs)} 个 (模型, 题)", file=sys.stderr)
     llm.client()  # 先在主线程建好客户端: 几个线程同时第一次建时会同时导入 httpx, 偶发 "partially initialized module"
     with ThreadPoolExecutor(max(1, args.jobs)) as ex:
         list(ex.map(one, jobs))
-    if out.exists():
+    for out in outs:
+        if not out.exists():
+            continue
         rows = load_jsonl(out)
         keep = {}
         for r in rows:  # 同一 (模型, 题) 重跑过的, 只留最后一条
             keep[(r["model"], r["qid"])] = r
         if len(keep) < len(rows):
             out.write_text("".join(json.dumps(r, ensure_ascii=False) + "\n" for r in keep.values()), encoding="utf-8")
+        print(f"\n#### {out.name}")
         summary(out)
 
 

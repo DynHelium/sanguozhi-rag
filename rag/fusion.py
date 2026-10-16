@@ -1,4 +1,8 @@
-"""多路检索融合: 用 RRF 合并 BM25 和 dense 的排名. BM25 擅长人名地名这类精确的词, dense 擅长意思相近的说法, 两者互补.
+"""Reciprocal Rank Fusion of several ranked lists (BM25, dense, alias-expanded queries): score = sum of 1 / (RRF_K + rank).
+Only ranks are used, so BM25 scores (unbounded) and cosine similarities (0.3-0.8) never need to be put on one scale;
+RRF_K = 60 follows Cormack et al. (2009), and each list contributes its top DEPTH results.
+
+多路检索融合: 用 RRF 合并 BM25 和 dense 的排名. BM25 擅长人名地名这类精确的词, dense 擅长意思相近的说法, 两者互补.
 
     uv run python -m eval.run_retrieval -r hybrid --save --compare data/processed/eval_runs/dense.json
 

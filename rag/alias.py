@@ -1,4 +1,9 @@
-"""别名表 data/aliases.json 的读取, 以及检索前的查询扩展 expand_query.
+"""Alias table and query-side expansion. The source text often does not use a person's plain name (the Annals of Emperor Wu call
+Cao Cao 太祖 or 曹公), so expand_query appends the other recorded forms of names in the question (up to MAX_EXTRA per person,
+only when the name is unambiguous). By default (rag/retrieve.make_search, alias="route2") the expanded query is an extra ranked list
+fused alongside the original query, rather than replacing it. Every alias in data/aliases.json carries the passage it was found in.
+
+别名表 data/aliases.json 的读取, 以及检索前的查询扩展 expand_query.
 
 原文和译文里同一个人常用不同称呼: 武帝纪写 "太祖" "曹公", 不写 "曹操". 用户问 "曹操" 时, 先把 "魏太祖 曹公 ..." 追加到
 查询里再检索. 只改查询, 不改索引, 所以别名表更新后不用重建索引.
@@ -42,7 +47,7 @@ class Person(TypedDict):
     forms: list[Form]
     note: str      # 整理时的备注 (哪些称呼没收, 为什么), 常为 ""; 只给人看, 代码不用
     juan: int      # 传所在的卷; notrans 的人为 0
-    notrans: NotRequired[bool]  # true = 三国志里没有传, 只是常被用称号称呼的人
+    notrans: NotRequired[bool]  # true = 三国志里没有传 (常用称号称呼的人, 或原文多处记载的人)
 
 
 class Homonym(TypedDict):

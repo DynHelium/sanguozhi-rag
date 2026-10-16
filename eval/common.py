@@ -9,6 +9,16 @@ OUT_DIR = config.DATA_DIR / "processed" / "eval_runs" / "answers"
 REFUSAL_WORDS = ["没有记载", "沒有記載", "未记载", "未記載", "无记载", "沒有相關", "没有相关", "不知道", "无法回答", "無法回答", "没有提及", "未提及"]
 
 
+def out_paths(name: str, questions: list[Path]) -> list[Path]:
+    """每个题目文件对应的结果文件. 只给一个题目文件时是 OUT_DIR/<name>.jsonl; 给了几个时 (一个进程跑几套题,
+    检索索引和 embedding 模型只加载一次) 按题目文件名区分, 去掉 "questions-" 前缀:
+        out_paths("cv", [Path("eval/questions-holdout.jsonl"), Path("eval/questions-en.jsonl")])
+        -> [OUT_DIR / "cv-holdout.jsonl", OUT_DIR / "cv-en.jsonl"]"""
+    if len(questions) == 1:
+        return [OUT_DIR / f"{name}.jsonl"]
+    return [OUT_DIR / f"{name}-{q.stem.removeprefix('questions-')}.jsonl" for q in questions]
+
+
 def is_refusal(reply: str) -> bool:
     """启发式: 回答里出现 REFUSAL_WORDS 之一. 会把 "资料没有记载 X, 但记载了 Y" 这种部分回答也算拒答, 判读时以人工为准."""
     return any(w in reply for w in REFUSAL_WORDS)

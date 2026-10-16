@@ -14,7 +14,7 @@ checks.jsonl 一行一题:
      "questions": [{"q": "他哭是因为身体不好吗",        标准问题
                     "want": "不是",                     标准判词
                     "got": "不是",                      裁判的判词 (VERDICTS 之一)
-                    "raw": "不是",                      模型原本的判词 (不在 VERDICTS 里时 got 记为 "无法判断"; 代码拦下的元问题为 null)
+                    "raw": "不是",                      模型原本的判词 (不在 VERDICTS 里时 got 记为 "无法判断")
                     "evidence": [0]}, ...],             裁判给的原文编号 (Puzzle.evidence 的下标)
      "guesses": {"good_guess": true, "partial_guess": false, "wrong_guess": false},   三种解释各自是否判 solved
      "q_ok": 9, "q_n": 10,                              问题判对几个 / 共几个

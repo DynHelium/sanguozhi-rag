@@ -23,17 +23,30 @@
 
 一题约 1 分钟 (请求模型约 5 次), 所以 run_agent 放在后台线程跑, on_event 回调把进度放进队列,
 前台每收到一条就刷新一次 "检索过程", 用户不用干等.
+
+聊天里还能玩游戏 (猜人物, 海龟汤, 见 rag/skills.py): 问答 agent 多了 start_game / end_game 两个工具, 对方说想玩时由它开局;
+"猜人物" "海龟汤" 按钮发快捷命令直接开局. 游戏进行中, 消息先交给游戏, 游戏判断不是游戏里的话时再交给问答 agent;
+提示 / 放弃 / 退出 三个按钮只在游戏中可点.
+
+停止: 点停止, 或在回答过程中直接发新消息, 都会取消正在进行的那一问 (同一个浏览器 id 同时只跑一问): 后台线程在下一次模型请求前
+抛 Cancelled, 已经发出的那次请求无法撤回, 结果丢掉. 每一问的模型请求 (耗时, token, 工具调用) 记进 rag/skills.trace 的日志. 对话历史和浏览器 id 存在
+gr.BrowserState (浏览器 localStorage) 里, 刷新页面后对话和正在玩的游戏都还在; "清除对话" 清掉聊天记录和游戏 (见 build_ui).
 """
 import argparse
 from datetime import date
 import queue
 import re
 import threading
+import time
 from collections.abc import Callable, Iterator
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from rag import agent, config, llm
 from rag.quotes import source_label
+from rag.skills import Cancelled, SkillReply, logged_request, set_context, trace
+
+if TYPE_CHECKING:
+    from rag.skills import Router
 
 CITE = re.compile(r"\[(\d+)\]")  # 回答里的资料编号 [n]
 EXAMPLES = ["曹操因为什么逃离洛阳？", "昭烈皇帝有哪些儿子？", "三国志里有几个马忠？", "Which emperor was stabbed to death in the street?"]
@@ -93,12 +106,17 @@ def describe(kind: str, info: Any) -> str | None:
         what = {"search": lambda: f"搜索: {a.get('query', '')}",
                 "read": lambda: f"读原文: {a.get('chunk_id', '')}",
                 "who": lambda: f"查人: {a.get('name', '')}",
-                "era": lambda: f"年号换算: {a.get('era', '')}{a.get('year', '')}年"}.get(info.get("tool"),
+                "era": lambda: f"年号换算: {a.get('era', '')}{a.get('year', '')}年",
+                "start_game": lambda: f"开始游戏: {a.get('game', '')}",
+                "end_game": lambda: "结束游戏"}.get(info.get("tool"),
                                                                                 lambda: f"{info.get('tool')}")()
         if info.get("error"):
             return f"· {what} (出错: {info['error']})"
         n = len(info.get("chunks") or [])
         return f"· {what}" + (f" → {n} 段" if n else "")
+    if kind == "think":  # 模型的推理文字 (游戏 skill 里 Agent 来猜时); 压成一段, 太长截断
+        text = " ".join(str(info).split())
+        return "💭 " + (text if len(text) <= 600 else text[:600] + "……")
     if kind == "stage":
         return {"nudge": "· 资料还不够, 再查一次", "nudge_notfound": "· 回答说没找到, 换说法再搜",
                 "retry": "· 回答不完整, 重新作答", "review": "· 核对回答 (逐句对照资料)",
@@ -140,11 +158,6 @@ def render_sources(res: dict, max_len: int = 300) -> str:
 
 
 MAX_QUESTION_CHARS = 500  # 一个问题最长多少字
-MAX_TURNS = 20            # 一次对话最多问几轮 (页面上的用户消息数)
-
-
-class Cancelled(Exception):
-    """用户点了停止: 下一次模型请求前抛出, 结束这一题."""
 
 
 class Budget:
@@ -172,20 +185,19 @@ class Budget:
 
 
 def check_limits(question: str, history: list[dict], budget: Budget | None) -> str | None:
-    """超出限制时返回给用户看的说明, 没超出返回 None: 问题太长, 这次对话的轮数到上限, 今天的预算用完."""
+    """超出限制时返回给用户看的说明, 没超出返回 None: 问题太长, 今天的预算用完. 对话轮数不设上限 (游戏的回合也在历史里,
+    按轮数拦会误伤); 历史太长时由用户点 "清除对话"."""
     if len(question) > MAX_QUESTION_CHARS:
         return f"问题太长了 (超过 {MAX_QUESTION_CHARS} 字), 请精简后再问."
-    if sum(1 for m in history if m.get("role") == "user") >= MAX_TURNS:
-        return f"这次对话已经问了 {MAX_TURNS} 轮, 请点「清除」开始新的对话."
     if budget is not None and budget.exhausted():
         return "今天的额度已经用完, 请明天再来."
     return None
 
 
 def make_respond(lib: agent.Library, model: str | None = None, effort: str | None = None,
-                 complete_factory: Callable[[], Callable[..., Any]] | None = None, budget: Budget | None = None
-                 ) -> Callable[[Any, list[dict] | None], Iterator[list[dict]]]:
-    """返回给 gr.ChatInterface 的 respond(message, history).
+                 complete_factory: Callable[[], Callable[..., Any]] | None = None, budget: Budget | None = None,
+                 router: "Router | None" = None) -> Callable[..., Iterator[list[dict]]]:
+    """返回 build_ui 用的 respond(message, history, sid).
 
     message 是字符串或 {"text": ...} (多模态输入框); history 是页面上的消息列表 (格式见模块 docstring).
     respond 是生成器, 每次 yield 本轮要显示的全部 assistant 消息 (list), Gradio 用它整体替换本轮显示:
@@ -196,69 +208,141 @@ def make_respond(lib: agent.Library, model: str | None = None, effort: str | Non
     lib 是 agent.load_library() 的结果; model / effort 原样传给 run_agent, None 时用 .env 的 LLM_MODEL / LLM_REASONING_EFFORT.
     complete_factory() 每题调用一次, 返回交给 run_agent 的 complete (如 rag.openrouter.make_complete 带限流重试和计时);
     不给就用 rag.llm.complete.
-    超出 check_limits 的限制时只 yield 一条说明, 不调模型. 用户点停止 (Gradio 关闭生成器) 时, 后台线程在下一次模型请求前
-    抛 Cancelled 结束, 不再继续花钱; budget 不为 None 时, 每题结束后把这题的花费 (complete.stats["cost"]) 记进去."""
+    超出 check_limits 的限制时只 yield 一条说明, 不调模型. 用户点停止 (Gradio 关闭生成器), 或同一个 sid 发来新消息时,
+    后台线程在下一次模型请求前抛 Cancelled 结束, 不再继续花钱; 被新消息打断的那一问不再刷新页面.
+    budget 不为 None 时, 每题结束后把这题的花费 (complete.stats["cost"]) 记进去.
+    router (rag/skills.Router) 不为 None 时: 正在玩游戏 (或是快捷命令) 的消息先交给它 (先 yield "思考过程" 折叠块, 最后是游戏的回复);
+    游戏不管的消息走问答 agent, agent 的 system prompt 附上 router.agent_note, tools 加上 start_game / end_game,
+    agent 调用它们时显示游戏的回复 (SkillReply). 游戏的消息不经过 check_limits, 花费也不记进 budget.
+    sid 是 BrowserState 里存的浏览器 id, 区分各人的游戏."""
 
-    def respond(message: Any, history: list[dict] | None) -> Iterator[list[dict]]:
-        question = text_of(message.get("text") if isinstance(message, dict) else message).strip()
-        if not question:
-            return
-        limit = check_limits(question, history or [], budget)
-        if limit:
-            yield [{"role": "assistant", "content": limit}]
-            return
-        events: queue.Queue = queue.Queue()
-        box: dict = {}
+    current: dict[str, threading.Event] = {}  # 每个浏览器 id 正在进行的那一问的取消标记
+    current_lock = threading.Lock()
+
+    def begin(sid: str) -> threading.Event:
+        """登记新的一问; 同一个 id 上一问还没结束就取消它 (在回答过程中发新消息 = 打断)."""
         cancel = threading.Event()
-        base = complete_factory() if complete_factory else llm.complete
+        with current_lock:
+            old, current[sid] = current.get(sid), cancel
+        if old is not None:
+            old.set()
+        return cancel
 
-        def complete(*a: Any, **kw: Any) -> Any:
-            if cancel.is_set():
-                raise Cancelled()
-            return base(*a, **kw)
+    def say(text: str) -> dict:
+        return {"role": "assistant", "content": text}
+
+    def background(fn: Callable[[Callable[[str, Any], None]], Any], cancel: threading.Event, title: str,
+                   box: dict) -> Iterator[list[dict]]:
+        """在后台线程跑 fn(emit), 进度 (describe 能显示的事件) 实时显示在名为 title 的折叠框里.
+        结束后 box 里有 "value" (fn 的返回值) 或 "error" (异常), "head" 是要留在页面上的折叠框 (没有进度时为空列表).
+        这一问被新消息取消时静静结束 (不再刷新页面, 页面交给新的一问); 页面关掉生成器 (点停止) 时设上 cancel."""
+        events: queue.Queue = queue.Queue()
 
         def work() -> None:
             try:
-                box["res"] = agent.run_agent(question, lib, model=model, effort=effort, complete=complete,
-                                             history=to_agent_history(history or []),
-                                             on_event=lambda k, i: events.put((k, i)))
-            except Cancelled:
-                box["error"] = "已停止"
-            except Exception as e:  # 网络/服务商出错: 显示出来, 不让页面卡住
-                box["error"] = f"{type(e).__name__}: {e}"
+                box["value"] = fn(lambda k, i: events.put((k, i)))
+            except BaseException as e:  # noqa: BLE001  网络/服务商出错, 停止, SkillReply: 交给调用方
+                box["error"] = e
             finally:
-                try:
-                    if budget is not None:
-                        budget.add(float(getattr(base, "stats", {}).get("cost", 0.0)))
-                finally:  # 记账出错也要发 done, 否则前台一直等
-                    events.put(("done", None))
+                events.put(("done", None))
 
         threading.Thread(target=work, daemon=True).start()
         lines: list[str] = []
+        draft: list[dict] = []  # 自查前的初稿 (run_agent 的 "draft" 事件): 先显示, 最终回答出来后被整体换掉
 
         def progress(status: str) -> dict:
-            body = "\n".join(lines) or "· 思考中……"
-            return {"role": "assistant", "content": body,
-                    "metadata": {"title": f"检索过程 ({len(lines)} 步)", "status": status}}
-
+            return {"role": "assistant", "content": "\n".join(lines) or "· 思考中……",
+                    "metadata": {"title": f"{title} ({len(lines)} 步)", "status": status}}
+        first = True
         try:
-            yield [progress("pending")]
             while True:
-                kind, info = events.get()
+                try:
+                    kind, info = events.get(timeout=1.0)
+                except queue.Empty:  # 一秒内没有事件: 第一次时先显示 "思考中", 免得页面空着
+                    if cancel.is_set():
+                        return
+                    if first:
+                        first = False
+                        yield [progress("pending")]
+                    continue
+                if cancel.is_set():  # 被新消息打断: 不再刷新页面
+                    return
                 if kind == "done":
                     break
+                if kind == "draft" and info:
+                    draft[:] = [say(f"{info}\n\n*（初稿，正在逐句核对资料，核对完会更新）*")]
+                    yield [progress("pending"), *draft]
+                    continue
                 line = describe(kind, info)
                 if line:
                     lines.append(line)
-                    yield [progress("pending")]
+                    first = False
+                    yield [progress("pending"), *draft]
         except GeneratorExit:  # 用户点了停止
             cancel.set()
             raise
-        if "error" in box:
-            yield [progress("done"), {"role": "assistant", "content": f"出错了: {box['error']}"}]
+        box["head"] = [progress("done")] if lines else []
+
+    def respond(message: Any, history: list[dict] | None, sid: str = "default") -> Iterator[list[dict]]:
+        question = text_of(message.get("text") if isinstance(message, dict) else message).strip()
+        if not question:
             return
-        res = dict(box["res"])  # 改显示用的副本, 不动 run_agent 的返回值
-        out = [progress("done"), {"role": "assistant", "content": res["reply"] or "(没有得到回答)"}]
+        cancel = begin(sid)
+        head: list[dict] = []
+        if router is not None and router.claims(sid, question):
+            box: dict = {}
+            yield from background(lambda emit: router.handle(sid, question, on_event=emit, cancel=cancel), cancel, "思考过程", box)
+            if cancel.is_set():
+                return
+            head = box.get("head", [])
+            if "error" in box:
+                e = box["error"]
+                yield head + [say(f"出错了: {type(e).__name__}: {e}")]
+                return
+            if box["value"] is not None:
+                yield head + [say(box["value"])]
+                return
+            # 游戏判断这句话不是游戏里的话: 交给问答 agent (system prompt 里带上正在玩的游戏)
+        limit = check_limits(question, history or [], budget)
+        if limit:
+            yield head + [say(limit)]
+            return
+        base = complete_factory() if complete_factory else llm.complete
+        extra: dict[str, Any] = {}
+        if router is not None:
+            extra = {"system": agent.system_for(model) + router.agent_note(sid), "tools": agent.TOOLS + router.tools(),
+                     "handlers": router.handlers(sid)}
+
+        def fn(emit: Callable[[str, Any], None]) -> dict:
+            set_context(sid, "qa", None, cancel)
+            trace({"type": "user", "text": question})
+            t = time.time()
+            try:
+                res = agent.run_agent(question, lib, model=model, effort=effort,
+                                      complete=lambda m, **kw: logged_request(base, m, **kw),
+                                      history=to_agent_history(history or []), on_event=emit, **extra)
+                trace({"type": "reply", "text": res["reply"], "seconds": round(time.time() - t, 2)})
+                return res
+            finally:
+                if budget is not None:
+                    try:
+                        budget.add(float(getattr(base, "stats", {}).get("cost", 0.0)))
+                    except Exception:  # 记账出错不影响回答
+                        pass
+        box = {}
+        yield from background(fn, cancel, "检索过程", box)
+        if cancel.is_set():
+            return
+        head += box.get("head", [])
+        if "error" in box:
+            e = box["error"]
+            if isinstance(e, SkillReply):  # agent 调了 start_game / end_game: 游戏的回复直接显示
+                yield head + [say(e.text)]
+            elif not isinstance(e, Cancelled):
+                yield head + [say(f"出错了: {type(e).__name__}: {e}")]
+            return
+        res = dict(box["value"])  # 改显示用的副本, 不动 run_agent 的返回值
+        out = head + [say(res["reply"] or "(没有得到回答)")]
         sources = render_sources(res)
         if sources:
             n = len({m for m in CITE.findall(res["reply"]) if 0 < int(m) <= len(res.get("chunks") or [])})
@@ -275,6 +359,7 @@ def main() -> None:
     ap.add_argument("--openrouter", action="store_true", help="走 OpenRouter (key 见 rag/openrouter.use_openrouter), 只用 rag/openrouter.PROVIDERS 里给这个模型指定的服务商")
     ap.add_argument("--port", type=int, default=7860)
     ap.add_argument("--share", action="store_true", help="Gradio 公网临时链接 (默认只在本机)")
+    ap.add_argument("--lan", action="store_true", help="局域网里的其他设备也能访问 (监听 0.0.0.0, 不设密码)")
     ap.add_argument("--daily-budget", type=float, default=None,
                     help="每天最多花多少美元 (按 OpenRouter 返回的花费累计, 只在 --openrouter 时有数), 用完后拒绝新问题; 默认不限")
     args = ap.parse_args()
@@ -292,13 +377,107 @@ def main() -> None:
         raise SystemExit("没有模型: --model 或 .env 的 LLM_MODEL")
     print("加载检索索引……")
     lib = agent.load_library()
-    demo = gr.ChatInterface(
-        make_respond(lib, model, args.effort, factory, Budget(args.daily_budget)),
-        chatbot=gr.Chatbot(height=640, placeholder="依据《三国志》(陈寿正文和裴松之注) 回答三国历史问题. 中文或英文提问都可以."),
-        title="三国志问答", description=f"模型: {model or config.LLM_MODEL}" + (f" (思考 {args.effort})" if args.effort else ""),
-        examples=EXAMPLES, run_examples_on_click=False, concurrency_limit=4,
-    )
-    demo.launch(server_port=args.port, share=args.share)
+    from rag.skills import make_router
+    router = make_router(lib, lambda *a, **kw: (factory() if factory else llm.complete)(*a, **kw),
+                         model, args.effort)
+    respond = make_respond(lib, model, args.effort, factory, Budget(args.daily_budget), router)
+
+    desc = f"模型: {model or config.LLM_MODEL}" + (f" (思考 {args.effort})" if args.effort else "")
+    demo = build_ui(respond, router, desc)
+    host = "0.0.0.0" if args.lan else "127.0.0.1"
+    if args.lan:
+        print(f"局域网访问: http://{lan_ip()}:{args.port}", flush=True)
+    demo.launch(server_name=host, server_port=args.port, share=args.share)
+
+
+def lan_ip() -> str:
+    """本机在局域网里的 IP (连一下外部地址看用的是哪块网卡, 不真的发数据); 拿不到时返回 "本机IP"."""
+    import socket
+    try:
+        with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
+            s.connect(("192.168.0.1", 80))
+            return s.getsockname()[0]
+    except OSError:
+        return "本机IP"
+
+
+GAME_BUTTONS = [("猜人物", "/猜人物"), ("海龟汤", "/海龟汤"), ("提示", "/提示"), ("放弃 / 揭晓", "/放弃"), ("退出游戏", "/退出")]
+IN_GAME = {"/提示", "/放弃", "/退出"}  # 只在游戏中可用的按钮
+
+
+def build_ui(respond: Callable[..., Iterator[list[dict]]], router: "Router", description: str) -> Any:
+    """搭网页 (gr.Blocks): 聊天框, 输入框 (带停止), 游戏按钮, 清除对话, 示例问题.
+
+    对话历史和一个浏览器 id 存在 gr.BrowserState (浏览器 localStorage) 里: 刷新页面后对话还在,
+    游戏状态按浏览器 id (而不是每次连接都变的 session_hash) 存在 router 里, 刷新后也接得上 (服务重启后游戏会丢).
+    "清除对话" 清掉聊天记录和正在玩的游戏, 之后的问题不再带前文. 提示 / 放弃 / 退出 三个按钮只在游戏中可点."""
+    import uuid
+
+    import gradio as gr
+
+    def ensure(uid: str) -> str:
+        return uid or uuid.uuid4().hex
+
+    def buttons(uid: str) -> list[Any]:
+        active = router.active(uid) is not None
+        return [gr.update(interactive=active or cmd not in IN_GAME) for _, cmd in GAME_BUTTONS]
+
+    live: dict[str, list[dict]] = {}  # 每个浏览器 id 页面上正在显示的对话 (每次刷新显示时更新), 含被打断或停止的那一问
+
+    def send(text: str, saved_history: list[dict] | None, uid: str) -> Iterator[tuple]:
+        """前文取服务端记下的当前显示内容 (live), 没有时 (服务刚重启) 用浏览器里存的记录: 被打断或停止的那一问也留在页面和
+        下一问的前文里. 不把聊天框本身当输入: Gradio 6 校验聊天框回传的消息格式, 字符串 content 会报错."""
+        uid = ensure(uid)
+        history = [dict(m, metadata={**m["metadata"], "status": "done"}) if (m.get("metadata") or {}).get("status") == "pending"
+                   else m for m in (live.get(uid, saved_history) or [])]
+        text = (text or "").strip()
+        if not text:
+            yield (history, "", history, uid, *buttons(uid))
+            return
+        shown = history + [{"role": "user", "content": text}]
+        out: list[dict] = []
+        live[uid] = shown
+        yield (shown, "", history, uid, *buttons(uid))
+        for out in respond(text, history, uid):
+            live[uid] = shown + out
+            yield (shown + out, "", history, uid, *buttons(uid))
+        final = shown + out
+        live[uid] = final
+        yield (final, "", final, uid, *buttons(uid))
+
+    def clear(uid: str) -> tuple:
+        uid = ensure(uid)
+        router.reset(uid)
+        live[uid] = []
+        return ([], [], uid, *buttons(uid))
+
+    def load(saved: list[dict] | None, uid: str) -> tuple:
+        uid = ensure(uid)
+        return (saved or [], uid, *buttons(uid))
+
+    with gr.Blocks(title="三国志问答") as demo:
+        gr.Markdown(f"# 三国志问答\n{description}")
+        saved = gr.BrowserState([], storage_key="sanguozhi_chat_history")
+        uid = gr.BrowserState("", storage_key="sanguozhi_browser_id")
+        chatbot = gr.Chatbot(height=560, placeholder="依据《三国志》(陈寿正文和裴松之注) 回答三国历史问题. 中文或英文提问都可以."
+                                                     " 点下面的按钮可以玩猜人物或海龟汤.")
+        box = gr.Textbox(placeholder="问一个三国历史问题, 或者回答游戏里的问题", show_label=False,
+                         submit_btn=True, stop_btn=True)
+        with gr.Row():
+            btns = [gr.Button(label, size="sm") for label, _ in GAME_BUTTONS]
+            clear_btn = gr.Button("清除对话", size="sm", variant="stop")
+        gr.Examples(EXAMPLES, box, label="示例问题")
+        outs = [chatbot, box, saved, uid, *btns]
+        # trigger_mode="multiple": 回答过程中也能发新消息, 新的一问会打断旧的 (make_respond 的 begin)
+        events: list[Any] = [box.submit(send, [box, saved, uid], outs, concurrency_limit=8, trigger_mode="multiple")]
+        for b, (_, cmd) in zip(btns, GAME_BUTTONS):
+            events.append(b.click(lambda h, u, c=cmd: (yield from send(c, h, u)), [saved, uid], outs,
+                                  concurrency_limit=8, trigger_mode="multiple"))
+        box.stop(None, cancels=events)
+        clear_btn.click(clear, [uid], [chatbot, saved, uid, *btns])
+        chatbot.clear(clear, [uid], [chatbot, saved, uid, *btns])  # 聊天框自带的垃圾桶图标也同样清掉存下的记录和游戏
+        demo.load(load, [saved, uid], [chatbot, uid, *btns])
+    return demo
 
 
 if __name__ == "__main__":

@@ -35,7 +35,8 @@ def main() -> None:
     ap.add_argument("--effort", default="low")
     ap.add_argument("-n", type=int, default=5, help="跑题目文件的前几题 (给了 --ids 时不用)")
     ap.add_argument("--off", nargs="*", default=None, help="关掉哪些代码介入 (同 eval.run_agent --off)")
-    ap.add_argument("--review-mode", default=None, choices=["rewrite", "short", "layered"], help="自查的做法 (agent.REVIEW_MODE)")
+    ap.add_argument("--review-mode", default=None, choices=["rewrite", "short", "layered", "patch"], help="自查的做法 (agent.REVIEW_MODE)")
+    ap.add_argument("--review-effort", help="自查等作答之后几步的 reasoning_effort (agent.REVIEW_EFFORT); 不给就和作答相同")
     ap.add_argument("--questions", default=str(QUESTIONS), help="题目文件 (默认留出题)")
     ap.add_argument("--ids", nargs="+", help="只跑这些题 (不给就取前 n 题)")
     ap.add_argument("--prompt", help="system prompt 换成 eval/agent_prompts/<名字>.txt (仓库里不带这个目录, 要自己建, 放对照用的 prompt; 同 eval.run_agent --prompt); 不给就用 rag/agent.py 的 SYSTEM")
@@ -44,6 +45,7 @@ def main() -> None:
         agent.OFF = set(args.off) - {"none"}
     if args.review_mode:
         agent.REVIEW_MODE = args.review_mode
+    agent.REVIEW_EFFORT = args.review_effort
     model = args.model
     if args.openrouter:
         R.use_openrouter()

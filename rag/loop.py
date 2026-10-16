@@ -1,4 +1,9 @@
-"""最小 agent 循环: 调模型 -> 执行模型要的工具 -> 结果作为 role "tool" 消息回传 -> 再调模型, 直到它直接回答.
+"""Minimal tool-calling loop: call the model, run the tools it asks for, send results back as role "tool" messages,
+repeat until it answers in plain text. The round limit is enforced in code: the last request carries no tools,
+so the model can only answer in text (relying on tool_choice="none" instead failed in an earlier trial with four small local models:
+6 of 196 multi-round runs still returned tool calls). The model call and the tool runner are injected, so tests drive the loop with a fake model.
+
+最小 agent 循环: 调模型 -> 执行模型要的工具 -> 结果作为 role "tool" 消息回传 -> 再调模型, 直到它直接回答.
 
     uv run python -m tests.test_loop      # 假模型驱动的测试, 不连网
 

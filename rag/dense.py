@@ -1,4 +1,8 @@
-"""向量检索: bge-m3 把文字编码成向量, numpy 算余弦相似度取前 k.
+"""Dense retrieval: bge-m3 embeds each chunk once (cached as an .npy matrix under data/index/), queries are embedded at
+search time, and the top k chunks come from one matrix-vector product over L2-normalised rows (cosine = dot product).
+Complements BM25: it matches meaning rather than shared characters, e.g. a modern "去世" (died) against a classical "薨".
+
+向量检索: bge-m3 把文字编码成向量, numpy 算余弦相似度取前 k.
 
     uv run python -m tests.test_dense          # numpy 部分不需要模型; 模型部分没装好时跳过
     uv run python -m rag.dense                 # 原文切块编码, 缓存到 data/index/
@@ -45,6 +49,7 @@ TRANS_MAX_SEQ 的注释.
 from __future__ import annotations
 import hashlib
 import json
+import os
 import sys
 import time
 import numpy.typing as npt
@@ -120,15 +125,20 @@ def cosine_top_k(matrix: npt.NDArray, query_vec: npt.NDArray, k: int) -> list[tu
 
 
 def save_matrix(path: Path | str, matrix: npt.NDArray) -> None:
-    """把矩阵存成 .npy 文件. path 的父目录不存在时先建好."""
+    """把矩阵存成 .npy 文件. path 的父目录不存在时先建好.
+    先写同目录的临时文件再 os.replace 换上: 别的进程正 mmap 着旧缓存时 (见 load_matrix), 旧文件不会被截断, 它继续读旧内容."""
     path = Path(path)
     path.parent.mkdir(parents=True, exist_ok=True)
-    np.save(path, matrix)
+    tmp = path.with_name(path.name + ".tmp.npy")
+    np.save(tmp, matrix)
+    os.replace(tmp, path)
 
 
 def load_matrix(path: Path | str) -> npt.NDArray:
-    """读回 save_matrix 存的矩阵, dtype 和 shape 与存之前一样."""
-    return np.load(path)
+    """读回 save_matrix 存的矩阵, dtype 和 shape 与存之前一样.
+    用 mmap 只读打开 (np.memmap): 不把整个文件复制进进程内存, 几个进程 (并行评测, 网页聊天) 同时用同一份缓存时共享操作系统的页缓存.
+    矩阵只读, 检索只做 matrix @ q; 重建缓存时 save_matrix 换上新文件, 不改旧文件."""
+    return np.load(path, mmap_mode="r")
 
 
 # ---------- 文本准备, 缓存, 接线 ----------

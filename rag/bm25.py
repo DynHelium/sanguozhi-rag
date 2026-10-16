@@ -1,4 +1,8 @@
-"""BM25 检索: 字 bigram 倒排索引, 只用标准库实现.
+"""BM25 keyword retrieval over character bigrams, implemented with the standard library.
+Classical Chinese has no reliable word segmenter, so every two consecutive characters form one term; idf pushes down
+bigrams that straddle word boundaries. Aliases and modern-vs-classical wording are handled elsewhere (rag/alias.py, the dense retriever).
+
+BM25 检索: 字 bigram 倒排索引, 只用标准库实现.
 
     uv run python -m tests.test_bm25
     uv run python -m eval.run_retrieval -r bm25

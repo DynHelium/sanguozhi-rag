@@ -8310,6 +8310,1872 @@
    "note": "25-0004 子阳僭号 / 28-0030 吴汉禽子阳 指公孙述 (按上下文), 单用子阳无姓, 不收为 form",
    "notrans": true,
    "juan": 0
+  },
+  {
+   "id": "06-0014",
+   "name": "何进",
+   "surname": "何",
+   "zi": "遂高",
+   "forms": [],
+   "note": "字见 06-0001n0",
+   "notrans": true,
+   "juan": 0
+  },
+  {
+   "id": "01-0004",
+   "name": "汉灵帝",
+   "surname": "汉",
+   "zi": "",
+   "forms": [
+    {
+     "form": "灵帝",
+     "orig": "靈帝",
+     "src": "06-0001",
+     "kind": "帝号"
+    }
+   ],
+   "note": "原文未见其本名, name 用 汉灵帝 (surname 凑数, 同 汉献帝)",
+   "notrans": true,
+   "juan": 0
+  },
+  {
+   "id": "08-0002",
+   "name": "汉少帝",
+   "surname": "汉",
+   "zi": "",
+   "forms": [
+    {
+     "form": "弘农王",
+     "orig": "弘農王",
+     "src": "06-0003",
+     "kind": "爵号"
+    }
+   ],
+   "note": "原文未见其本名; 06-0001 灵帝崩, 少帝即位; 06-0003 废帝为弘农王. 单用'少帝'在 53-0021/64-0033 等处指别人, 不收为 form",
+   "notrans": true,
+   "juan": 0
+  },
+  {
+   "id": "06-0001",
+   "name": "张让",
+   "surname": "张",
+   "zi": "",
+   "forms": [],
+   "note": "",
+   "notrans": true,
+   "juan": 0
+  },
+  {
+   "id": "01-0016",
+   "name": "王允",
+   "surname": "王",
+   "zi": "子师",
+   "forms": [],
+   "note": "字见 06-0008n1",
+   "notrans": true,
+   "juan": 0
+  },
+  {
+   "id": "46-0002",
+   "name": "朱儁",
+   "surname": "朱",
+   "zi": "公伟",
+   "forms": [],
+   "note": "原文作 朱儁; 字见 46-0002n2",
+   "notrans": true,
+   "juan": 0
+  },
+  {
+   "id": "32-0001",
+   "name": "卢植",
+   "surname": "卢",
+   "zi": "子干",
+   "forms": [
+    {
+     "form": "卢子干",
+     "orig": "盧子幹",
+     "src": "11-0023n0",
+     "kind": "字"
+    }
+   ],
+   "note": "字见 22-0039n0",
+   "notrans": true,
+   "juan": 0
+  },
+  {
+   "id": "21-0001",
+   "name": "蔡邕",
+   "surname": "蔡",
+   "zi": "",
+   "forms": [],
+   "note": "",
+   "notrans": true,
+   "juan": 0
+  },
+  {
+   "id": "02-0019",
+   "name": "杨彪",
+   "surname": "杨",
+   "zi": "",
+   "forms": [],
+   "note": "",
+   "notrans": true,
+   "juan": 0
+  },
+  {
+   "id": "19-0005",
+   "name": "杨修",
+   "surname": "杨",
+   "zi": "德祖",
+   "forms": [
+    {
+     "form": "杨德祖",
+     "orig": "楊德祖",
+     "src": "19-0005n1",
+     "kind": "字"
+    }
+   ],
+   "note": "卷21 小标题'附邯郸淳、繁钦、路粹、丁仪、丁廙、杨脩、荀纬'里提到, 无单独的传; 原文多作 杨脩; 字见 19-0005n1",
+   "notrans": true,
+   "juan": 0
+  },
+  {
+   "id": "01-0029",
+   "name": "董承",
+   "surname": "董",
+   "zi": "",
+   "forms": [],
+   "note": "",
+   "notrans": true,
+   "juan": 0
+  },
+  {
+   "id": "01-0108",
+   "name": "吉本",
+   "surname": "吉",
+   "zi": "",
+   "forms": [],
+   "note": "",
+   "notrans": true,
+   "juan": 0
+  },
+  {
+   "id": "01-0108n1",
+   "name": "耿纪",
+   "surname": "耿",
+   "zi": "季行",
+   "forms": [],
+   "note": "字见 01-0108n1",
+   "notrans": true,
+   "juan": 0
+  },
+  {
+   "id": "06-0017n4",
+   "name": "马日磾",
+   "surname": "马",
+   "zi": "翁叔",
+   "forms": [],
+   "note": "原文作 馬日䃅 / 馬日磾 (56-0000 误作 馬日碑); 字见 06-0026n2",
+   "notrans": true,
+   "juan": 0
+  },
+  {
+   "id": "01-0005",
+   "name": "孔伷",
+   "surname": "孔",
+   "zi": "公绪",
+   "forms": [
+    {
+     "form": "孔公绪",
+     "orig": "孔公緒",
+     "src": "01-0005n1",
+     "kind": "字"
+    }
+   ],
+   "note": "字见 01-0005n1",
+   "notrans": true,
+   "juan": 0
+  },
+  {
+   "id": "01-0009",
+   "name": "桥瑁",
+   "surname": "桥",
+   "zi": "元伟",
+   "forms": [],
+   "note": "字见 01-0005n4",
+   "notrans": true,
+   "juan": 0
+  },
+  {
+   "id": "07-0017",
+   "name": "张超",
+   "surname": "张",
+   "zi": "",
+   "forms": [],
+   "note": "01-0005n5 '河间张超' 是否同一人待核",
+   "notrans": true,
+   "juan": 0
+  },
+  {
+   "id": "01-0017",
+   "name": "鲍信",
+   "surname": "鲍",
+   "zi": "",
+   "forms": [],
+   "note": "",
+   "notrans": true,
+   "juan": 0
+  },
+  {
+   "id": "06-0005",
+   "name": "王匡",
+   "surname": "王",
+   "zi": "公节",
+   "forms": [],
+   "note": "河内太守; 51-0009n2 '勤王匡世' 非人名; 字见 01-0005n3",
+   "notrans": true,
+   "juan": 0
+  },
+  {
+   "id": "01-0013",
+   "name": "韩馥",
+   "surname": "韩",
+   "zi": "文节",
+   "forms": [],
+   "note": "字见 01-0005n0",
+   "notrans": true,
+   "juan": 0
+  },
+  {
+   "id": "08-0003",
+   "name": "丁原",
+   "surname": "丁",
+   "zi": "建阳",
+   "forms": [],
+   "note": "字见 07-0000n0",
+   "notrans": true,
+   "juan": 0
+  },
+  {
+   "id": "08-0021n0",
+   "name": "张角",
+   "surname": "张",
+   "zi": "",
+   "forms": [],
+   "note": "",
+   "notrans": true,
+   "juan": 0
+  },
+  {
+   "id": "01-0049",
+   "name": "刘辟",
+   "surname": "刘",
+   "zi": "",
+   "forms": [],
+   "note": "",
+   "notrans": true,
+   "juan": 0
+  },
+  {
+   "id": "06-0008",
+   "name": "樊稠",
+   "surname": "樊",
+   "zi": "",
+   "forms": [],
+   "note": "",
+   "notrans": true,
+   "juan": 0
+  },
+  {
+   "id": "01-0033",
+   "name": "张济",
+   "surname": "张",
+   "zi": "",
+   "forms": [],
+   "note": "",
+   "notrans": true,
+   "juan": 0
+  },
+  {
+   "id": "01-0006",
+   "name": "徐荣",
+   "surname": "徐",
+   "zi": "",
+   "forms": [],
+   "note": "",
+   "notrans": true,
+   "juan": 0
+  },
+  {
+   "id": "06-0020",
+   "name": "文丑",
+   "surname": "文",
+   "zi": "",
+   "forms": [],
+   "note": "",
+   "notrans": true,
+   "juan": 0
+  },
+  {
+   "id": "01-0046",
+   "name": "颜良",
+   "surname": "颜",
+   "zi": "",
+   "forms": [],
+   "note": "",
+   "notrans": true,
+   "juan": 0
+  },
+  {
+   "id": "01-0059",
+   "name": "审配",
+   "surname": "审",
+   "zi": "正南",
+   "forms": [],
+   "note": "字见 06-0024n0",
+   "notrans": true,
+   "juan": 0
+  },
+  {
+   "id": "10-0013",
+   "name": "逢纪",
+   "surname": "逢",
+   "zi": "元图",
+   "forms": [],
+   "note": "字见 06-0023n1",
+   "notrans": true,
+   "juan": 0
+  },
+  {
+   "id": "14-0014",
+   "name": "郭图",
+   "surname": "郭",
+   "zi": "",
+   "forms": [],
+   "note": "",
+   "notrans": true,
+   "juan": 0
+  },
+  {
+   "id": "10-0001",
+   "name": "辛评",
+   "surname": "辛",
+   "zi": "",
+   "forms": [],
+   "note": "",
+   "notrans": true,
+   "juan": 0
+  },
+  {
+   "id": "06-0018",
+   "name": "高干",
+   "surname": "高",
+   "zi": "",
+   "forms": [],
+   "note": "袁绍之甥",
+   "notrans": true,
+   "juan": 0
+  },
+  {
+   "id": "01-0003",
+   "name": "许攸",
+   "surname": "许",
+   "zi": "子远",
+   "forms": [],
+   "note": "23-0016 '将军许攸拥部曲, 不附太祖' 是否同一人待核; 字见 12-0009n1",
+   "notrans": true,
+   "juan": 0
+  },
+  {
+   "id": "10-0015",
+   "name": "淳于琼",
+   "surname": "淳于",
+   "zi": "",
+   "forms": [],
+   "note": "",
+   "notrans": true,
+   "juan": 0
+  },
+  {
+   "id": "32-0004",
+   "name": "高顺",
+   "surname": "高",
+   "zi": "",
+   "forms": [],
+   "note": "",
+   "notrans": true,
+   "juan": 0
+  },
+  {
+   "id": "07-0011",
+   "name": "魏续",
+   "surname": "魏",
+   "zi": "",
+   "forms": [],
+   "note": "",
+   "notrans": true,
+   "juan": 0
+  },
+  {
+   "id": "32-0003",
+   "name": "曹豹",
+   "surname": "曹",
+   "zi": "",
+   "forms": [],
+   "note": "",
+   "notrans": true,
+   "juan": 0
+  },
+  {
+   "id": "17-0001",
+   "name": "陈兰",
+   "surname": "陈",
+   "zi": "",
+   "forms": [],
+   "note": "06-0028 袁术部曲陈兰与 15-0000/17-0001 庐江陈兰按地域认作一人 (待核)",
+   "notrans": true,
+   "juan": 0
+  },
+  {
+   "id": "01-0035",
+   "name": "桥蕤",
+   "surname": "桥",
+   "zi": "",
+   "forms": [
+    {
+     "form": "乔蕤",
+     "orig": "喬蕤",
+     "src": "46-0010",
+     "kind": "异名"
+    }
+   ],
+   "note": "46-0010 作 乔蕤; 乔蕤 为异体写法",
+   "notrans": true,
+   "juan": 0
+  },
+  {
+   "id": "07-0010",
+   "name": "张勋",
+   "surname": "张",
+   "zi": "",
+   "forms": [],
+   "note": "",
+   "notrans": true,
+   "juan": 0
+  },
+  {
+   "id": "06-0029n1",
+   "name": "蔡瑁",
+   "surname": "蔡",
+   "zi": "",
+   "forms": [],
+   "note": "",
+   "notrans": true,
+   "juan": 0
+  },
+  {
+   "id": "06-0034",
+   "name": "蒯越",
+   "surname": "蒯",
+   "zi": "",
+   "forms": [],
+   "note": "",
+   "notrans": true,
+   "juan": 0
+  },
+  {
+   "id": "46-0007",
+   "name": "黄祖",
+   "surname": "黄",
+   "zi": "",
+   "forms": [],
+   "note": "",
+   "notrans": true,
+   "juan": 0
+  },
+  {
+   "id": "32-0013",
+   "name": "张任",
+   "surname": "张",
+   "zi": "",
+   "forms": [],
+   "note": "",
+   "notrans": true,
+   "juan": 0
+  },
+  {
+   "id": "32-0012",
+   "name": "张松",
+   "surname": "张",
+   "zi": "",
+   "forms": [],
+   "note": "47-0039n3 吴部中张松是另一人",
+   "notrans": true,
+   "juan": 0
+  },
+  {
+   "id": "33-0001",
+   "name": "雍闿",
+   "surname": "雍",
+   "zi": "",
+   "forms": [],
+   "note": "",
+   "notrans": true,
+   "juan": 0
+  },
+  {
+   "id": "43-0010",
+   "name": "高定",
+   "surname": "高",
+   "zi": "",
+   "forms": [],
+   "note": "",
+   "notrans": true,
+   "juan": 0
+  },
+  {
+   "id": "43-0004",
+   "name": "朱褒",
+   "surname": "朱",
+   "zi": "",
+   "forms": [],
+   "note": "",
+   "notrans": true,
+   "juan": 0
+  },
+  {
+   "id": "32-0014",
+   "name": "吴壹",
+   "surname": "吴",
+   "zi": "",
+   "forms": [],
+   "note": "穆皇后之兄; 原文作 吴壹 (未见 吴懿 写法)",
+   "notrans": true,
+   "juan": 0
+  },
+  {
+   "id": "32-0025",
+   "name": "吴班",
+   "surname": "吴",
+   "zi": "",
+   "forms": [],
+   "note": "",
+   "notrans": true,
+   "juan": 0
+  },
+  {
+   "id": "35-0012",
+   "name": "马谡",
+   "surname": "马",
+   "zi": "幼常",
+   "forms": [],
+   "note": "字见 39-0007",
+   "notrans": true,
+   "juan": 0
+  },
+  {
+   "id": "19-0007",
+   "name": "丁仪",
+   "surname": "丁",
+   "zi": "正礼",
+   "forms": [],
+   "note": "卷21 小标题'附邯郸淳……丁仪……'里提到, 无单独的传; 字见 19-0007n0",
+   "notrans": true,
+   "juan": 0
+  },
+  {
+   "id": "19-0004",
+   "name": "丁廙",
+   "surname": "丁",
+   "zi": "敬礼",
+   "forms": [],
+   "note": "卷21 小标题'附邯郸淳……丁廙……'里提到, 无单独的传; 字见 19-0007n0",
+   "notrans": true,
+   "juan": 0
+  },
+  {
+   "id": "06-0003n1",
+   "name": "何苗",
+   "surname": "何",
+   "zi": "",
+   "forms": [],
+   "note": "",
+   "notrans": true,
+   "juan": 0
+  },
+  {
+   "id": "09-0025",
+   "name": "李胜",
+   "surname": "李",
+   "zi": "公昭",
+   "forms": [],
+   "note": "字见 09-0028n0",
+   "notrans": true,
+   "juan": 0
+  },
+  {
+   "id": "04-0016",
+   "name": "丁谧",
+   "surname": "丁",
+   "zi": "彦靖",
+   "forms": [],
+   "note": "字见 09-0028n0",
+   "notrans": true,
+   "juan": 0
+  },
+  {
+   "id": "09-0024",
+   "name": "毕轨",
+   "surname": "毕",
+   "zi": "昭先",
+   "forms": [],
+   "note": "字见 09-0028n0",
+   "notrans": true,
+   "juan": 0
+  },
+  {
+   "id": "09-0027",
+   "name": "桓范",
+   "surname": "桓",
+   "zi": "元则",
+   "forms": [],
+   "note": "字见 09-0028n0",
+   "notrans": true,
+   "juan": 0
+  },
+  {
+   "id": "09-0026",
+   "name": "张当",
+   "surname": "张",
+   "zi": "",
+   "forms": [],
+   "note": "",
+   "notrans": true,
+   "juan": 0
+  },
+  {
+   "id": "04-0021",
+   "name": "司马孚",
+   "surname": "司马",
+   "zi": "",
+   "forms": [],
+   "note": "",
+   "notrans": true,
+   "juan": 0
+  },
+  {
+   "id": "04-0057",
+   "name": "王沈",
+   "surname": "王",
+   "zi": "",
+   "forms": [],
+   "note": "裴注多处是引书署名 (王沈《魏书》)",
+   "notrans": true,
+   "juan": 0
+  },
+  {
+   "id": "52-0036",
+   "name": "羊祜",
+   "surname": "羊",
+   "zi": "",
+   "forms": [],
+   "note": "",
+   "notrans": true,
+   "juan": 0
+  },
+  {
+   "id": "44-0019",
+   "name": "杜预",
+   "surname": "杜",
+   "zi": "",
+   "forms": [],
+   "note": "",
+   "notrans": true,
+   "juan": 0
+  },
+  {
+   "id": "48-0042",
+   "name": "王濬",
+   "surname": "王",
+   "zi": "",
+   "forms": [],
+   "note": "58-0027 作 王浚",
+   "notrans": true,
+   "juan": 0
+  },
+  {
+   "id": "28-0030",
+   "name": "卫瓘",
+   "surname": "卫",
+   "zi": "",
+   "forms": [],
+   "note": "",
+   "notrans": true,
+   "juan": 0
+  },
+  {
+   "id": "28-0041",
+   "name": "胡烈",
+   "surname": "胡",
+   "zi": "玄武",
+   "forms": [],
+   "note": "27-0024n0 襄阳太守胡烈, 64-0032 太山太守胡烈按上下文认作一人; 字见 28-0045n0",
+   "notrans": true,
+   "juan": 0
+  },
+  {
+   "id": "22-0018",
+   "name": "胡奋",
+   "surname": "胡",
+   "zi": "",
+   "forms": [],
+   "note": "",
+   "notrans": true,
+   "juan": 0
+  },
+  {
+   "id": "28-0029",
+   "name": "师纂",
+   "surname": "师",
+   "zi": "",
+   "forms": [],
+   "note": "",
+   "notrans": true,
+   "juan": 0
+  },
+  {
+   "id": "28-0007",
+   "name": "王颀",
+   "surname": "王",
+   "zi": "孔硕",
+   "forms": [],
+   "note": "06-0008n1 汉末越骑校尉王颀是另一人; 字见 28-0007n2",
+   "notrans": true,
+   "juan": 0
+  },
+  {
+   "id": "28-0027",
+   "name": "诸葛绪",
+   "surname": "诸葛",
+   "zi": "",
+   "forms": [],
+   "note": "",
+   "notrans": true,
+   "juan": 0
+  },
+  {
+   "id": "09-0021",
+   "name": "郝昭",
+   "surname": "郝",
+   "zi": "伯道",
+   "forms": [],
+   "note": "字见 03-0005n3",
+   "notrans": true,
+   "juan": 0
+  },
+  {
+   "id": "03-0016",
+   "name": "秦朗",
+   "surname": "秦",
+   "zi": "",
+   "forms": [],
+   "note": "",
+   "notrans": true,
+   "juan": 0
+  },
+  {
+   "id": "53-0023",
+   "name": "王浑",
+   "surname": "王",
+   "zi": "",
+   "forms": [],
+   "note": "",
+   "notrans": true,
+   "juan": 0
+  },
+  {
+   "id": "48-0038",
+   "name": "王戎",
+   "surname": "王",
+   "zi": "",
+   "forms": [],
+   "note": "",
+   "notrans": true,
+   "juan": 0
+  },
+  {
+   "id": "04-0047",
+   "name": "裴秀",
+   "surname": "裴",
+   "zi": "",
+   "forms": [],
+   "note": "",
+   "notrans": true,
+   "juan": 0
+  },
+  {
+   "id": "28-0017",
+   "name": "石苞",
+   "surname": "石",
+   "zi": "",
+   "forms": [],
+   "note": "06-0005n0 '石苞室谶' 是书名",
+   "notrans": true,
+   "juan": 0
+  },
+  {
+   "id": "04-0044",
+   "name": "陈骞",
+   "surname": "陈",
+   "zi": "",
+   "forms": [],
+   "note": "",
+   "notrans": true,
+   "juan": 0
+  },
+  {
+   "id": "28-0002",
+   "name": "令狐愚",
+   "surname": "令狐",
+   "zi": "公治",
+   "forms": [],
+   "note": "字见 28-0002n1; 28-0002n1 愚本名浚",
+   "notrans": true,
+   "juan": 0
+  },
+  {
+   "id": "33-0035",
+   "name": "黄皓",
+   "surname": "黄",
+   "zi": "",
+   "forms": [],
+   "note": "",
+   "notrans": true,
+   "juan": 0
+  },
+  {
+   "id": "45-0063",
+   "name": "糜芳",
+   "surname": "糜",
+   "zi": "子方",
+   "forms": [
+    {
+     "form": "麋芳",
+     "orig": "麋芳",
+     "src": "36-0004",
+     "kind": "异名"
+    }
+   ],
+   "note": "原文 糜芳 / 麋芳 两种写法 (异体); 字见 45-0064",
+   "notrans": true,
+   "juan": 0
+  },
+  {
+   "id": "45-0064",
+   "name": "士仁",
+   "surname": "士",
+   "zi": "君义",
+   "forms": [],
+   "note": "58-0027 '景字士仁' 是陆景的字, 不是此人; 字见 45-0064",
+   "notrans": true,
+   "juan": 0
+  },
+  {
+   "id": "32-0026",
+   "name": "冯习",
+   "surname": "冯",
+   "zi": "",
+   "forms": [],
+   "note": "",
+   "notrans": true,
+   "juan": 0
+  },
+  {
+   "id": "44-0018",
+   "name": "傅佥",
+   "surname": "傅",
+   "zi": "",
+   "forms": [],
+   "note": "",
+   "notrans": true,
+   "juan": 0
+  },
+  {
+   "id": "01-0053",
+   "name": "桥玄",
+   "surname": "桥",
+   "zi": "公祖",
+   "forms": [],
+   "note": "字见 01-0001n1",
+   "notrans": true,
+   "juan": 0
+  },
+  {
+   "id": "59-0009",
+   "name": "全公主",
+   "surname": "",
+   "zi": "",
+   "forms": [],
+   "note": "孙权之女, 原文未见其本名 (64-0033 有 '公主鲁班'), name 用称号, surname 空",
+   "notrans": true,
+   "juan": 0
+  },
+  {
+   "id": "49-0001",
+   "name": "吴景",
+   "surname": "吴",
+   "zi": "",
+   "forms": [],
+   "note": "48-0019n1/63-0016n0 '吴景帝' 指孙休, 不是此人",
+   "notrans": true,
+   "juan": 0
+  },
+  {
+   "id": "48-0040",
+   "name": "张悌",
+   "surname": "张",
+   "zi": "巨先",
+   "forms": [],
+   "note": "字见 48-0040n0",
+   "notrans": true,
+   "juan": 0
+  },
+  {
+   "id": "48-0018",
+   "name": "留平",
+   "surname": "留",
+   "zi": "",
+   "forms": [],
+   "note": "12-0010 '陈留平丘' 非人名",
+   "notrans": true,
+   "juan": 0
+  },
+  {
+   "id": "48-0025",
+   "name": "丁固",
+   "surname": "丁",
+   "zi": "",
+   "forms": [],
+   "note": "",
+   "notrans": true,
+   "juan": 0
+  },
+  {
+   "id": "47-0046",
+   "name": "孟宗",
+   "surname": "孟",
+   "zi": "",
+   "forms": [],
+   "note": "",
+   "notrans": true,
+   "juan": 0
+  },
+  {
+   "id": "48-0023",
+   "name": "万彧",
+   "surname": "万",
+   "zi": "",
+   "forms": [],
+   "note": "",
+   "notrans": true,
+   "juan": 0
+  },
+  {
+   "id": "48-0017",
+   "name": "张布",
+   "surname": "张",
+   "zi": "",
+   "forms": [],
+   "note": "",
+   "notrans": true,
+   "juan": 0
+  },
+  {
+   "id": "46-0012",
+   "name": "严白虎",
+   "surname": "严",
+   "zi": "",
+   "forms": [],
+   "note": "",
+   "notrans": true,
+   "juan": 0
+  },
+  {
+   "id": "58-0005",
+   "name": "宋谦",
+   "surname": "宋",
+   "zi": "",
+   "forms": [],
+   "note": "",
+   "notrans": true,
+   "juan": 0
+  },
+  {
+   "id": "04-0046",
+   "name": "孙壹",
+   "surname": "孙",
+   "zi": "",
+   "forms": [],
+   "note": "",
+   "notrans": true,
+   "juan": 0
+  },
+  {
+   "id": "46-0016",
+   "name": "许贡",
+   "surname": "许",
+   "zi": "",
+   "forms": [],
+   "note": "",
+   "notrans": true,
+   "juan": 0
+  },
+  {
+   "id": "56-0016",
+   "name": "祖郎",
+   "surname": "祖",
+   "zi": "",
+   "forms": [],
+   "note": "",
+   "notrans": true,
+   "juan": 0
+  },
+  {
+   "id": "04-0035",
+   "name": "郑玄",
+   "surname": "郑",
+   "zi": "",
+   "forms": [],
+   "note": "裴注多处是引其经注 (郑玄云/郑玄注)",
+   "notrans": true,
+   "juan": 0
+  },
+  {
+   "id": "21-0002",
+   "name": "刘桢",
+   "surname": "刘",
+   "zi": "公干",
+   "forms": [
+    {
+     "form": "刘公干",
+     "orig": "劉公幹",
+     "src": "27-0011",
+     "kind": "字"
+    }
+   ],
+   "note": "字见 21-0002",
+   "notrans": true,
+   "juan": 0
+  },
+  {
+   "id": "13-0000n0",
+   "name": "陈寔",
+   "surname": "陈",
+   "zi": "",
+   "forms": [],
+   "note": "",
+   "notrans": true,
+   "juan": 0
+  },
+  {
+   "id": "06-0005n0",
+   "name": "荀爽",
+   "surname": "荀",
+   "zi": "",
+   "forms": [],
+   "note": "",
+   "notrans": true,
+   "juan": 0
+  },
+  {
+   "id": "01-0001",
+   "name": "何颙",
+   "surname": "何",
+   "zi": "伯求",
+   "forms": [],
+   "note": "字见 10-0027n0",
+   "notrans": true,
+   "juan": 0
+  },
+  {
+   "id": "06-0008n1",
+   "name": "郭泰",
+   "surname": "郭",
+   "zi": "",
+   "forms": [],
+   "note": "",
+   "notrans": true,
+   "juan": 0
+  },
+  {
+   "id": "01-0121n5",
+   "name": "边让",
+   "surname": "边",
+   "zi": "",
+   "forms": [],
+   "note": "",
+   "notrans": true,
+   "juan": 0
+  },
+  {
+   "id": "01-0030",
+   "name": "杨奉",
+   "surname": "杨",
+   "zi": "",
+   "forms": [],
+   "note": "",
+   "notrans": true,
+   "juan": 0
+  },
+  {
+   "id": "06-0011",
+   "name": "韩暹",
+   "surname": "韩",
+   "zi": "",
+   "forms": [],
+   "note": "",
+   "notrans": true,
+   "juan": 0
+  },
+  {
+   "id": "53-0012",
+   "name": "张津",
+   "surname": "张",
+   "zi": "",
+   "forms": [],
+   "note": "06-0014n0 袁绍之客张津是另一人",
+   "notrans": true,
+   "juan": 0
+  },
+  {
+   "id": "45-0033",
+   "name": "赖恭",
+   "surname": "赖",
+   "zi": "",
+   "forms": [],
+   "note": "",
+   "notrans": true,
+   "juan": 0
+  },
+  {
+   "id": "49-0015",
+   "name": "吴巨",
+   "surname": "吴",
+   "zi": "",
+   "forms": [],
+   "note": "",
+   "notrans": true,
+   "juan": 0
+  },
+  {
+   "id": "06-0031",
+   "name": "刘先",
+   "surname": "刘",
+   "zi": "",
+   "forms": [],
+   "note": "",
+   "notrans": true,
+   "juan": 0
+  },
+  {
+   "id": "01-0072",
+   "name": "韩嵩",
+   "surname": "韩",
+   "zi": "",
+   "forms": [],
+   "note": "",
+   "notrans": true,
+   "juan": 0
+  },
+  {
+   "id": "49-0012",
+   "name": "黄琬",
+   "surname": "黄",
+   "zi": "",
+   "forms": [],
+   "note": "",
+   "notrans": true,
+   "juan": 0
+  },
+  {
+   "id": "01-0050",
+   "name": "高览",
+   "surname": "高",
+   "zi": "",
+   "forms": [],
+   "note": "",
+   "notrans": true,
+   "juan": 0
+  },
+  {
+   "id": "04-0081",
+   "name": "司马望",
+   "surname": "司马",
+   "zi": "",
+   "forms": [],
+   "note": "",
+   "notrans": true,
+   "juan": 0
+  },
+  {
+   "id": "32-0002",
+   "name": "田楷",
+   "surname": "田",
+   "zi": "",
+   "forms": [],
+   "note": "",
+   "notrans": true,
+   "juan": 0
+  },
+  {
+   "id": "17-0007",
+   "name": "昌豨",
+   "surname": "昌",
+   "zi": "",
+   "forms": [],
+   "note": "32-0006 '东海昌霸反' 是否即此人待核, 未收为 form",
+   "notrans": true,
+   "juan": 0
+  },
+  {
+   "id": "07-0008",
+   "name": "陈珪",
+   "surname": "陈",
+   "zi": "",
+   "forms": [],
+   "note": "",
+   "notrans": true,
+   "juan": 0
+  },
+  {
+   "id": "08-0025",
+   "name": "阎圃",
+   "surname": "阎",
+   "zi": "",
+   "forms": [],
+   "note": "",
+   "notrans": true,
+   "juan": 0
+  },
+  {
+   "id": "01-0077",
+   "name": "杨秋",
+   "surname": "杨",
+   "zi": "",
+   "forms": [],
+   "note": "",
+   "notrans": true,
+   "juan": 0
+  },
+  {
+   "id": "01-0076",
+   "name": "李堪",
+   "surname": "李",
+   "zi": "",
+   "forms": [],
+   "note": "",
+   "notrans": true,
+   "juan": 0
+  },
+  {
+   "id": "36-0010",
+   "name": "成宜",
+   "surname": "成",
+   "zi": "",
+   "forms": [],
+   "note": "23-0016 '虽成宜改之' 非人名",
+   "notrans": true,
+   "juan": 0
+  },
+  {
+   "id": "09-0005",
+   "name": "梁兴",
+   "surname": "梁",
+   "zi": "",
+   "forms": [],
+   "note": "",
+   "notrans": true,
+   "juan": 0
+  },
+  {
+   "id": "25-0011",
+   "name": "姜叙",
+   "surname": "姜",
+   "zi": "",
+   "forms": [],
+   "note": "",
+   "notrans": true,
+   "juan": 0
+  },
+  {
+   "id": "25-0010",
+   "name": "赵昂",
+   "surname": "赵",
+   "zi": "",
+   "forms": [],
+   "note": "25-0008n0 '赵昂伟章' (伟章似为其字, 原文未明写)",
+   "notrans": true,
+   "juan": 0
+  },
+  {
+   "id": "13-0001",
+   "name": "郭援",
+   "surname": "郭",
+   "zi": "",
+   "forms": [],
+   "note": "",
+   "notrans": true,
+   "juan": 0
+  },
+  {
+   "id": "01-0103",
+   "name": "呼厨泉",
+   "surname": "",
+   "zi": "",
+   "forms": [],
+   "note": "匈奴南单于",
+   "notrans": true,
+   "juan": 0
+  },
+  {
+   "id": "01-0015",
+   "name": "于夫罗",
+   "surname": "",
+   "zi": "",
+   "forms": [],
+   "note": "匈奴, 南单于之子 (01-0015n1)",
+   "notrans": true,
+   "juan": 0
+  },
+  {
+   "id": "30-0001",
+   "name": "蹋顿",
+   "surname": "",
+   "zi": "",
+   "forms": [],
+   "note": "乌丸",
+   "notrans": true,
+   "juan": 0
+  },
+  {
+   "id": "30-0002",
+   "name": "楼班",
+   "surname": "",
+   "zi": "",
+   "forms": [],
+   "note": "乌丸",
+   "notrans": true,
+   "juan": 0
+  },
+  {
+   "id": "01-0070",
+   "name": "公孙康",
+   "surname": "公孙",
+   "zi": "",
+   "forms": [],
+   "note": "",
+   "notrans": true,
+   "juan": 0
+  },
+  {
+   "id": "03-0005",
+   "name": "公孙恭",
+   "surname": "公孙",
+   "zi": "",
+   "forms": [],
+   "note": "",
+   "notrans": true,
+   "juan": 0
+  },
+  {
+   "id": "40-0001",
+   "name": "申耽",
+   "surname": "申",
+   "zi": "义举",
+   "forms": [],
+   "note": "字见 40-0004n0",
+   "notrans": true,
+   "juan": 0
+  },
+  {
+   "id": "40-0004",
+   "name": "申仪",
+   "surname": "申",
+   "zi": "",
+   "forms": [],
+   "note": "",
+   "notrans": true,
+   "juan": 0
+  },
+  {
+   "id": "26-0029",
+   "name": "句安",
+   "surname": "句",
+   "zi": "",
+   "forms": [],
+   "note": "",
+   "notrans": true,
+   "juan": 0
+  },
+  {
+   "id": "33-0044",
+   "name": "樊建",
+   "surname": "樊",
+   "zi": "长元",
+   "forms": [],
+   "note": "字见 35-0038n0",
+   "notrans": true,
+   "juan": 0
+  },
+  {
+   "id": "55-0001",
+   "name": "张英",
+   "surname": "张",
+   "zi": "",
+   "forms": [],
+   "note": "",
+   "notrans": true,
+   "juan": 0
+  },
+  {
+   "id": "46-0011",
+   "name": "樊能",
+   "surname": "樊",
+   "zi": "",
+   "forms": [],
+   "note": "",
+   "notrans": true,
+   "juan": 0
+  },
+  {
+   "id": "50-0001",
+   "name": "薛礼",
+   "surname": "薛",
+   "zi": "",
+   "forms": [],
+   "note": "",
+   "notrans": true,
+   "juan": 0
+  },
+  {
+   "id": "56-0022",
+   "name": "常雕",
+   "surname": "常",
+   "zi": "",
+   "forms": [],
+   "note": "",
+   "notrans": true,
+   "juan": 0
+  },
+  {
+   "id": "03-0019",
+   "name": "张弥",
+   "surname": "张",
+   "zi": "",
+   "forms": [],
+   "note": "",
+   "notrans": true,
+   "juan": 0
+  },
+  {
+   "id": "47-0039",
+   "name": "许晏",
+   "surname": "许",
+   "zi": "",
+   "forms": [],
+   "note": "",
+   "notrans": true,
+   "juan": 0
+  },
+  {
+   "id": "58-0020",
+   "name": "步阐",
+   "surname": "步",
+   "zi": "",
+   "forms": [],
+   "note": "",
+   "notrans": true,
+   "juan": 0
+  },
+  {
+   "id": "48-0022",
+   "name": "诸葛靓",
+   "surname": "诸葛",
+   "zi": "",
+   "forms": [],
+   "note": "",
+   "notrans": true,
+   "juan": 0
+  },
+  {
+   "id": "48-0036",
+   "name": "陶濬",
+   "surname": "陶",
+   "zi": "",
+   "forms": [],
+   "note": "",
+   "notrans": true,
+   "juan": 0
+  },
+  {
+   "id": "48-0008",
+   "name": "吴纲",
+   "surname": "吴",
+   "zi": "",
+   "forms": [],
+   "note": "",
+   "notrans": true,
+   "juan": 0
+  },
+  {
+   "id": "04-0073",
+   "name": "荀顗",
+   "surname": "荀",
+   "zi": "",
+   "forms": [],
+   "note": "",
+   "notrans": true,
+   "juan": 0
+  },
+  {
+   "id": "04-0031",
+   "name": "郑冲",
+   "surname": "郑",
+   "zi": "",
+   "forms": [],
+   "note": "",
+   "notrans": true,
+   "juan": 0
+  },
+  {
+   "id": "31-0005",
+   "name": "赵韪",
+   "surname": "赵",
+   "zi": "",
+   "forms": [],
+   "note": "",
+   "notrans": true,
+   "juan": 0
+  },
+  {
+   "id": "31-0004",
+   "name": "庞羲",
+   "surname": "庞",
+   "zi": "",
+   "forms": [],
+   "note": "",
+   "notrans": true,
+   "juan": 0
+  },
+  {
+   "id": "01-0043",
+   "name": "王忠",
+   "surname": "王",
+   "zi": "",
+   "forms": [],
+   "note": "",
+   "notrans": true,
+   "juan": 0
+  },
+  {
+   "id": "10-0030",
+   "name": "刘延",
+   "surname": "刘",
+   "zi": "",
+   "forms": [],
+   "note": "",
+   "notrans": true,
+   "juan": 0
+  },
+  {
+   "id": "46-0010",
+   "name": "孙河",
+   "surname": "孙",
+   "zi": "",
+   "forms": [],
+   "note": "",
+   "notrans": true,
+   "juan": 0
+  },
+  {
+   "id": "01-0008",
+   "name": "周昕",
+   "surname": "周",
+   "zi": "大明",
+   "forms": [],
+   "note": "字见 51-0000n2",
+   "notrans": true,
+   "juan": 0
+  },
+  {
+   "id": "46-0004",
+   "name": "张咨",
+   "surname": "张",
+   "zi": "子议",
+   "forms": [],
+   "note": "字见 46-0004n2",
+   "notrans": true,
+   "juan": 0
+  },
+  {
+   "id": "35-0013",
+   "name": "陈式",
+   "surname": "陈",
+   "zi": "",
+   "forms": [],
+   "note": "17-0016/32-0026/33-0007 均为蜀将陈式, 按上下文认作一人",
+   "notrans": true,
+   "juan": 0
+  },
+  {
+   "id": "48-0027",
+   "name": "孙秀",
+   "surname": "孙",
+   "zi": "",
+   "forms": [],
+   "note": "21-0017n0 杀潘岳的孙秀是晋人, 另一人",
+   "notrans": true,
+   "juan": 0
+  },
+  {
+   "id": "61-0007",
+   "name": "何定",
+   "surname": "何",
+   "zi": "",
+   "forms": [],
+   "note": "16-0011/24-0013 '萧何定…' 非人名",
+   "notrans": true,
+   "juan": 0
+  },
+  {
+   "id": "14-0066",
+   "name": "孙资",
+   "surname": "孙",
+   "zi": "彦龙",
+   "forms": [],
+   "note": "字见 14-0066n0",
+   "notrans": true,
+   "juan": 0
+  },
+  {
+   "id": "47-0047",
+   "name": "吕壹",
+   "surname": "吕",
+   "zi": "",
+   "forms": [],
+   "note": "",
+   "notrans": true,
+   "juan": 0
+  },
+  {
+   "id": "57-0016",
+   "name": "暨艳",
+   "surname": "暨",
+   "zi": "子休",
+   "forms": [],
+   "note": "字见 57-0016",
+   "notrans": true,
+   "juan": 0
+  },
+  {
+   "id": "64-0007",
+   "name": "孙弘",
+   "surname": "孙",
+   "zi": "",
+   "forms": [],
+   "note": "61-0006 '孙弘造义兵' 是否同一人待核",
+   "notrans": true,
+   "juan": 0
+  },
+  {
+   "id": "48-0009",
+   "name": "全尚",
+   "surname": "全",
+   "zi": "",
+   "forms": [],
+   "note": "",
+   "notrans": true,
+   "juan": 0
+  },
+  {
+   "id": "28-0016",
+   "name": "全端",
+   "surname": "全",
+   "zi": "",
+   "forms": [],
+   "note": "",
+   "notrans": true,
+   "juan": 0
+  },
+  {
+   "id": "04-0048",
+   "name": "全怿",
+   "surname": "全",
+   "zi": "",
+   "forms": [],
+   "note": "",
+   "notrans": true,
+   "juan": 0
+  },
+  {
+   "id": "56-0014",
+   "name": "阎宇",
+   "surname": "阎",
+   "zi": "文平",
+   "forms": [],
+   "note": "字见 43-0011n1",
+   "notrans": true,
+   "juan": 0
+  },
+  {
+   "id": "44-0015",
+   "name": "胡济",
+   "surname": "胡",
+   "zi": "",
+   "forms": [],
+   "note": "",
+   "notrans": true,
+   "juan": 0
+  },
+  {
+   "id": "48-0019",
+   "name": "罗宪",
+   "surname": "罗",
+   "zi": "令则",
+   "forms": [],
+   "note": "字见 41-0001n1",
+   "notrans": true,
+   "juan": 0
+  },
+  {
+   "id": "35-0035",
+   "name": "陈寿",
+   "surname": "陈",
+   "zi": "",
+   "forms": [],
+   "note": "《三国志》作者; 裴注多处是引书署名",
+   "notrans": true,
+   "juan": 0
+  },
+  {
+   "id": "47-0012",
+   "name": "鲜于丹",
+   "surname": "鲜于",
+   "zi": "",
+   "forms": [],
+   "note": "",
+   "notrans": true,
+   "juan": 0
+  },
+  {
+   "id": "17-0011",
+   "name": "刘阿",
+   "surname": "刘",
+   "zi": "",
+   "forms": [],
+   "note": "",
+   "notrans": true,
+   "juan": 0
+  },
+  {
+   "id": "06-0015",
+   "name": "周毖",
+   "surname": "周",
+   "zi": "仲远",
+   "forms": [],
+   "note": "字见 06-0004n0",
+   "notrans": true,
+   "juan": 0
+  },
+  {
+   "id": "06-0004",
+   "name": "伍琼",
+   "surname": "伍",
+   "zi": "德瑜",
+   "forms": [],
+   "note": "字见 06-0004n0",
+   "notrans": true,
+   "juan": 0
+  },
+  {
+   "id": "10-0027",
+   "name": "郑泰",
+   "surname": "郑",
+   "zi": "公业",
+   "forms": [],
+   "note": "字见 16-0027n1",
+   "notrans": true,
+   "juan": 0
+  },
+  {
+   "id": "08-0006",
+   "name": "鲜于辅",
+   "surname": "鲜于",
+   "zi": "",
+   "forms": [],
+   "note": "",
+   "notrans": true,
+   "juan": 0
+  },
+  {
+   "id": "08-0004",
+   "name": "阎柔",
+   "surname": "阎",
+   "zi": "",
+   "forms": [],
+   "note": "",
+   "notrans": true,
+   "juan": 0
+  },
+  {
+   "id": "10-0002",
+   "name": "李封",
+   "surname": "李",
+   "zi": "",
+   "forms": [],
+   "note": "",
+   "notrans": true,
+   "juan": 0
+  },
+  {
+   "id": "01-0026",
+   "name": "薛兰",
+   "surname": "薛",
+   "zi": "",
+   "forms": [],
+   "note": "",
+   "notrans": true,
+   "juan": 0
+  },
+  {
+   "id": "01-0038",
+   "name": "尹礼",
+   "surname": "尹",
+   "zi": "",
+   "forms": [],
+   "note": "18-0008n0: 尹礼名卢儿",
+   "notrans": true,
+   "juan": 0
+  },
+  {
+   "id": "18-0008n0",
+   "name": "吴敦",
+   "surname": "吴",
+   "zi": "",
+   "forms": [],
+   "note": "18-0008n0: 吴敦名黯奴; 28-0010n1 '大吴敦崇' 非人名",
+   "notrans": true,
+   "juan": 0
+  },
+  {
+   "id": "14-0069",
+   "name": "夏侯献",
+   "surname": "夏侯",
+   "zi": "",
+   "forms": [],
+   "note": "",
+   "notrans": true,
+   "juan": 0
   }
  ],
  "homonyms": {

@@ -1,4 +1,9 @@
-"""出处与引文: 给模型看的出处行 (source_label), 从回答里抽「」引文 (extract_quotes), 逐字核对引文 (verify_quotes),
+"""Citations and quotation checks, pure code with no model involved: extract every 「...」 quotation from an answer,
+verify that it occurs character for character (ignoring script variants and punctuation) in a passage the model actually saw,
+and check that the [n] after it points to that passage (fixing the number when the right passage is unambiguous).
+Quotations are checked against the classical text only, so one copied from the translation fails.
+
+出处与引文: 给模型看的出处行 (source_label), 从回答里抽「」引文 (extract_quotes), 逐字核对引文 (verify_quotes),
 把写成 chunk id 的出处换成编号 (renumber_cites), 核对引文后面标的编号是否指向含这段文字的块 (check_cites),
 改正能确定的错编号 (fix_cites).
 source_label 给 agent 的工具结果 (rag/library.Seen), rag/context.format_context 和网页聊天的出处列表 (app/chat.py) 共用.
