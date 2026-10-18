@@ -3,6 +3,11 @@
 [English](README.md) | 中文
 
 [![tests](https://github.com/DynHelium/sanguozhi-rag/actions/workflows/tests.yml/badge.svg)](https://github.com/DynHelium/sanguozhi-rag/actions/workflows/tests.yml)
+[![Open in Spaces](https://img.shields.io/badge/demo-Hugging%20Face%20Spaces-yellow)](https://huggingface.co/spaces/helium-hf/sanguozhi-rag)
+
+**在线试用**：[huggingface.co/spaces/helium-hf/sanguozhi-rag](https://huggingface.co/spaces/helium-hf/sanguozhi-rag)，
+网页聊天，模型是 Claude Haiku 5.5（中文、英文提问都可以；两个游戏只有中文）。每天有花费上限，用完后当天不再回答（服务重启会重新计）；
+一段时间没人访问会休眠，之后第一个打开的人要等两分钟左右重启。
 
 **一句话**：在一部 3 世纪的文言史书上做 agentic RAG。提问是白话或英文，原文是文言，两边用词很少重合。检索改搜大模型翻译的白话译文
 （document expansion），加上 BM25 + 向量混合检索和别名扩展，开发题 hit@10 从 0.40 提到 0.81（留出题 0.78 → 0.97）。同一模型、
@@ -131,6 +136,8 @@ uv run python -m app.chat --model claude-haiku-5-5 --effort medium
 并且本地已有 bge-m3 模型（跑过一次 `rag.dense` 即可），或设 `ALLOW_MODEL_DOWNLOAD=1` 让测试去下载，否则跳过）。GitHub Actions 在 Linux / macOS / Windows 上跑同一套测试。
 
 ## 一个例子
+
+在线版：[huggingface.co/spaces/helium-hf/sanguozhi-rag](https://huggingface.co/spaces/helium-hf/sanguozhi-rag)（见开头的说明）。下面的录屏是同一个网页聊天在本机运行：
 
 ![网页聊天，三轮追问：哪个皇帝在街上被刺死、刺死他的是谁、皇帝为什么亲自讨伐司马昭；实时显示检索过程，回答引原文并标编号 [n]](docs/images/chat-zh.gif)
 

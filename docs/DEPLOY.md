@@ -44,9 +44,14 @@
 
 Spaces 和 Gradio 配合最直接，但要注意：
 
-- 计划和硬件按 Hugging Face 当前的 Spaces 价格和硬件选择；免费硬件可能放不下模型或会休眠，部署前核实。
-  Space 的磁盘不持久（重启后要重新下载模型），所以把模型和向量缓存打进镜像，或放到持久存储里。
-- key 放在 Space 的 Secrets：DeepSeek 用 `LLM_API_KEY`，Claude 原生接口用 `ANTHROPIC_API_KEY`（再在 Variables 里设 `LLM_BACKEND=anthropic`、`LLM_MODEL=claude-haiku-5-5`、`LLM_REASONING_EFFORT=medium`）；启动命令带上 `--daily-budget …`。
+- 硬件：实际用的是 CPU Basic（2 vCPU / 16GB 内存），放得下模型；跑 Gradio 的 Space 要 Hugging Face 的付费计划（PRO）。
+  没人访问一段时间后 Space 会休眠，再有人打开时自动重启。ZeroGPU 要求程序里有 `@spaces.GPU` 函数，这个网页全在 CPU 上跑，起不来。
+- Space 的磁盘不持久：向量缓存随代码一起上传（网页只用白话一套，约 17MB）；bge-m3（约 2.3GB）在每次启动（包括休眠后的重启）时
+  从 Hugging Face 下载（`rag/dense.load_model` 本地没有时会下载）。实测第一次部署从开始构建到能回答约 4 分钟，其中启动（含下载模型）约 2 分钟。
+- key 放在 Space 的 Secrets：DeepSeek 用 `LLM_API_KEY`，Claude 原生接口用 `ANTHROPIC_API_KEY`（再在 Variables 里设 `LLM_BACKEND=anthropic`、`LLM_MODEL=claude-haiku-5-5`、`LLM_REASONING_EFFORT=medium`）。
+- Gradio 的 Space 没有启动命令，入口是卡片里 `app_file` 指向的文件：在里面设好参数再调 `app.chat.main()`，例如
+  `sys.argv = ["app.chat", "--lan", "--port", "7860", "--daily-budget", os.environ.get("DAILY_BUDGET", "1")]`。`--lan` 让它监听 0.0.0.0
+  （Space 从外面转发到 7860 端口）；每日上限按进程算，Space 重启（包括休眠后）会重新计。
 - Space 是公开的，任何人都能用，花费上限一定要设。
 
 ## 不部署也能展示

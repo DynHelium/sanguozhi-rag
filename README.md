@@ -3,6 +3,12 @@
 English | [中文](README.zh-CN.md)
 
 [![tests](https://github.com/DynHelium/sanguozhi-rag/actions/workflows/tests.yml/badge.svg)](https://github.com/DynHelium/sanguozhi-rag/actions/workflows/tests.yml)
+[![Open in Spaces](https://img.shields.io/badge/demo-Hugging%20Face%20Spaces-yellow)](https://huggingface.co/spaces/helium-hf/sanguozhi-rag)
+
+**Try it:** [huggingface.co/spaces/helium-hf/sanguozhi-rag](https://huggingface.co/spaces/helium-hf/sanguozhi-rag), the
+web chat running on Claude Haiku 5.5 (ask in English or Chinese; the two games are in Chinese). It has a daily spending
+cap and stops answering for the day once that is used up (a restart resets it); after a quiet period the Space sleeps,
+and the first visit then waits about two minutes while it restarts.
 
 **TL;DR** — Agentic RAG over a 3rd-century Classical Chinese history. Questions come in modern Chinese or English, the corpus
 is Classical Chinese, so the two share little vocabulary. Indexing an LLM-made modern-Chinese translation (document expansion)
@@ -83,6 +89,9 @@ Main parts:
 Design and rationale: [docs/DESIGN.md](docs/DESIGN.md) (in Chinese). Deploying the web demo: [docs/DEPLOY.md](docs/DEPLOY.md) (in Chinese).
 
 ## Demo
+
+Live: [huggingface.co/spaces/helium-hf/sanguozhi-rag](https://huggingface.co/spaces/helium-hf/sanguozhi-rag) (see the note
+at the top). The recording below is the same web chat run locally:
 
 ![Web chat, three turns in English: which emperor was stabbed to death in the street, who stabbed him, and why the emperor attacked Sima Zhao himself; the retrieval steps appear live and the answers quote the original text with [n] citations (UI labels are in Chinese)](docs/images/chat-en.gif)
 
