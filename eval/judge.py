@@ -138,7 +138,7 @@ def main() -> None:
     args = ap.parse_args()
     src = OUT_DIR / f"{args.name}.jsonl"
     if not src.exists():
-        raise SystemExit(f"找不到 {src}; 先跑 uv run python -m eval.run_agent --openrouter --models deepseek-v4.1-flash --effort low --name {args.name}")
+        raise SystemExit(f"找不到 {src}; 先跑 uv run python -m eval.run_agent --models deepseek-v4.1-flash --effort low --name {args.name}")
     items, texts = build_items(args.name, args.models)
     store = Store(OUT_DIR / f"{args.name}.judged.jsonl")
     server = ThreadingHTTPServer(("127.0.0.1", args.port), make_handler(items, texts, store, args.name))

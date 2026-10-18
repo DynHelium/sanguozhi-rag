@@ -43,7 +43,7 @@ token 数和花费（`usage`，美元，OpenRouter 返回的）、配置。
 要重判这里的文件，先把它复制过去（如复制成 `answers/ho1.jsonl`）。
 
 ```bash
-uv run python -m eval.run_agent --openrouter --models deepseek-v4.1-flash --effort low \
+uv run python -m eval.run_agent --models deepseek-v4.1-flash --effort low \
     --questions eval/questions-holdout.jsonl --name ho1
 uv run python -m eval.ai_judge prep ho1 --questions eval/questions-holdout.jsonl   # 打包: data/processed/eval_runs/judge/ho1/batchNN.json
 # 判卷模型按 eval/judge_prompt.md 逐包判, 写成同名的 batchNN.out.jsonl (这一步另外调用模型, 脚本本身不调)
