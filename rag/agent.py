@@ -28,11 +28,14 @@ import sys
 from typing import Any, Callable
 
 from rag import config, llm
+from rag.alias import find_pinyin_names
 from rag.library import ALIAS, READ_MAX, SEARCH_K, Library, Seen, load_library  # noqa: F401 (重新导出, 外部可用 agent.SEARCH_K 等)
 from rag.loop import FINAL_TURN, MAX_ROUNDS, agent_loop
 from rag.quotes import check_cites, extract_quotes, fix_cites, renumber_cites, verify_quotes
 
 MIN_SEARCHES = 2  # search + read 合计不到 2 次就想作答时, 代码追加一句提示让它再查 (只提示一次, 见 make_check).
+MIN_SEARCHES_AGG = 3  # 汇总题 (AGGREGATE: 有哪些, 有几个, ...) 的门槛 (agg_nudge): 漏人多半是只搜了一两次
+AGGREGATE = re.compile(r"有哪些|有几个|几个人|哪几|哪些人|都有谁|分别|各自|how many|who were|which (?:people|men|ones)", re.I)
                   # 小模型常常搜 1 次就答, 只在 prompt 里写 "至少搜两次" 不管用. search 和 who 一次都没调的不提示 (闲聊/拒答); 只调了 who 就作答的也提示.
 NUDGE = ("你只查了 {n} 次. 你看过的资料出自: {where}. 回答前请再查一次, 确认没有漏掉: "
          "资料里提到的相关人物, 用他们的全名分别 search (如问某人的儿子, 就对资料里出现的每个儿子的名字各搜一次); "
@@ -44,8 +47,14 @@ _REFUSAL_TEMPLATE = re.compile(r"人工智能|语言模型|无法回答|换个�
 NOT_FOUND_NUDGE = ("你的回答里说有内容没找到. 答案常常就在资料里, 只是用词不同: 请再换 2~3 种说法 search (同义词, 原文的文言用词, "
                    "相关的人物, 地点, 官职或称号, 如 \"刺杀\" 换成 \"刺 刃 杀害\", \"皇帝\" 换成具体的帝号), 必要时 read 最相关的段落, "
                    "然后再回答. 确实找不到再说没找到.")
+LANG_NOTE = "Always reply in the language the user used."  # lang_note (默认开): 问题后面和自查指令末尾各追加一次.
+# 资料是中文 (文言原文 + 白话), 英文提问时上下文里中文多得多, 有的模型就用中文回答; system prompt 末行的语言要求离作答太远.
+SCOPE_REFUSAL = re.compile(r"只讲三国|只回答三国|不在.{0,8}范围|与三国(历史)?无关|不属于三国")  # "这不是三国的问题" 一类的拒答
+SCOPE_NUDGE = ("你没有查资料就判断这个问题和三国无关. 有些问题只描述事件, 不写人名 (如 \"哪个皇帝被刺死了\" \"谁在船上称象\"), "
+               "其实是三国时期的人和事. 请先用问题里的事件词 search 一次; 查到相关记载就照常回答, 查不到再说明你只讲三国历史.")
 REVIEW = True  # 作答后让模型自查一遍 (指令按 REVIEW_MODE 选) (多一次请求); run_agent(review=...) 可以单独关
-OFF: set[str] = {"nudge_notfound"}  # 关掉的代码介入, 可选 "nudge" "nudge_notfound" "review" "quote_fix" "cite_fix" (见 make_check / after_answer).
+# 默认关的两个: nudge_notfound 见下; nudge_scope 的作用已写进 SYSTEM 第 10 条 (看不出是不是三国的事先搜), 打开时对真正无关的问题也会逼模型搜一次.
+OFF: set[str] = {"nudge_notfound", "nudge_scope"}  # 关掉的代码介入, 可选 "nudge" "nudge_notfound" "nudge_scope" "agg_nudge" "pinyin_who" "lang_note" "review" "quote_fix" "cite_fix" (见 make_check / after_answer / run_agent).
     # 消融实验时由评测脚本覆盖. 默认关 "nudge_notfound": 消融评测里看不出作用, 且正则会误伤正当的 "正史未记载"
 REVIEW_TEXT = ("请逐句核对你刚才的回答, 只能用上面工具返回的资料: "
                "1. 每个事实 (人名, 谁做了什么, 年份和公元年, 官职, 先后顺序, 因果, 书名和作者) 都要在资料里有原文依据; "
@@ -167,12 +176,12 @@ SYSTEM = """你是一位讲解三国历史的老师, 依据《三国志》(陈�
 7. 引用时只引原文 (文言), 不要引白话译文; 一字不改放在「」里, 后面用方括号里的数字标出处, 如「太祖乃變易姓名，間行東歸」[3]. 数字是资料标题开头的 [n]; 不要写资料标题括号里的 id (如 01-0004), 回答正文里也不要出现这种 id. 不要在「」里用省略号跳过内容, 不要把卷名, 人名, 书名单独放进「」.
 8. 裴注要说明引自哪本书 (如 "裴注引《魏書》"); "臣松之以為" "臣松之案" 开头的是裴松之自己的按语, 说成 "裴松之按", 不要算到他引的书上. 几种说法不一致时并列说明, 不替读者裁决.
 9. 问题出自《三国演义》而正史不同的, 照常回答, 说明 "这是演义的说法, 正史记载为……". 问题里的人物, 称号或情节在资料里查不到, 或者和原文对不上时, 想一想它是不是出自《三国演义》或戏曲 (如 "桃园结义" "三英战吕布"): 是的话要明说 "这是《三国演义》的说法, 《三国志》里没有这件事 (或: 记载为……)", 不要只说 "资料里没找到". 问题的说法查不到, 但资料里有能回答它的事实时 (如问两人是否见过面, 资料里有两人的生卒和行踪), 先按第 6 条的推断给出结论, 再在背景段说明这个说法出自哪里. 问题里的说法 (预设) 和原文不完全一致的 (如问 "谁是总指挥", 原文是两人分任左右督), 照原文说明, 不要顺着问题的说法下结论.
-10. 只回答三国 (东汉末到西晋初) 的历史问题. 与此无关的请求 (闲聊, 写代码, 翻译, 其他朝代等), 不调用工具, 一句话说明你只讲三国历史.
+10. 只回答三国 (东汉末到西晋初) 的历史问题. 与此无关的请求 (闲聊, 写代码, 翻译, 其他朝代等), 不调用工具, 一句话说明你只讲三国历史. 问题只描述了一件事, 没写人名, 地名, 年号, 看不出是不是三国的事时 (如 "有个人在船上称大象" "哪个皇帝被刺死了"), 不要直接当成无关请求: 先用问题里的事件词 search 一次, 查到相关记载就照常回答, 查不到再说明你只讲三国历史.
 11. 每条资料都有《三国志》原文 (文言繁体) 和【白话译文】. 先看白话弄懂意思, 再对照原文核实; 两者有出入时以原文为准 (译文可能有错).
 12. 问 "有哪些/有几个" 的汇总题, 每个可能相关的人或传分别搜一次, 不要搜一次就作答. 找到主要的那段正文后, 对它 read 一次 (会附上它的全部裴注, 裴注里常有正文没写的人和事, 如正文只列四个儿子, 裴注里还有第五个). 问儿子, 子女时, 养子 (原文 "養子" "以為子") 也要列出并注明, 并另外搜一次 "某某 养子". 问 "关系如何" "经过如何" 的综合题, 按阶段分别搜 (早年交往, 合作, 交恶, 结局), 每个阶段都要有原文.
 13. 作答前自查: 问题要的每一项都在资料里找到原文了吗? 没找到的继续搜或 read; 确实找不到的明说没找到, 不要用记忆补事实. 查到的事实能不能回答问题? 能用时间先后或对比得出结论的, 不要停在 "资料里没有直接记载", 要把结论推出来并标明是推断.
 14. 无论查到多少, 最后一定要给出文字回答, 不能空着.
-15. 用户用英文提问时: 检索 (search, who) 仍然用中文, 把英文里的人名, 地名, 称号, 官职译回中文再搜 (Cao Cao → 曹操, Red Cliffs → 赤壁, Emperor Zhaolie → 昭烈皇帝, Grand Administrator → 太守); 拼法不标准的 (旧式威妥玛拼音, 如 Chang Ho, Ts'ao Ts'ao) 先想清楚对应哪个中文名. 回答用英文, 人名用汉语拼音, 官职用通行英译 (Chancellor, Grand Commandant, Inspector, Administrator, Colonel); 引文照样引原文 (文言) 并在后面附英文大意.
+15. 用户用英文提问时: search 仍然用中文, 把英文里的人名, 地名, 称号, 官职译回中文再搜 (Cao Cao → 曹操, Red Cliffs → 赤壁, Emperor Zhaolie → 昭烈皇帝, Grand Administrator → 太守); 人名也可以直接用拼音 who (如 who("Zhou Tai")), 它会列出拼音相同的所有人, 不止一位时按问题里的线索分清是哪一位, 拿不准就在回答里说明有几位; 拼法不标准的 (旧式威妥玛拼音, 如 Chang Ho, Ts'ao Ts'ao) 先想清楚对应哪个中文名. 回答用英文, 人名用汉语拼音, 官职用通行英译 (Chancellor, Grand Commandant, Inspector, Administrator, Colonel); 引文照样引原文 (文言) 并在后面附英文大意.
 中文提问用简体中文回答, 英文提问用英文回答; 先给结论 (包括推断出的结论), 再给依据, 背景段放在最后."""
 
 # 小模型 (gemma) 用的 system prompt: 不分事实 / 推断 / 背景, 只依据原文; 要求回答短 (只答问的那一点,
@@ -243,9 +252,9 @@ TOOLS = [
             "required": ["era", "year"]}}},
     {"type": "function", "function": {
         "name": "who",
-        "description": "查人: 给一个姓名, 称号或字 (如 马忠, 先主, 魏王, 曹孟德), 返回别名表里对得上的人: 姓名, 字, 传的首段 id (可以直接 read), 书里的其他称呼 (译文里常用称呼, 如 魏太祖, 先主, 可以拿去 search), 以及已知的同名者. 表里只有有传的人和少数常被只称称号的人, 查不到就直接 search.",
+        "description": "查人: 给一个姓名, 称号或字 (如 马忠, 先主, 魏王, 曹孟德), 返回别名表里对得上的人: 姓名, 字, 传的首段 id (可以直接 read), 书里的其他称呼 (译文里常用称呼, 如 魏太祖, 先主, 可以拿去 search), 以及已知的同名者. 也可以给拼音 (如 Zhou Tai, Chou T'ai, 英文提问时用): 返回拼音相同的所有人, 不止一位时要按问题里的其他线索分清是哪一位. 小说或其他史书里的叫法 (如 孙尚香, 北宫伯玉) 会说明《三国志》里的写法. 表里只有有传的人和少数常被只称称号的人, 查不到就直接 search.",
         "parameters": {"type": "object", "properties": {
-            "name": {"type": "string", "description": "姓名, 称号或字, 如 马忠, 先主, 曹孟德"}},
+            "name": {"type": "string", "description": "姓名, 称号, 字或拼音, 如 马忠, 先主, 曹孟德, Zhou Tai"}},
             "required": ["name"]}}},
 ]
 
@@ -284,13 +293,15 @@ def run_tool(lib: Library, seen: Seen, name: str, arguments: str | None) -> tupl
 
 # ---------- 第 2 层: 循环里的代码介入 ----------
 
-def make_check(rounds: list[dict], seen: Seen, emit: Callable[[str, Any], None]) -> Callable[[str], str | None]:
+def make_check(rounds: list[dict], seen: Seen, emit: Callable[[str, Any], None], question: str = "") -> Callable[[str], str | None]:
     """返回 check(回答) -> 提示文字或 None, 决定 agent_loop 返回后要不要追加提示再查.
 
     rounds 是 run_agent 的工具日志, 用来数模型查了几次. 按顺序判断, 每种提示最多一次, 名字在 OFF 里的跳过:
-        nudge            调过 search 或 who, 但 search + read 不到 MIN_SEARCHES 次 -> nudge_text(...)
+        nudge            调过 search 或 who, 但 search + read 不到 MIN_SEARCHES 次 -> nudge_text(...);
+                         问题是汇总题 (AGGREGATE) 时门槛是 MIN_SEARCHES_AGG (agg_nudge, 默认开)
         nudge_notfound   调过 search, 回答里说没找到 (NOT_FOUND) -> NOT_FOUND_NUDGE
-    一次工具都没用 (闲聊, 拒答) 时不提示. 给出提示时 emit("stage", 名字), 并在 rounds 里记一项 {"by": "code", "tool": 名字, ...}."""
+        nudge_scope      一次工具都没用, 回答是 "只讲三国 / 不在范围内" 的拒答 (SCOPE_REFUSAL) -> SCOPE_NUDGE (默认关, 见 OFF)
+    一次工具都没用 (闲聊, 拒答) 时, 除了 nudge_scope 都不提示: 只描述事件, 不写人名的三国问题, 模型可能当成无关问题直接拒答. 给出提示时 emit("stage", 名字), 并在 rounds 里记一项 {"by": "code", "tool": 名字, ...}."""
     done: set[str] = set()
 
     def add(kind: str, text: str) -> str:
@@ -304,10 +315,14 @@ def make_check(rounds: list[dict], seen: Seen, emit: Callable[[str, Any], None])
         n_look = n_search + sum(1 for x in rounds if x["tool"] == "read")  # 搜过之后又 read 过, 算在找, 不提示
         n_who = sum(1 for x in rounds if x["tool"] == "who")
         # 只调了 who 没 search 也要提示: 小模型常常 who 之后直接作答
-        if "nudge" not in done and "nudge" not in OFF and (n_search or n_who) and n_look < MIN_SEARCHES:
+        need = MIN_SEARCHES_AGG if "agg_nudge" not in OFF and AGGREGATE.search(question) else MIN_SEARCHES
+        if "nudge" not in done and "nudge" not in OFF and (n_search or n_who) and n_look < need:
             return add("nudge", nudge_text(n_look, seen.chunks))
         if "nudge_notfound" not in done and "nudge_notfound" not in OFF and n_search and NOT_FOUND.search(reply):
             return add("nudge_notfound", NOT_FOUND_NUDGE)
+        n_tools = sum(1 for x in rounds if x.get("by") != "code")
+        if "nudge_scope" not in done and "nudge_scope" not in OFF and not n_tools and SCOPE_REFUSAL.search(reply):
+            return add("nudge_scope", SCOPE_NUDGE)
         return None
     return check
 
@@ -345,7 +360,7 @@ def after_answer(reply: str, messages: list[dict], complete: Callable[..., Any],
         emit("stage", "review")
         messages.append({"role": "assistant", "content": reply})
         text = {"short": REVIEW_TEXT_SHORT, "layered": REVIEW_TEXT_LAYERED, "patch": REVIEW_TEXT_PATCH}.get(REVIEW_MODE, REVIEW_TEXT)
-        messages.append({"role": "user", "content": text})
+        messages.append({"role": "user", "content": text + ("" if "lang_note" in OFF else " " + LANG_NOTE)})
         checked = complete(messages).content or ""
         state["review_raw"] = checked
         ok = REVIEW_MODE in ("short", "patch") and bool(_REVIEW_OK_RE.match(checked.strip()))
@@ -401,6 +416,8 @@ def run_agent(question: str, lib: Library, model: str | None = None, complete: C
         effort    给了就作为 reasoning_effort 传给模型
         history   之前几轮的 user / assistant 消息 (只含最终回答), 取最后 HISTORY_TURNS 轮放在本轮问题之前,
                   让 "他儿子呢" 这类追问接得上; 资料编号 [n] 每轮从 1 重新开始
+        语言提醒: OFF 里没有 "lang_note" (默认) 时, 问题后面追加 {"role": "developer", "content": LANG_NOTE},
+                  自查指令末尾也追加一次 (after_answer); 不认 developer 角色的模型会忽略它
         on_event  on_event(kind, info) 报进度, kind 为 "call" (第几次请求) / "tool" (工具日志) / "stage" (代码介入的名字)
                   / "draft" (自查前的初稿, 界面可以先显示);
                   回调里的异常被吞掉
@@ -437,6 +454,17 @@ def run_agent(question: str, lib: Library, model: str | None = None, complete: C
     past = [m for m in (history or []) if m.get("role") in ("user", "assistant") and m.get("content")]
     messages = ([{"role": "system", "content": system or system_for(model)}] + past[-2 * HISTORY_TURNS:]
                 + [{"role": "user", "content": question}])
+    notes = []  # 紧跟在问题后面的 developer 消息 (同 rag/loop.py 的两条提示); 合成一条, 有的接口不许两条系统消息相连
+    if "pinyin_who" not in OFF:  # 英文问题里的拼音人名, 代码先 who 一次, 拼音相同的人一起列出 (有的模型会自己把名字译错, 也不用拼音查);
+        # 引导语用英文: 中文引导语 + 中文的 who 结果会把 Claude Haiku 带成用中文作答 (英文题 18 题里 1 题)
+        for name in find_pinyin_names(question):
+            notes.append(f"Code already looked up the pinyin name {name} in the question with who (the result is in Chinese "
+                         f"only because the source text is):\n{lib.who(name)}")
+            rounds.append({"tool": "pinyin_who", "args": {"name": name}, "chunks": [], "error": None, "by": "code"})
+    if "lang_note" not in OFF:  # 提醒一次作答语言, 自查指令末尾再提醒一次
+        notes.append(LANG_NOTE)
+    if notes:
+        messages.append({"role": "developer", "content": "\n\n".join(notes)})
 
     def call(msgs: list[dict], tools: list[dict] | None = None, effort_: str | None = None) -> Any:
         """请求一次模型, 返回 message (agent_loop 和 after_answer 用): 带上 model / effort (effort_ 给了就换成它),
@@ -477,7 +505,7 @@ def run_agent(question: str, lib: Library, model: str | None = None, complete: C
     reply = agent_loop(messages, tools, call, call_tool)
     # 查得太少就作答等情况: 追加提示, 用剩下的请求次数再跑一次循环. 和把提示放在循环里等价: 提示那次回答也占一次请求,
     # 最后一次 (第 MAX_ROUNDS + 1 次请求) 的回答不再检查; 每种提示最多一次 (make_check 自己记).
-    check = make_check(rounds, seen, emit)
+    check = make_check(rounds, seen, emit, question)
     while state["calls"] <= MAX_ROUNDS and (hint := check(reply)):
         messages.append({"role": "assistant", "content": reply})
         messages.append({"role": "user", "content": hint})

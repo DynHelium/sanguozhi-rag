@@ -1,4 +1,5 @@
-"""LLM 调用只走 OpenAI 兼容接口. 本项目固定用 DeepSeek V4.1 Flash, 经 OpenRouter 调用 (配置见 .env.example).
+"""LLM 调用的入口. 默认走 OpenAI 兼容接口, 用 DeepSeek V4.1 Flash, 经 OpenRouter 调用 (配置见 .env.example);
+LLM_BACKEND=anthropic 时 complete 转给 rag/claude_llm.py (Claude 原生接口, 如 Claude Haiku 5.5), 调用方式和返回值形状不变.
 
     uv run python -m rag.llm          # 发一句话测连通 (需要 .env)
     uv run python -m tests.test_llm   # 假客户端, 不连网
@@ -8,6 +9,7 @@
     LLM_API_KEY           OpenRouter 的 key
     LLM_MODEL             "deepseek/deepseek-v4.1-flash"; 必填
     LLM_REASONING_EFFORT  "low"; 留空时不传这个参数
+    LLM_BACKEND           "openai" (默认) 或 "anthropic"
 
 三个函数的关系: chat 调 complete, complete 调 client().chat.completions.create.
     client()    建 OpenAI 客户端, 整个进程只建一次
@@ -95,6 +97,9 @@ def complete(messages: list[dict[str, Any]], model: str | None = None, **kwargs:
     """
     if config.LLM_REASONING_EFFORT and "reasoning_effort" not in kwargs:
         kwargs["reasoning_effort"] = config.LLM_REASONING_EFFORT
+    if config.LLM_BACKEND == "anthropic":  # Claude 原生接口: 同样的参数, 同样形状的返回值 (见 rag/claude_llm.py)
+        from rag import claude_llm
+        return claude_llm.complete(messages, model=model or config.LLM_MODEL, **kwargs)
     # messages 是普通 dict, SDK 要的是 ChatCompletionMessageParam (几种 TypedDict 的联合), 类型检查器认不出来;
     # kwargs 里可能有 stream, 检查器也推不出返回的是 ChatCompletion 而不是 Stream. 两处都用 cast 告诉它.
     resp = client().chat.completions.create(

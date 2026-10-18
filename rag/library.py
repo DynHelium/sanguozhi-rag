@@ -9,7 +9,7 @@
 import threading
 from typing import TYPE_CHECKING
 
-from rag.alias import alias_index, load_aliases, person_forms
+from rag.alias import alias_index, key, load_aliases, load_extras, load_pinyin, person_forms
 from rag.normalize import to_simplified
 from rag.quotes import source_label
 from rag.retrieve import load_chunks, make_search
@@ -153,7 +153,14 @@ class Library:
             - 新组, 且已有 SEARCH_K 组 -> 跳过这块
             - 新组, 还不满 -> 记下这一组, 收下这块
             - 已有的组 -> 收下这块 (名额满了以后也收)
-        所以返回的块数可以多于 SEARCH_K (如 SEARCH_K 组共 SEARCH_K + 1 块: 头一组是切成两块的长段)."""
+        所以返回的块数可以多于 SEARCH_K (如 SEARCH_K 组共 SEARCH_K + 1 块: 头一组是切成两块的长段).
+        查询里有《三国志》以外的叫法 (rag/alias.load_extras, 如 孙尚香) 时, 先在查询后面补上《三国志》的写法 (孙夫人):
+        原文和译文里只有后者."""
+        q = to_simplified(query)
+        for name, e in load_extras().items():
+            if name in q and e["sgz"] not in q:
+                query += " " + e["sgz"]
+                q += " " + e["sgz"]
         where = scope(book, part)
         hits = self.search_fn(query, SEARCH_K * 2, where) if where else self.search_fn(query, SEARCH_K * 2)
         out, groups = [], []
@@ -209,17 +216,8 @@ class Library:
         return f"{key} 的公元年待核, 无法换算."
 
 
-    def who(self, name: str) -> str:
-        """who 工具, 查别名表 (data/aliases.json): name 可以是姓名, 姓 + 字, 称号 (魏太祖, 先主), 异体 (曹睿); 繁简都认.
-        返回交给模型的文字: 每个对得上的人一行 (姓名, 字, 传的首段 id 或无传者的出处, 全部称呼), 再列表外的同名者 (如东吴马忠).
-        表里只有有传的人和少数常被只称称号的人; 查不到时返回的文字提示模型直接 search. 例 (真实输出):
-            who("马忠") -> "马忠: 共 2 个人.
-                           - 马忠, 字德信 (传的首段 43-0011); 称呼: 马忠, 马德信, 狐笃, 彭乡亭侯
-                           - 另一个 马忠 (出处 47-0016): 潘璋司马，擒获关羽及其子关平、都督赵累于章乡
-                           同名的人要分别 search (加上字, 官职或所属势力区分)."
-            who("先主") -> "先主:\n- 刘备, 字玄德 (传的首段 32-0000); 称呼: 刘备, 刘玄德, 先主, 蜀汉昭烈皇帝, 汉中王, 刘豫州"
-        """
-        q = to_simplified(name.strip())
+    def _who_lines(self, q: str) -> list[str]:
+        """别名表里称呼 q (简体) 对得上的人, 每人一行 (格式见 who), 再加表外的同名者; 对不上时为空."""
         keys, _ = alias_index()
         data = load_aliases()
         lines = []
@@ -230,11 +228,64 @@ class Library:
                          + ", ".join(person_forms(p)))
         others = data.get("homonyms", {}).get(q, [])
         lines += [f"- 另一个 {q} (出处 {o['src']}): {o['desc']}" for o in others]
+        return lines
+
+    def _extra_line(self, q: str) -> str | None:
+        """q 是《三国志》以外的叫法时 (rag/alias.load_extras), 返回说明它来历和《三国志》写法的一行; 否则 None."""
+        e = load_extras().get(q)
+        if e is None:
+            return None
+        what = {"他书": "其他史书的写法", "演义": "《三国演义》等小说里的叫法, 不是《三国志》的记载",
+                "传说": "后世民间的说法, 不是《三国志》的记载"}.get(e["kind"], e["kind"])
+        return f"- {q}: {what}; 《三国志》里查 {e['sgz']} (出处 {e['src']}): {e['desc']}. 检索请用 {e['sgz']}."
+
+    def who(self, name: str) -> str:
+        """who 工具, 查别名表 (data/aliases.json): name 可以是姓名, 姓 + 字, 称号 (魏太祖, 先主), 异体 (曹睿); 繁简都认.
+        name 里没有汉字时当拼音查 (见 _who_pinyin); 有汉字时只按其中的汉字查 ("周泰 Zhou Tai" -> 周泰).
+        name 是《三国志》以外的叫法 (data/aliases_extra.json, 如 孙尚香) 时, 先给一行来历 (_extra_line), 再按它的 sgz 查表.
+        返回交给模型的文字: 每个对得上的人一行 (姓名, 字, 传的首段 id 或无传者的出处, 全部称呼), 再列表外的同名者 (如东吴马忠).
+        表里只有有传的人和少数常被只称称号的人; 查不到时返回的文字提示模型直接 search. 例 (真实输出):
+            who("马忠") -> "马忠: 共 2 个人.
+                           - 马忠, 字德信 (传的首段 43-0011); 称呼: 马忠, 马德信, 狐笃, 彭乡亭侯
+                           - 另一个 马忠 (出处 47-0016): 潘璋司马，擒获关羽及其子关平、都督赵累于章乡
+                           同名的人要分别 search (加上字, 官职或所属势力区分)."
+            who("先主") -> "先主:\n- 刘备, 字玄德 (传的首段 32-0000); 称呼: 刘备, 刘玄德, 先主, 蜀汉昭烈皇帝, 汉中王, 刘豫州"
+        """
+        q = to_simplified(name.strip())
+        han = "".join(c for c in q if "\u4e00" <= c <= "\u9fff")
+        if q and not han:  # 拼音 (Zhou Tai, Chou T'ai)
+            return self._who_pinyin(name)
+        q = han  # 有汉字就只按汉字查 ("周泰 Zhou Tai" -> 周泰)
+        extra = self._extra_line(q)
+        found = self._who_lines(load_extras()[q]["sgz"] if extra else q)
+        lines = ([extra] if extra else []) + found
         if not lines:
             return (f"别名表里没有 {name} (表里只有有传的人和少数常被只称称号的人). 直接用 search 查; "
                     "如果是称号 (如 先主, 宣王), 可以换成全名再查.")
-        head = f"{q}: 共 {len(lines)} 个人." if len(lines) > 1 else f"{q}:"
-        return head + "\n" + "\n".join(lines) + ("\n同名的人要分别 search (加上字, 官职或所属势力区分)." if len(lines) > 1 else "")
+        head = f"{q}: 共 {len(found)} 个人." if len(found) > 1 and not extra else f"{q}:"
+        return head + "\n" + "\n".join(lines) + ("\n同名的人要分别 search (加上字, 官职或所属势力区分)." if len(found) > 1 else "")
+
+
+    def _who_pinyin(self, name: str) -> str:
+        """who 收到拼音 (汉语拼音或威妥玛拼音, 声调, 空格, 撇号, 大小写都不论) 时: 查 rag/alias.load_pinyin 得到中文写法,
+        逐个按中文查, 拼音相同的不止一个写法时在开头说明. 例 (真实输出, 有删节):
+            who("Zhou Tai") -> "Zhou Tai (拼音) 对应 2 个写法: 州泰, 周泰. 拼音相同的不止一人: 按问题里的其他线索
+                                (所属势力, 官职, 事件) 判断是哪一位, 拿不准时在回答里说明有几位.
+                                - 州泰 (传的首段 28-0035); 称呼: ...
+                                - 周泰, 字幼平 (传的首段 55-0014); 称呼: ..."
+        别名表外的人 (没有传, 如 张世平) 查不到, 提示直接 search."""
+        names = load_pinyin().get(key(name), [])
+        if not names:
+            return (f"别名表里没有拼音是 {name} 的人 (表里只有有传的人和少数常被只称称号的人). "
+                    "把名字译成中文 (想一想对应哪几个汉字) 再用 search 查.")
+        lines: list[str] = []
+        for n in names:
+            extra = self._extra_line(n)
+            lines += ([extra] if extra else []) + self._who_lines(load_extras()[n]["sgz"] if extra else n)
+        head = f"{name} (拼音) 对应 {len(names)} 个写法: {', '.join(names)}."
+        if len(names) > 1:
+            head += " 拼音相同的不止一人: 按问题里的其他线索 (所属势力, 官职, 事件) 判断是哪一位, 拿不准时在回答里说明有几位."
+        return head + "\n" + "\n".join(dict.fromkeys(lines))
 
 
 # ---------- 模型看过的块 ----------

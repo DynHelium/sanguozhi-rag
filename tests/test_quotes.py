@@ -71,6 +71,12 @@ def test_renumber_cites():
     assert r == "「城不可得」[1]; 又[2]; 注 [3]; 两处 [1][2]; 编的 [99-0001]; 已是 [2]"
 
 
+def test_extract_curly_quotes_of_classical_text():
+    """“” 里有繁体字, 至少 QUOTE_MIN_CJK 个汉字时也当作引文, 排在「」引文后面; 现代说法 (简体) 的 “” 不收."""
+    reply = "原文：「太祖乃變易姓名，間行東歸」[1]。又说“淯母娥自傷父讎不報”，民间叫她“烈女赵娥”。"
+    assert quotes.extract_quotes(reply) == ["太祖乃變易姓名，間行東歸", "淯母娥自傷父讎不報"]
+
+
 if __name__ == "__main__":
     from tests._run import run as run_tests
     run_tests(globals())

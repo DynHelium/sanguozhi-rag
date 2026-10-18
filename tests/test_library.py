@@ -152,6 +152,46 @@ def test_search_scope():
             pass
 
 
+def test_who_pinyin_lists_all_homophones():
+    """who 收到拼音 (汉语拼音或威妥玛拼音, 大小写, 空格, 撇号都不论) 时列出拼音相同的所有人; 只给字时也认得;
+    表里没有的拼音提示直接 search. 用真实的 data/aliases.json 和 data/aliases_pinyin.json."""
+    for q in ("Zhou Tai", "zhoutai", "Chou T'ai", "Zhōu Tài"):
+        out = LIB.who(q)
+        assert "周泰" in out and "州泰" in out and "不止一人" in out, out
+    out = LIB.who("Zhang Yi")
+    assert all(n in out for n in ("张裔", "张嶷", "张翼")), out
+    assert "诸葛亮" in LIB.who("Kongming") and "不止一人" not in LIB.who("Kongming")
+    assert "search" in LIB.who("Zhang Shiping")
+    assert "乐进" in LIB.who("Yue Jin") and "乐进" in LIB.who("Le Jin"), "姓氏的特殊读音另有一组键"
+    assert "周泰" in LIB.who("周泰 Zhou Tai"), "有汉字时只按汉字查"
+
+
+def test_who_and_search_know_names_outside_sanguozhi():
+    """《三国志》以外的叫法 (data/aliases_extra.json): who 说明是小说 / 其他史书的叫法和《三国志》的写法; 拼音也认;
+    search 在查询后面补上《三国志》的写法再检索."""
+    out = LIB.who("孙尚香")
+    assert "小说" in out and "孙夫人" in out and "34-0002" in out, out
+    assert "其他史书" in LIB.who("北宫伯玉") and "北宫玉" in LIB.who("北宫伯玉")
+    assert "黄承彦" in LIB.who("黄月英") and "民间" in LIB.who("黄月英")
+    assert "孙夫人" in LIB.who("Sun Shangxiang")
+    got = []
+    lib = library.Library(CHUNKS, lambda q, k: got.append(q) or [], ERAS)
+    lib.search("孙尚香 刘备 回吴")
+    assert got == ["孙尚香 刘备 回吴 孙夫人"], got
+    lib.search("孙夫人 回吴")
+    assert got[-1] == "孙夫人 回吴", "已经写了《三国志》的写法就不再补"
+
+
+def test_find_pinyin_names():
+    """英文问题里的拼音人名 (汉语拼音或威妥玛, 1 至 3 个首字母大写的词) 在拼音表里查得到才算; 普通英文不算."""
+    from rag.alias import find_pinyin_names
+    assert find_pinyin_names("Who was Zhou Tai?") == ["Zhou Tai"]
+    assert find_pinyin_names("What did P'ei Ch'ien tell Ts'ao Ts'ao about Liu Pei?") == ["P'ei Ch'ien", "Ts'ao Ts'ao", "Liu Pei"]
+    assert find_pinyin_names("In the Battle of Red Cliffs, how did Zhuge Liang win?") == ["Zhuge Liang"]
+    assert find_pinyin_names("Who were the Eight Masters of Wu?") == []
+    assert find_pinyin_names("曹操是谁") == []
+
+
 if __name__ == "__main__":
     from tests._run import run as run_tests
     run_tests(globals())

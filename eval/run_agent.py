@@ -125,7 +125,7 @@ def main() -> None:
                          "layered = 事实 / 推断 / 背景分开核对 (配合把回答分成这三类的 system prompt), "
                          "patch = 核对标准同 layered, 只列出要改的句子由代码替换")
     ap.add_argument("--review-effort", help="自查等作答之后几步的 reasoning_effort (agent.REVIEW_EFFORT); 不给就和作答相同")
-    ap.add_argument("--off", nargs="+", choices=["nudge", "nudge_notfound", "review", "quote_fix", "cite_fix", "none"],
+    ap.add_argument("--off", nargs="+", choices=["nudge", "nudge_notfound", "nudge_scope", "agg_nudge", "pinyin_who", "lang_note", "review", "quote_fix", "cite_fix", "none"],
                     help=f"消融: 关掉这些代码介入, 覆盖 agent.OFF (默认 {sorted(agent.OFF)}); none = 全开")
     ap.add_argument("--tag", help="结果里 model 字段写这个 (盲判/同一文件放多种配置用); 只能配一个模型")
     ap.add_argument("--summary", action="store_true", help="不跑模型, 只打印汇总 (有判读结果时一并统计); 几套题的结果要带上跑时同样的 --questions")
