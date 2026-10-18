@@ -2,7 +2,7 @@
 和闭卷基线 (eval/run_closed.py), agent (eval/run_agent.py) 在同一批题上对照, 看 "多轮检索 + 代码介入" 比 "检索一次" 多帮了多少.
 这只是评测基线, 产品里只有 agent 一条路径.
 
-    uv run python -m eval.run_single --openrouter --models deepseek-v4.1-flash --effort low \\
+    uv run python -m eval.run_single --models deepseek-v4.1-flash --effort low \\
         --questions eval/questions-holdout.jsonl --name single-holdout
     uv run python -m eval.run_single ... --questions eval/questions-holdout.jsonl eval/questions-en.jsonl --name ss   # 几套题一个进程 -> ss-holdout.jsonl, ss-en.jsonl
 
@@ -34,7 +34,7 @@ from eval.run_agent import _sha, coverage
 from eval.run_retrieval import QUESTIONS_PATH, load_jsonl
 from rag import llm
 from rag.library import Seen, load_library
-from rag.openrouter import PER_MODEL, full_name, make_complete, use_openrouter
+from rag.calls import PER_MODEL, make_complete, setup
 from rag.quotes import check_cites, extract_quotes, verify_quotes
 
 SINGLE = """你是一位讲解三国历史的老师, 依据《三国志》(陈寿正文和裴松之注) 回答提问. 用户消息里附有按问题检索到的资料, 每条以 [n] 编号; 只能依据这些资料回答.
@@ -71,11 +71,8 @@ def main() -> None:
                     help="消融: 不检索, 资料一栏写 (没有资料); prompt 不变, 和本基线对照只差检索")
     ap.add_argument("--name", required=True)
     ap.add_argument("--effort")
-    ap.add_argument("--openrouter", action="store_true")
     args = ap.parse_args()
-    if args.openrouter:
-        use_openrouter()
-        args.models = [full_name(m) for m in args.models]
+    args.models = [setup(m) for m in args.models]  # 检查 key, 短名补全, 模型和 .env 的 LLM_BACKEND 对得上
     outs = out_paths(args.name, args.questions)
     OUT_DIR.mkdir(parents=True, exist_ok=True)
     lib = None if args.no_context else load_library("trans")
@@ -85,7 +82,7 @@ def main() -> None:
     def one(job: tuple[str, dict, Path]) -> None:
         m, q, out = job
         gold, equiv, t = q.get("gold", []), q.get("equiv", {}), time.time()
-        complete = make_complete(m, args.openrouter, sems[m])
+        complete = make_complete(m, sems[m])
         extra = {"reasoning_effort": args.effort} if args.effort else {}
         seen = Seen()
         got = [] if args.no_context else lib.search(q["q"])

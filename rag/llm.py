@@ -4,9 +4,9 @@ LLM_BACKEND=anthropic 时 complete 转给 rag/claude_llm.py (Claude 原生接口
     uv run python -m rag.llm          # 发一句话测连通 (需要 .env)
     uv run python -m tests.test_llm   # 假客户端, 不连网
 
-配置 (rag/config.py 从 .env 读):
-    LLM_BASE_URL          "https://openrouter.ai/api/v1"
-    LLM_API_KEY           OpenRouter 的 key
+配置 (rag/config.py; 除 LLM_BASE_URL 外从 .env 读):
+    LLM_BASE_URL          "https://openrouter.ai/api/v1" (固定, 暂时不支持本地模型)
+    LLM_API_KEY           OpenRouter 的 key (也认 OPENROUTER_API_KEY)
     LLM_MODEL             "deepseek/deepseek-v4.1-flash"; 必填
     LLM_REASONING_EFFORT  "low"; 留空时不传这个参数
     LLM_BACKEND           "openai" (默认) 或 "anthropic"
@@ -34,10 +34,10 @@ def client() -> OpenAI:
     """返回进程里唯一的 OpenAI 客户端; 第一次调用时才建, 之后返回同一个 (functools.cache; client.cache_clear() 清掉后重建).
 
     第一次调用时才读 config 并建客户端: 调用方可能在 import 之后, 第一次请求之前改
-    config.LLM_BASE_URL / LLM_API_KEY (例如用命令行参数切到另一家服务商), import 时就建好的客户端会静默连到 .env 的接口.
+    config.LLM_BASE_URL / LLM_API_KEY (例如测试换成假的接口地址), import 时就建好的客户端会静默连到原来的接口.
 
     config.LLM_MODEL 为空时抛 RuntimeError, 提示去配 .env. 客户端用 config.LLM_BASE_URL 和 config.LLM_API_KEY 建;
-    api_key 为空时传占位串 "empty": SDK 不接受空 key, 不需要 key 的本地接口也不检查它的值.
+    api_key 为空时传占位串 "empty": SDK 不接受空 key; 正常启动时 rag/calls.setup 已经确认 key 填了, 这里只是让没有 key 时 (如测试) 也能建出客户端.
     """
     if not config.LLM_MODEL:
         raise RuntimeError("LLM_MODEL 未设置. LLM_MODEL is not set up.")

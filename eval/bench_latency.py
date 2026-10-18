@@ -1,9 +1,9 @@
 """agent 回答一题的时间花在哪: 跑几道题, 把每题的时间拆成 "模型请求" 和 "检索" 两部分, 每次模型请求单独记.
 
-    uv run python -m eval.bench_latency --openrouter --model deepseek-v4.1-flash --effort low -n 5
-    uv run python -m eval.bench_latency --openrouter --model deepseek-v4.1-flash --effort low --off review   # 关掉自查对比
+    uv run python -m eval.bench_latency --model deepseek-v4.1-flash --effort low -n 5
+    uv run python -m eval.bench_latency --model deepseek-v4.1-flash --effort low --off review   # 关掉自查对比
 
-配置和 rag/library.load_library 的默认一致: 白话索引, 别名扩展; 另用 rag/agent.py 的 SYSTEM / TOOLS, rag/openrouter.make_complete.
+配置和 rag/library.load_library 的默认一致: 白话索引, 别名扩展; 另用 rag/agent.py 的 SYSTEM / TOOLS, rag/calls.make_complete.
 题目默认取 eval/questions-holdout.jsonl 的前 n 题 (--questions 换文件, --ids 指定题), 一题一题顺序跑
 (不并发, 和一个人逐题提问时一样). 只打印, 不写文件.
 
@@ -22,7 +22,7 @@ from collections.abc import Callable
 from typing import Any
 
 from eval.run_agent import PROMPTS
-from rag import openrouter as R
+from rag import calls
 from rag import agent, config
 
 QUESTIONS = config.ROOT / "eval" / "questions-holdout.jsonl"
@@ -31,7 +31,6 @@ QUESTIONS = config.ROOT / "eval" / "questions-holdout.jsonl"
 def main() -> None:
     ap = argparse.ArgumentParser(description="一题的时间花在哪")
     ap.add_argument("--model", default="deepseek-v4.1-flash")
-    ap.add_argument("--openrouter", action="store_true")
     ap.add_argument("--effort", default="low")
     ap.add_argument("-n", type=int, default=5, help="跑题目文件的前几题 (给了 --ids 时不用)")
     ap.add_argument("--off", nargs="*", default=None, help="关掉哪些代码介入 (同 eval.run_agent --off)")
@@ -46,10 +45,7 @@ def main() -> None:
     if args.review_mode:
         agent.REVIEW_MODE = args.review_mode
     agent.REVIEW_EFFORT = args.review_effort
-    model = args.model
-    if args.openrouter:
-        R.use_openrouter()
-        model = R.full_name(model)
+    model = calls.setup(args.model)  # 后端由 .env 的 LLM_BACKEND 决定
 
     t = time.time()
     lib = agent.load_library()
@@ -74,7 +70,7 @@ def main() -> None:
     reqs: list[dict] = []
     totals = []
     for q in qs:
-        base = R.make_complete(model, args.openrouter, threading.Semaphore(1))
+        base = calls.make_complete(model, threading.Semaphore(1))
         stage = {"now": "loop"}
         n0, s0 = len(reqs), len(search_sec)
 

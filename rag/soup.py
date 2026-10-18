@@ -1,7 +1,7 @@
 """三国海龟汤: 给玩家一个隐去关键信息的离奇情境 (汤面), 玩家问是非题或二选一的问题, 裁判回一句话作答,
 最后玩家说出完整真相 (汤底). 题目都取自《三国志》原文 (正文或裴注), 每道题的汤底绑定原文出处.
 
-    uv run python -m app.soup --openrouter     # 网页玩 (见 app/soup.py)
+    uv run python -m app.soup                  # 网页玩 (见 app/soup.py)
     uv run python -m eval.soup                 # 用每题的标准问答测裁判
     uv run python -m tests.test_soup           # 假模型测试, 不连网
 

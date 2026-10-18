@@ -1,6 +1,6 @@
 """三国海龟汤网页 (Gradio): 选一道题, 看汤面, 问是 / 否问题, 卡住了要提示, 最后提交汤底或揭晓.
 
-    uv run python -m app.soup --openrouter --model deepseek-v4.1-flash --effort low   # 打开 http://localhost:7861
+    uv run python -m app.soup --model deepseek-v4.1-flash --effort low   # 打开 http://localhost:7861 (后端看 .env 的 LLM_BACKEND)
 
 游戏规则和裁判见 rag/soup.py. 每个会话的状态是服务端的一个 Game 对象 (含汤底和原文证据), 存在 gr.State 里,
 gr.State 不下发到浏览器; 汤底只在揭晓或猜中时显示. 游戏逻辑在 rag/soup.Game 里, 不依赖 gradio, 测试和聊天里的 skill (rag/skills.py) 直接调它.
@@ -9,7 +9,7 @@ import argparse
 import threading
 from typing import Any
 
-from rag import config, llm, soup
+from rag import soup
 from rag.soup import Game
 
 TIER_NAMES = {"common": "常见人物", "rare": "冷门人物", "obscure": "最冷门"}
@@ -19,21 +19,17 @@ def main() -> None:
     ap = argparse.ArgumentParser(description="三国海龟汤")
     ap.add_argument("--model", help="不给就用 .env 的 LLM_MODEL")
     ap.add_argument("--effort", help="reasoning_effort, 覆盖 .env 的 LLM_REASONING_EFFORT")
-    ap.add_argument("--openrouter", action="store_true", help="走 OpenRouter (key 见 rag/openrouter.use_openrouter)")
     ap.add_argument("--port", type=int, default=7861)
     args = ap.parse_args()
 
     import gradio as gr  # ui extra
 
-    model, complete = args.model, llm.complete
-    if args.openrouter:
-        from rag.openrouter import PER_MODEL, full_name, make_complete, use_openrouter
-        use_openrouter()
-        model = full_name(model or config.LLM_MODEL)
-        sem = threading.Semaphore(PER_MODEL)  # 所有玩家共用并发上限
+    from rag import calls
+    model = calls.setup(args.model)  # 后端由 .env 的 LLM_BACKEND 决定
+    sem = threading.Semaphore(calls.PER_MODEL)  # 所有玩家共用并发上限
 
-        def complete(*a: Any, **kw: Any) -> Any:  # 每次请求新包一层: make_complete 按创建时刻计时, 不能全站共用一个
-            return make_complete(model, True, sem)(*a, **kw)
+    def complete(*a: Any, **kw: Any) -> Any:  # 每次请求新包一层: make_complete 按创建时刻计时, 不能全站共用一个
+        return calls.make_complete(model, sem)(*a, **kw)
     puzzles = {p["id"]: p for p in soup.load_puzzles()}
     choices = [(f"[{TIER_NAMES.get(p['tier'], p['tier'])}] {p['title']}", pid) for pid, p in puzzles.items()]
 

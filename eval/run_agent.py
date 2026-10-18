@@ -1,11 +1,11 @@
 """agent 评测: 每题 x 每个模型跑一遍 rag/agent.run_agent, 记下模型看过哪些块, 回答和引文.
 
-    # 默认配置: DeepSeek V4.1 Flash 经 OpenRouter (只用 rag/openrouter.PROVIDERS 指定的服务商), 思考 low, 留出题
-    uv run python -m eval.run_agent --openrouter --models deepseek-v4.1-flash --effort low \
+    # 默认配置: DeepSeek V4.1 Flash 经 OpenRouter (只用 rag/calls.PROVIDERS 指定的服务商), 思考 low, 留出题
+    uv run python -m eval.run_agent --models deepseek-v4.1-flash --effort low \
         --questions eval/questions-holdout.jsonl --name <名>
-    uv run python -m eval.run_agent --openrouter --models deepseek-v4.1-flash --effort low \
+    uv run python -m eval.run_agent --models deepseek-v4.1-flash --effort low \
         --questions eval/questions-holdout.jsonl eval/questions-en.jsonl --name cv    # 几套题一个进程跑完 (索引和 embedding 模型只加载一次) -> cv-holdout.jsonl, cv-en.jsonl
-    uv run python -m eval.run_agent --models deepseek-v4.1-flash --ids r-03 r-16 --name dev   # 不加 --openrouter: 用 .env 里的 LLM_BASE_URL / LLM_API_KEY 直连
+    uv run python -m eval.run_agent --models claude-haiku-5-5 --effort medium ... --name hk   # claude-* 模型: .env 设 LLM_BACKEND=anthropic (见 rag/calls.py)
     uv run python -m eval.run_agent --off review ... --name <名>                # 消融: 关掉某个代码介入 (覆盖 agent.OFF)
     uv run python -m eval.run_agent --rescore --name <名> --questions eval/questions-holdout.jsonl   # 改了 gold / equiv 后重算覆盖字段, 不调模型; --questions 和 --index 要与当初运行时一致
     uv run python -m eval.run_agent --summary --name <名> [--questions ...]     # 只打印汇总 (几套题一起跑的, 带上同样的 --questions)
@@ -36,7 +36,7 @@ none 题 (资料里没有答案, gold 为空) 照跑, 看模型会不会老实�
      "rounds": [{"tool": "search", "args": {...}, "chunks": [...], "error": null, "by": "model"}, ...,
                 {"by": "code", "tool": "review", "args": {}, "chunks": [], "error": null}],   同 run_agent 的 rounds
      "calls": 4, "prompt_tokens": [2630, 10882, 14246, 13752],   模型请求次数, 每次请求的输入 token 数; 接口没返回 usage 时该项为 null
-     "usage": {"prompt": 41510, "completion": 1261, "cached": 17536, "cost": 0.001},   rag/openrouter.make_complete 的记账
+     "usage": {"prompt": 41510, "completion": 1261, "cached": 17536, "cost": 0.001},   rag/calls.make_complete 的记账
      "prompt": "SYSTEM", "tools": "TOOLS", "effort": "low", "index": "trans", "alias": "route2", "off": ["nudge_notfound"],
      "review_mode": "layered", "system_sha": "3f2a…", "review_sha": "9c1e…",   这次运行的配置; *_sha 是 prompt 和自查指令全文的哈希
      "error": "TimeoutError: ..."}              只有出错时才有 (这时 reply 为 "", retrieved 为 []); 续跑时重跑这题
@@ -64,7 +64,7 @@ from eval import metrics
 from eval.common import OUT_DIR, is_refusal, out_paths, summary
 from eval.run_retrieval import QUESTIONS_PATH, load_jsonl
 from rag import agent, llm
-from rag.openrouter import PER_MODEL, full_name, make_complete, use_openrouter
+from rag.calls import PER_MODEL, make_complete, setup
 from rag.retrieve import load_chunks
 
 PROMPTS = Path(__file__).with_name("agent_prompts")
@@ -118,8 +118,7 @@ def main() -> None:
     ap.add_argument("--effort", help="reasoning_effort (none / low / medium / high), 覆盖 .env")
     ap.add_argument("--tools", help="工具声明换成 eval/agent_prompts/<名字>.tools.json (仓库里不带这个目录, 要自己建); 不给就用 rag/agent.py 的 TOOLS")
     ap.add_argument("--alias", default=agent.ALIAS, help=f"检索的别名扩展方式 (默认 {agent.ALIAS}; \"\" = 不扩展)")
-    ap.add_argument("--openrouter", action="store_true", help="走 OpenRouter (key 见 rag/openrouter.use_openrouter), 只用 rag/openrouter.PROVIDERS 指定的服务商")
-    ap.add_argument("--jobs", type=int, default=1, help="同时跑几题 (单模型另有并发上限 PER_MODEL; --openrouter 时至少为 PER_MODEL x 模型数)")
+    ap.add_argument("--jobs", type=int, default=1, help="同时跑几题 (至少为 PER_MODEL x 模型数; 单模型另有并发上限 PER_MODEL)")
     ap.add_argument("--review-mode", default=agent.REVIEW_MODE, choices=["rewrite", "short", "layered", "patch"],
                     help="自查的做法 (agent.REVIEW_MODE): rewrite = 一律重写整篇, short = 没问题只回 无误, "
                          "layered = 事实 / 推断 / 背景分开核对 (配合把回答分成这三类的 system prompt), "
@@ -148,10 +147,8 @@ def main() -> None:
         agent.OFF = set(args.off) - {"none"}
     agent.REVIEW_MODE = args.review_mode
     agent.REVIEW_EFFORT = args.review_effort
-    if args.openrouter:
-        use_openrouter()
-        args.models = [full_name(m) for m in args.models]
-        args.jobs = max(args.jobs, PER_MODEL * len(args.models))
+    args.models = [setup(m) for m in args.models]  # 检查 key, 短名补全, 模型和 .env 的 LLM_BACKEND 对得上
+    args.jobs = max(args.jobs, PER_MODEL * len(args.models))
     system = (PROMPTS / f"{args.prompt}.txt").read_text(encoding="utf-8").strip() if args.prompt else None
     tool_decl = json.loads((PROMPTS / f"{args.tools}.tools.json").read_text(encoding="utf-8")) if args.tools else None
     outs = out_paths(args.name, args.questions)
@@ -177,7 +174,7 @@ def main() -> None:
     def one(job: tuple[str, dict, Path]) -> None:
         m, q, out = job
         gold, equiv, t = q.get("gold", []), q.get("equiv", {}), time.time()
-        complete = make_complete(m, args.openrouter, sems[m])
+        complete = make_complete(m, sems[m])
         try:
             res, err = agent.run_agent(q["q"], lib, model=m, complete=complete,
                                        system=system, effort=args.effort, tools=tool_decl), None
