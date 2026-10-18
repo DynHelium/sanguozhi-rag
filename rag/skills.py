@@ -1,6 +1,6 @@
 """三国志 Agent 的 skill: 问答 agent 可以和玩家玩的游戏 (猜人物, 海龟汤).
 
-    uv run python -m rag.skills --openrouter     # 命令行里玩: 输入 "/猜人物" 或 "/海龟汤" 开局 (命令行不接问答 agent)
+    uv run python -m rag.skills                  # 命令行里玩: 输入 "/猜人物" 或 "/海龟汤" 开局 (命令行不接问答 agent)
     uv run python -m tests.test_skills           # 假模型测试, 不连网
 
 每个 skill 是 skills/<name>/SKILL.md: 开头的 YAML frontmatter 给名字、说明和快捷命令, 正文是玩法说明.
@@ -57,7 +57,7 @@ COMMANDS = {
     "help": ("/帮助", "/help"),
 }
 ANSWER = re.compile(r"^/(?:答|answer)\s*(.*)$", re.S | re.I)
-REQUEST_TIMEOUT = 60  # 游戏里单次模型请求的超时 (秒); 问答 agent 用 rag/openrouter 的默认 300 秒
+REQUEST_TIMEOUT = 60  # 游戏里单次模型请求的超时 (秒); 问答 agent 用 rag/calls 的默认 300 秒
 TRACE_DIR = config.DATA_DIR / "processed" / "game_logs"  # 游戏和网页问答的逐步记录, 按天一个 jsonl (不进 git)
 _ctx = threading.local()  # 当前线程正在处理的那一问: sid, skill, turn, cancel; 模型请求的记录靠它知道属于哪一问
 _trace_lock = threading.Lock()
@@ -375,20 +375,15 @@ def main() -> None:
     ap = argparse.ArgumentParser(description="三国志 Agent 的游戏 skill (命令行)")
     ap.add_argument("--model", help="不给就用 .env 的 LLM_MODEL")
     ap.add_argument("--effort", help="reasoning_effort, 覆盖 .env 的 LLM_REASONING_EFFORT")
-    ap.add_argument("--openrouter", action="store_true", help="走 OpenRouter (key 见 rag/openrouter.use_openrouter)")
     args = ap.parse_args()
-    from rag import llm
+    from rag import calls
     from rag.library import load_library
 
-    model, complete = args.model or config.LLM_MODEL, llm.complete
-    if args.openrouter:
-        from rag.openrouter import PER_MODEL, full_name, make_complete, use_openrouter
-        use_openrouter()
-        model = full_name(model)
-        sem = threading.Semaphore(PER_MODEL)
+    model = calls.setup(args.model)  # 后端由 .env 的 LLM_BACKEND 决定
+    sem = threading.Semaphore(calls.PER_MODEL)
 
-        def complete(*a: Any, **kw: Any) -> Any:  # 每次请求新包一层: make_complete 按创建时刻计时
-            return make_complete(model, True, sem)(*a, **kw)
+    def complete(*a: Any, **kw: Any) -> Any:  # 每次请求新包一层: make_complete 按创建时刻计时
+        return calls.make_complete(model, sem)(*a, **kw)
     router = make_router(load_library(), complete, model, args.effort or config.LLM_REASONING_EFFORT or None)
     names = " / ".join(t for s in router.skills.values() for t in s.triggers[:1])
     print(f"输入 {names} 开局; Ctrl-D 退出.")

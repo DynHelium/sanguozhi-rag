@@ -1,7 +1,7 @@
 """闭卷基线: 不给工具, 不给资料, 模型凭记忆直接回答, 看 RAG 帮了多少. 每题只调 1 次模型.
 结果格式和 eval/run_agent.py 相同 (没有检索相关字段, usage 同样是 token 和花费记账), 可以直接用 eval/ai_judge.py 判卷.
 
-    uv run python -m eval.run_closed --openrouter --models deepseek-v4.1-flash --effort low \\
+    uv run python -m eval.run_closed --models deepseek-v4.1-flash --effort low \\
         --questions eval/questions-holdout.jsonl --name closed-holdout
     uv run python -m eval.run_closed ... --questions eval/questions-*.jsonl --name cb      # 几套题一起跑 -> cb-holdout.jsonl, cb-en.jsonl, ...
     uv run python -m eval.ai_judge prep closed-holdout --questions eval/questions-holdout.jsonl
@@ -17,7 +17,7 @@ import time
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
-from rag.openrouter import PER_MODEL, full_name, make_complete, use_openrouter
+from rag.calls import PER_MODEL, make_complete, setup
 from eval.common import OUT_DIR, is_refusal, out_paths
 from eval.run_retrieval import QUESTIONS_PATH, load_jsonl
 
@@ -37,11 +37,8 @@ def main() -> None:
     ap.add_argument("--questions", type=Path, nargs="+", default=[QUESTIONS_PATH], help="题目文件, 可以给几个 (见 eval.common.out_paths)")
     ap.add_argument("--name", required=True)
     ap.add_argument("--effort")
-    ap.add_argument("--openrouter", action="store_true")
     args = ap.parse_args()
-    if args.openrouter:
-        use_openrouter()
-        args.models = [full_name(m) for m in args.models]
+    args.models = [setup(m) for m in args.models]  # 检查 key, 短名补全, 模型和 .env 的 LLM_BACKEND 对得上
     OUT_DIR.mkdir(parents=True, exist_ok=True)
     sems = {m: threading.Semaphore(PER_MODEL) for m in args.models}
     lock = threading.Lock()
@@ -49,7 +46,7 @@ def main() -> None:
     def one(job: tuple[str, dict, Path]) -> None:
         m, q, out = job
         t = time.time()
-        complete = make_complete(m, args.openrouter, sems[m])
+        complete = make_complete(m, sems[m])
         extra = {"reasoning_effort": args.effort} if args.effort else {}
         try:
             r = complete([{"role": "system", "content": system_for(q["q"])}, {"role": "user", "content": q["q"]}], model=m, **extra)

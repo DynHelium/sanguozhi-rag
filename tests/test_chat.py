@@ -211,6 +211,22 @@ def test_new_message_interrupts_old_one():
     assert list(old) == [] and new[-1][-1]["content"] == "新回答"
     assert len(old_script.seen) == 1, "被打断后不再请求模型"
 
+def test_runtime_messages_follow_question_language():
+    """进度, 折叠框标题和限制说明跟着这一问的语言: 有汉字用中文, 否则英文; 界面文字两种语言的键一致."""
+    out, _ = run("Did Cao Cao go to Junyi?", [], resp(calls=[tc("c1", "search", query="浚儀")]), resp("Yes [1]"))
+    titles = [m.get("metadata", {}).get("title", "") for m in out[-1]]
+    assert any(x.startswith("Search steps") for x in titles) and "· Search: 浚儀" in out[-1][0]["content"], out[-1]
+    out, _ = run("曹操去过浚仪吗", [], resp(calls=[tc("c1", "search", query="浚儀")]), resp("去过 [1]"))
+    assert out[-1][0]["metadata"]["title"].startswith("检索过程") and "· 搜索: 浚儀" in out[-1][0]["content"]
+    assert "too long" in chat.check_limits("Q" * (chat.MAX_QUESTION_CHARS + 1), [], None)
+    budget = chat.Budget(0.01)
+    budget.add(0.02)
+    out = list(chat.make_respond(LIB, complete_factory=lambda: Script(), budget=budget)("Who was Zhou Tai?", []))
+    assert "quota" in out[0][0]["content"] and "额度" not in out[0][0]["content"]
+    assert set(chat.UI_TEXT["zh"]) == set(chat.UI_TEXT["en"]) and set(chat.MSG["zh"]) == set(chat.MSG["en"])
+    assert {k for k, _ in chat.GAME_BUTTONS} <= set(chat.UI_TEXT["en"])
+
+
 if __name__ == "__main__":
     from tests._run import run as run_tests
     run_tests(globals())

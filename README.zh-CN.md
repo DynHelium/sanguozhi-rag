@@ -29,10 +29,10 @@
 - **工具背后的数据查询**（`rag/library.py`）：agent 的四个工具 search（检索）、read（读前后文，裴注附上所注正文）、
   era（年号换算公元年）、who（一个称呼指谁、有几个同名的人），以及给模型看的资料编号 `[n]`
 - **接入大模型**（`rag/llm.py`）：OpenAI 兼容接口，返回完整响应（工具调用要看 `tool_calls`）。`LLM_BACKEND=anthropic` 时同一个调用转给 `rag/claude_llm.py`：经 Anthropic SDK（可选依赖 `anthropic`）调 Claude Messages API，返回同样形状的响应，所以 agent、游戏、网页聊天和评测脚本都不用改。它随工具调用回传模型的思考块，历史只追加不改写（提示缓存才生效），并传递思考强度
-  - 经 OpenRouter 调用时的包装（`rag/openrouter.py`）：只用 `.env` 里 `LLM_PROVIDERS` 指定的服务商，限流时退避重试，记录 token 和花费
+  - 各入口共用的请求包装（`rag/calls.py`）：启动时检查 `.env` 里这个后端的 key 填了没有、模型和后端对不对得上（`claude-*` 模型要 `LLM_BACKEND=anthropic`），限流时退避重试（Claude 原生接口报花费上限已到的 429 除外），记录 token 和花费；经 OpenRouter 时让它在响应里返回花费，并只用 `LLM_PROVIDERS` 指定的服务商。后端只在 `.env` 里选；本地模型（把 OpenAI 兼容接口指到 Ollama 等）暂时不支持
 - **agent 循环**（`rag/loop.py`）：调模型 → 执行模型要的工具 → 结果作为 `tool` 消息发回 → 再调模型，直到它作答；
   轮数上限由代码保证（最后一次请求不带工具）。附录 `eval/tool_calling.py` 是早期的单工具实验：
-  本地小模型能不能稳定地用 tools 接口。
+  本地小模型能不能稳定地用 tools 接口（实测要本地模型，暂时跑不了；它的假模型测试照常能跑）。
 
 - **完整的 agent**（`rag/agent.py`）：模型自己决定搜什么、读什么，代码不预先检索。system prompt 要求回答分三类写：事实取自查到的原文
   （引原文、标编号 `[n]`），推断写明"据此推断"和依据，《三国演义》情节和地名今释放在最后一段并标明"不是《三国志》的记载"。
@@ -116,11 +116,11 @@ uv run python -m eval.run_retrieval -r hybrid --index trans --alias route2   # �
 
 ```bash
 uv sync --extra index --extra ui
-uv run python -m app.chat --openrouter --model deepseek-v4.1-flash --effort low   # 打开 http://localhost:7860
+uv run python -m app.chat --model deepseek-v4.1-flash --effort low   # 打开 http://localhost:7860
 ```
 
 改用 Claude Haiku 5.5：`uv sync --extra anthropic`，在 `.env` 里设 `LLM_BACKEND=anthropic`、`LLM_MODEL=claude-haiku-5-5`、
-`LLM_REASONING_EFFORT=medium` 和 `ANTHROPIC_API_KEY`（`.env.example` 末尾有这几行），启动网页时不加 `--openrouter`：
+`LLM_REASONING_EFFORT=medium` 和 `ANTHROPIC_API_KEY`（`.env.example` 末尾有这几行）。各个命令都从 `.env` 读后端，所以命令不变，只换模型名：
 
 ```bash
 uv sync --extra index --extra ui --extra anthropic
@@ -137,7 +137,7 @@ uv run python -m app.chat --model claude-haiku-5-5 --effort medium
 另一个例子，用命令行问：
 
 ```bash
-uv run python -m rag.agent "桃园结义是真的吗？刘关张在正史里是什么关系？" --openrouter --model deepseek-v4.1-flash --effort low
+uv run python -m rag.agent "桃园结义是真的吗？刘关张在正史里是什么关系？" --model deepseek-v4.1-flash --effort low
 ```
 
 模型先自己检索（下面是它的工具调用），再作答；最后一行起是代码对每条引文的核对（✓ = 原文里逐字找得到）：
@@ -245,10 +245,10 @@ DeepSeek 21 / 0 / 0。三道同音题里 Haiku 有两道列出了拼音相同的
 每处改判都和原判一起记录。逐题回答、判卷结果（含每题 token 和花费）和判卷工具在 [`eval-judging`](https://github.com/DynHelium/sanguozhi-rag/tree/eval-judging) 分支。
 
 ```bash
-uv run python -m eval.run_agent --openrouter --models deepseek-v4.1-flash --effort low --questions eval/questions-*.jsonl --name cv   # 一个进程跑完, 结果按题集分文件: cv-holdout.jsonl, ...
+uv run python -m eval.run_agent --models deepseek-v4.1-flash --effort low --questions eval/questions-*.jsonl --name cv   # 一个进程跑完, 结果按题集分文件: cv-holdout.jsonl, ...
 uv run python -m eval.run_agent ... --off nudge nudge_notfound review quote_fix cite_fix --name off               # 关掉代码介入
-uv run python -m eval.run_single --openrouter --models deepseek-v4.1-flash --effort low --questions eval/questions-*.jsonl --name ss  # 检索一次 (--no-context: 同 prompt 不给资料)
-uv run python -m eval.run_closed --openrouter --models deepseek-v4.1-flash --effort low --questions eval/questions-*.jsonl --name cb  # 闭卷
+uv run python -m eval.run_single --models deepseek-v4.1-flash --effort low --questions eval/questions-*.jsonl --name ss  # 检索一次 (--no-context: 同 prompt 不给资料)
+uv run python -m eval.run_closed --models deepseek-v4.1-flash --effort low --questions eval/questions-*.jsonl --name cb  # 闭卷
 uv run python -m eval.run_agent --summary --name cv --questions eval/questions-*.jsonl                         # 汇总: 看到 / 找全 gold 段落的比例
 ```
 
@@ -276,7 +276,7 @@ uv run python -m eval.run_agent --summary --name cv --questions eval/questions-*
 
 ```bash
 uv sync --extra ui
-uv run python -m app.soup --openrouter --model deepseek-v4.1-flash --effort low   # 打开 http://localhost:7861
+uv run python -m app.soup --model deepseek-v4.1-flash --effort low   # 打开 http://localhost:7861
 ```
 
 - 裁判（`rag/soup.py`）只拿到这道题的汤底和原文证据，prompt 要求只据此判断、只答结论：是非题答 是 / 不是，二选一答选项，
@@ -284,14 +284,14 @@ uv run python -m app.soup --openrouter --model deepseek-v4.1-flash --effort low 
   不提供问题以外的信息。代码不预先拦问题，
   唯一的代码检查是防泄底：回答里出现谜底人名就换成一句"不能说"。
 - 提交汤底时按"必需要点"逐条判，全说到且没有矛盾才算猜中；没猜中时只说说到了几条，不说缺哪条。
-- `uv run python -m eval.soup --openrouter` 用每题的标准问答测裁判判得准不准。
+- `uv run python -m eval.soup` 用每题的标准问答测裁判判得准不准。
 - 也可以在网页聊天（`app/chat.py`）里玩：用自己的话说想玩或点按钮开局，"/答 你的解释"提交汤底。
 
 ![三国海龟汤：对一道题连问几个是非问题](docs/images/soup.gif)
 
 ## 猜人物
 
-在网页聊天里说想玩（如"我们玩猜人物吧"）或点按钮开局（命令行：`uv run python -m rag.skills --openrouter`），有两种玩法：
+在网页聊天里说想玩（如"我们玩猜人物吧"）或点按钮开局（命令行：`uv run python -m rag.skills`），有两种玩法：
 
 - **你来猜**：程序随机定一个《三国志》人物，是非题或二选一的问题随便问，名字最多猜 3 次（猜错 3 次揭晓答案）。出题由代码随机：
   统计别名表里每个人在全书正文里出现的段数，按段数的平方根加权挑一个，名人多一些但不会独占。

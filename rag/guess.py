@@ -2,7 +2,7 @@
     1. Agent 出题, 玩家来猜 (GuessGame): Agent 心里定一个《三国志》人物, 玩家问是非问题, 最后说出名字.
     2. 玩家出题, Agent 来猜 (AgentGuessGame): 玩家心里想一个人, Agent 问是非问题 (GUESS_SYS, 可以查原文), 最后猜名字.
 
-    uv run python -m rag.skills --openrouter   # 命令行里玩 (输入 "猜人物" 开局; 不带 --openrouter 用 .env 的模型), 见 rag/skills.py
+    uv run python -m rag.skills                # 命令行里玩 (输入 "猜人物" 开局; 用 .env 的后端和模型), 见 rag/skills.py
     uv run python -m tests.test_skills         # 假模型测试, 不连网
 
 玩法 1 的谜底由 random_person 从别名表 (data/aliases.json, 有传的人和原文多处记载的无传人物) 里随机出:

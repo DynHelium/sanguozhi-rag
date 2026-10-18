@@ -2,9 +2,10 @@
 
 不代表当前配置: 现在的 agent (rag/agent.py) 固定用 DeepSeek V4.1 Flash (经 OpenRouter), 有四个工具. 保留这个脚本是为了
 记录 "轮数上限靠最后一次不传 tools" 这个决定的依据.
+现在暂时不支持本地模型: 接口地址固定为 OpenRouter (rag/config.LLM_BASE_URL), 所以实测部分跑不了 (要恢复见 rag/calls.py 开头);
+假模型测试 (tests.test_tool_loop) 和 --summary 照常能跑.
 
-    uv run python -m eval.tool_calling                      # 跑 MODELS 里的模型, 约 30~40 分钟
-                                                            # (先在 .env 把 LLM_BASE_URL 设为本机 Ollama, 如 http://localhost:11434/v1)
+    uv run python -m eval.tool_calling                      # 跑 MODELS 里的模型, 约 30~40 分钟 (要本机 Ollama, 暂时跑不了, 见上)
     uv run python -m eval.tool_calling --summary <结果文件>   # 只打印汇总
     uv run python -m tests.test_tool_loop                   # 假模型测试 check_call / loop_one
 
@@ -334,6 +335,7 @@ def main() -> None:
     if args.summary:
         summarize(json.loads(open(args.summary, encoding="utf-8").read()))
         return
+    raise SystemExit("实测要本机 Ollama, 暂时不支持本地模型 (接口地址固定为 OpenRouter; 要恢复见 rag/calls.py 开头); 只能 --summary")
     with open(config.ROOT / "eval" / "retrieval.jsonl", encoding="utf-8") as f:
         questions = [json.loads(line) for line in f if line.strip()]
     out = OUT

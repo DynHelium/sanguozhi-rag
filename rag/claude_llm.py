@@ -26,7 +26,7 @@
       (按对话里最后一个 tool_call id 查 _TOOLS, 几段对话同时进行也不会串) 并加 tool_choice {"type": "none"},
       禁止调用工具由 API 保证 (撤掉 tools 本身也算改了前缀).
 
-返回值 (属性访问, 只有 agent 和 rag/openrouter.make_complete 用到的字段):
+返回值 (属性访问, 只有 agent 和 rag/calls.make_complete 用到的字段):
     resp.choices[0].message.content      回答文字 (多个 text 块拼接; 没有时为 None)
     resp.choices[0].message.tool_calls   [tc, ...] 或 None; tc.id, tc.function.name, tc.function.arguments (JSON 字符串)
     resp.choices[0].finish_reason        end_turn -> "stop", tool_use -> "tool_calls", max_tokens -> "length", refusal -> "content_filter"

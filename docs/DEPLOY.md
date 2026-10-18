@@ -13,24 +13,24 @@
 | 向量缓存 | 原文、白话两套各约 17MB（4365 块 × 1024 维 float32） | 预先建好（`rag.dense`、`rag.dense --trans`）随应用一起放，不要在启动时现编（约 12 分钟：原文约 5 分钟 + 白话约 7 分钟） |
 | 原文和切块 | 几十 MB | `ingest.use_wikisource`、`ingest.trans_chunks` 生成 |
 | OpenRouter key | 环境变量 `LLM_API_KEY`（或 `OPENROUTER_API_KEY`） | 只放在服务端（如平台的 Secrets），浏览器拿不到 |
+| Claude 原生接口的 key（用 Claude 后端时） | 环境变量 `ANTHROPIC_API_KEY`，并设 `LLM_BACKEND=anthropic`、`LLM_MODEL=claude-haiku-5-5` | 同上 |
 
 ## 控制花费
 
 公开部署后任何人都能提问，花费随提问次数增长；多轮对话（每轮都带上前文）和失败重试会更贵。网页聊天自带这几道限制：
 
-- `--daily-budget <美元>`：按 OpenRouter 返回的实际花费累计，当天用满后拒绝新问题，第二天清零（进程重启也会清零）。
+- `--daily-budget <美元>`：按接口返回的实际花费累计（OpenRouter 和 Claude 原生接口都有，问答和游戏都算），当天用满后拒绝新消息，第二天清零（进程重启也会清零：Space 休眠后再唤醒就是一次重启，所以还要在服务商后台设总额度）。
   每题答完才记账，几个问题同时在答时总花费可能略超上限，所以它不是硬上限。
 - 每个问题最长 500 字（`app/chat.py` 的 `MAX_QUESTION_CHARS`）；对话轮数不设上限。
 - 用户点停止，或在回答过程中发了新消息，后台不再开始新的一次模型调用；正在进行的那次请求（包括它内部的限流重试）可能还会做完。
-- 同时最多 8 个问题在回答（Gradio 的 `concurrency_limit`），其余排队；同一模型同时在途的请求数另有上限（`rag/openrouter.PER_MODEL`）。
+- 同时最多 8 个问题在回答（Gradio 的 `concurrency_limit`），其余排队；同一模型同时在途的请求数另有上限（`rag/calls.PER_MODEL`）。
 - 游戏的每一问也要调用模型（猜人物单次请求 60 秒超时，一问最多 90 秒）。游戏的消息不经过上面的问题长度检查，
-  花费也**不计入** `--daily-budget`：预算用满后游戏仍然能玩。裁判判为"非游戏"、转给问答 agent 的消息照常受上面的限制和记账。
-  公网部署时要靠 OpenRouter 的 key 额度兜底。
+  花费计入 `--daily-budget`，预算用满后游戏也停。
 
 局域网访问：`uv run python -m app.chat ... --lan` 监听 0.0.0.0，启动时打印局域网地址，同一网络里的手机、电脑都能打开。
 不设密码，只在可信的网络里用；macOS 第一次可能弹出防火墙提示，要允许 Python 接受连接。
 
-另外建议在 OpenRouter 后台给这个 key 设一个总额度上限，作为最后一道保险。
+另外建议在服务商后台设一个总额度上限，作为最后一道保险：OpenRouter 可以给 key 设额度；Claude Console 不能按 key 设，要给展示页单独建一个 workspace，在它的 Limits 页设月度花费上限，key 建在这个 workspace 下。
 
 话题限制（只回答三国历史问题）只靠 system prompt，代码不强制，别的请求仍会消耗模型调用。公网部署时可以考虑加检索分数阈值或分类器把关。
 
@@ -46,7 +46,7 @@ Spaces 和 Gradio 配合最直接，但要注意：
 
 - 计划和硬件按 Hugging Face 当前的 Spaces 价格和硬件选择；免费硬件可能放不下模型或会休眠，部署前核实。
   Space 的磁盘不持久（重启后要重新下载模型），所以把模型和向量缓存打进镜像，或放到持久存储里。
-- key 放在 Space 的 Secrets，变量名 `LLM_API_KEY`；启动命令用 `--openrouter --daily-budget …`。
+- key 放在 Space 的 Secrets：DeepSeek 用 `LLM_API_KEY`，Claude 原生接口用 `ANTHROPIC_API_KEY`（再在 Variables 里设 `LLM_BACKEND=anthropic`、`LLM_MODEL=claude-haiku-5-5`、`LLM_REASONING_EFFORT=medium`）；启动命令带上 `--daily-budget …`。
 - Space 是公开的，任何人都能用，花费上限一定要设。
 
 ## 不部署也能展示

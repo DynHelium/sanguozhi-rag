@@ -51,12 +51,15 @@ Main parts:
   Messages API through the Anthropic SDK (optional extra `anthropic`) and returns a response of the same shape, so the
   agent, the games, the web chat and the evaluation scripts run unchanged. It sends back the model's thinking blocks with
   each tool call, keeps the history append-only so prompt caching works, and passes the reasoning effort through.
-  - Wrapper for calls through OpenRouter (`rag/openrouter.py`): uses only the providers listed in `LLM_PROVIDERS` in
-    `.env`, retries with backoff when rate-limited, and records tokens and cost.
+  - Request wrapper shared by every entry point (`rag/calls.py`): checks at startup that the key for the backend in
+    `.env` is set and that the model matches it (a `claude-*` model needs `LLM_BACKEND=anthropic`), retries with backoff
+    when rate-limited (except a 429 from the Claude API saying its spend cap is reached), and records tokens and cost. On OpenRouter it asks
+    for the cost in each response and uses only the providers listed in `LLM_PROVIDERS`. The backend is chosen only in
+    `.env`; local models (pointing the OpenAI-compatible interface at Ollama and the like) are not supported for now.
 - **Agent loop** (`rag/loop.py`): call the model → run the tools it asks for → send the results back as `tool` messages →
   call the model again, until it answers. The round limit is enforced in code (the last request carries no tools). The
   appendix `eval/tool_calling.py` is an early single-tool experiment on whether small local models use the tools
-  interface reliably.
+  interface reliably (its live run needs a local model and does not work for now; its fake-model tests do).
 - **Full agent** (`rag/agent.py`): the model decides what to search and read; the code does no retrieval up front. The
   system prompt asks for three kinds of content, written separately: facts taken from retrieved original text (quoted,
   with a `[n]` number); inferences marked "据此推断" ("inferred from this") together with their basis; plot points from
@@ -86,7 +89,7 @@ Design and rationale: [docs/DESIGN.md](docs/DESIGN.md) (in Chinese). Deploying t
 Another example, from the command line:
 
 ```bash
-uv run python -m rag.agent "桃园结义是真的吗？刘关张在正史里是什么关系？" --openrouter --model deepseek-v4.1-flash --effort low
+uv run python -m rag.agent "桃园结义是真的吗？刘关张在正史里是什么关系？" --model deepseek-v4.1-flash --effort low
 ```
 
 The question asks: "Is the Oath of the Peach Garden real? What was the relationship between Liu Bei, Guan Yu and Zhang Fei
@@ -166,12 +169,12 @@ to send one message and check the connection. Web chat (needs the translation in
 
 ```bash
 uv sync --extra index --extra ui
-uv run python -m app.chat --openrouter --model deepseek-v4.1-flash --effort low   # open http://localhost:7860
+uv run python -m app.chat --model deepseek-v4.1-flash --effort low   # open http://localhost:7860
 ```
 
 To use Claude Haiku 5.5 instead, `uv sync --extra anthropic`, then in `.env` set `LLM_BACKEND=anthropic`,
-`LLM_MODEL=claude-haiku-5-5`, `LLM_REASONING_EFFORT=medium` and `ANTHROPIC_API_KEY` (the lines are in `.env.example`),
-and start the chat without `--openrouter`:
+`LLM_MODEL=claude-haiku-5-5`, `LLM_REASONING_EFFORT=medium` and `ANTHROPIC_API_KEY` (the lines are in `.env.example`).
+Every command reads the backend from `.env`, so the commands stay the same apart from the model name:
 
 ```bash
 uv sync --extra index --extra ui --extra anthropic
@@ -324,10 +327,10 @@ judged with them. Each change is recorded next to the original verdict. Answers,
 question) and the judging tools are on the [`eval-judging`](https://github.com/DynHelium/sanguozhi-rag/tree/eval-judging) branch.
 
 ```bash
-uv run python -m eval.run_agent --openrouter --models deepseek-v4.1-flash --effort low --questions eval/questions-*.jsonl --name cv   # one process, results per set: cv-holdout.jsonl, ...
+uv run python -m eval.run_agent --models deepseek-v4.1-flash --effort low --questions eval/questions-*.jsonl --name cv   # one process, results per set: cv-holdout.jsonl, ...
 uv run python -m eval.run_agent ... --off nudge nudge_notfound review quote_fix cite_fix --name off               # interventions off
-uv run python -m eval.run_single --openrouter --models deepseek-v4.1-flash --effort low --questions eval/questions-*.jsonl --name ss  # one-shot retrieval (--no-context: same prompt, no material)
-uv run python -m eval.run_closed --openrouter --models deepseek-v4.1-flash --effort low --questions eval/questions-*.jsonl --name cb  # closed-book
+uv run python -m eval.run_single --models deepseek-v4.1-flash --effort low --questions eval/questions-*.jsonl --name ss  # one-shot retrieval (--no-context: same prompt, no material)
+uv run python -m eval.run_closed --models deepseek-v4.1-flash --effort low --questions eval/questions-*.jsonl --name cb  # closed-book
 uv run python -m eval.run_agent --summary --name cv --questions eval/questions-*.jsonl                         # share of gold passages seen / fully found
 ```
 
@@ -365,7 +368,7 @@ Empress Wu, Cao Jie).
 
 ```bash
 uv sync --extra ui
-uv run python -m app.soup --openrouter --model deepseek-v4.1-flash --effort low   # open http://localhost:7861
+uv run python -m app.soup --model deepseek-v4.1-flash --effort low   # open http://localhost:7861
 ```
 
 - The judge (`rag/soup.py`) is given only this puzzle's soup base and the original-text evidence. Its prompt asks it to
@@ -377,7 +380,7 @@ uv run python -m app.soup --openrouter --model deepseek-v4.1-flash --effort low 
 - When the player submits a solution, it is judged point by point against the required key points; it counts as solved
   only if all of them are covered with no contradiction. If not, the game says how many points were covered, not which
   ones are missing.
-- `uv run python -m eval.soup --openrouter` tests the judge's accuracy against each puzzle's reference questions and answers.
+- `uv run python -m eval.soup` tests the judge's accuracy against each puzzle's reference questions and answers.
 - It can also be played in the web chat (`app/chat.py`): ask for it in your own words or click the button to start, and submit a
   solution with "/答 your explanation".
 
@@ -385,7 +388,7 @@ uv run python -m app.soup --openrouter --model deepseek-v4.1-flash --effort low 
 
 ## Guess the Person
 
-Ask for it in the web chat (e.g. "let's play guess the person") or click the button to start (command line: `uv run python -m rag.skills --openrouter`).
+Ask for it in the web chat (e.g. "let's play guess the person") or click the button to start (command line: `uv run python -m rag.skills`).
 There are two modes:
 
 - **You guess**: the program picks a person from the *Sanguozhi* at random; you may ask as many yes-no or either-or

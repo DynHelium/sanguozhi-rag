@@ -1,7 +1,7 @@
 """测海龟汤裁判 (rag/soup.py): 用每题的标准问答 (data/soup/checks.jsonl) 看裁判判得对不对.
 
-    uv run python -m eval.soup --openrouter --model deepseek-v4.1-flash --effort low   # 全部题
-    uv run python -m eval.soup --openrouter --ids soup-08 soup-09                       # 只测几题
+    uv run python -m eval.soup --model deepseek-v4.1-flash --effort low   # 全部题
+    uv run python -m eval.soup --ids soup-08 soup-09                       # 只测几题
 
 checks.jsonl 一行一题:
     {"id": "soup-01", "questions": [{"q": "他哭是因为身体不好吗", "a": "不是"}, ...],
@@ -49,27 +49,24 @@ def run_one(p: soup.Puzzle, check: dict, complete: Callable[..., Any], model: st
 
 def main() -> None:
     ap = argparse.ArgumentParser(description="测海龟汤裁判")
-    ap.add_argument("--model", help="裁判用的模型; 不给时用 .env 的 LLM_MODEL (加 --openrouter 时会补全成 OpenRouter 的全名)")
+    ap.add_argument("--model", help="裁判用的模型; 不给时用 .env 的 LLM_MODEL (openai 后端时短名补全成 OpenRouter 的全名, 见 rag/calls.setup)")
     ap.add_argument("--effort", help="思考程度, 如 low; 不给时用 .env 的 LLM_REASONING_EFFORT (为空就不传)")
-    ap.add_argument("--openrouter", action="store_true")
     ap.add_argument("--ids", nargs="+")
     ap.add_argument("--name", default="judge", help=f"结果文件名, 存到 {OUT_DIR}/<name>.jsonl (同名覆盖)")
     args = ap.parse_args()
-    model, complete = args.model, llm.complete
-    if args.openrouter:
-        from rag.openrouter import PER_MODEL, full_name, make_complete, use_openrouter
-        use_openrouter()
-        model = full_name(model or config.LLM_MODEL)
-        sem = threading.Semaphore(PER_MODEL)
-        cost = [0.0]
+    from rag import calls
+    model = calls.setup(args.model)  # 后端由 .env 的 LLM_BACKEND 决定
+    sem = threading.Semaphore(calls.PER_MODEL)
+    cost = [0.0]
 
-        def complete(*a, **kw):  # 每次请求新包一层 (make_complete 按创建时刻计时), 花费另外累计
-            c = make_complete(model, True, sem)
-            r = c(*a, **kw)
-            cost[0] += c.stats["cost"]
-            return r
-        complete.cost = cost
-    llm.client()  # 先在主线程建客户端, 免得几个线程同时建
+    def complete(*a, **kw):  # 每次请求新包一层 (make_complete 按创建时刻计时), 花费另外累计
+        c = calls.make_complete(model, sem)
+        r = c(*a, **kw)
+        cost[0] += c.stats["cost"]
+        return r
+    complete.cost = cost
+    from rag import claude_llm  # 先在主线程建客户端, 免得几个线程同时建 (建当前后端的那一个)
+    claude_llm.client() if config.LLM_BACKEND == "anthropic" else llm.client()
     puzzles = {p["id"]: p for p in soup.load_puzzles()}
     with open(CHECKS, encoding="utf-8") as f:
         checks = [json.loads(line) for line in f if line.strip()]

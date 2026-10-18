@@ -1,7 +1,7 @@
 """agent: 模型自己调用工具 (search / read / era / who) 查《三国志》再作答; 代码负责循环, 轮数上限, 作答后的检查.
 
-    uv run python -m rag.agent "曹操因为什么逃离洛阳？"            # 用 .env 的模型和接口, 打印每次工具调用和回答
-    uv run python -m rag.agent "问题" --openrouter --model deepseek-v4.1-flash --effort low   # 经 OpenRouter
+    uv run python -m rag.agent "曹操因为什么逃离洛阳？"            # 用 .env 的后端和模型, 打印每次工具调用和回答
+    uv run python -m rag.agent "问题" --model deepseek-v4.1-flash --effort low   # 指定模型 (后端看 .env 的 LLM_BACKEND)
     uv run python -m rag.agent "问题" --index orig              # 改搜原文索引 (对照用)
     uv run python -m tests.test_agent                              # 假模型驱动的测试, 不连网
 
@@ -24,10 +24,9 @@ SYSTEM_SMALL (模型名含 SMALL_MODELS 里的字样时由 system_for 选用) �
 import argparse
 import json
 import re
-import sys
 from typing import Any, Callable
 
-from rag import config, llm
+from rag import llm
 from rag.alias import find_pinyin_names
 from rag.library import ALIAS, READ_MAX, SEARCH_K, Library, Seen, load_library  # noqa: F401 (重新导出, 外部可用 agent.SEARCH_K 等)
 from rag.loop import FINAL_TURN, MAX_ROUNDS, agent_loop
@@ -411,7 +410,7 @@ def run_agent(question: str, lib: Library, model: str | None = None, complete: C
         lib       load_library() 的结果
         model     模型名; None 时用 .env 的 LLM_MODEL
         complete  complete(messages, model=None, **kw) -> ChatCompletion 形状的对象; 默认 rag.llm.complete,
-                  测试换成假模型, 评测和网页聊天换成 rag/openrouter.make_complete 的结果
+                  测试换成假模型, 评测和网页聊天换成 rag/calls.make_complete 的结果
         system / tools / review   不给时用 system_for(model) / TOOLS / REVIEW, 实验对照时替换
         effort    给了就作为 reasoning_effort 传给模型
         history   之前几轮的 user / assistant 消息 (只含最终回答), 取最后 HISTORY_TURNS 轮放在本轮问题之前,
@@ -523,19 +522,13 @@ def main() -> None:
     ap.add_argument("question")
     ap.add_argument("--model", default=None)
     ap.add_argument("--index", default="trans", choices=["trans", "orig"], help="检索哪套切块 (默认白话)")
-    ap.add_argument("--openrouter", action="store_true",
-                    help="走 OpenRouter (key 见 rag/openrouter.use_openrouter), 服务商按 LLM_PROVIDERS; 不给就用 .env 的 LLM_BASE_URL")
     ap.add_argument("--effort", default=None, help="reasoning_effort (none / low / medium / high), 覆盖 .env")
     args = ap.parse_args()
-    complete = None
-    if args.openrouter:
-        import threading
-        from rag.openrouter import full_name, make_complete, use_openrouter
-        use_openrouter()
-        args.model = full_name(args.model or config.LLM_MODEL)
-        complete = make_complete(args.model, True, threading.Semaphore(1))
-    if not (args.model or config.LLM_MODEL):
-        sys.exit("没有模型: --model 或 .env 的 LLM_MODEL")
+    import threading
+
+    from rag import calls
+    args.model = calls.setup(args.model)  # 后端 (DeepSeek 经 OpenRouter / Claude 原生接口) 由 .env 的 LLM_BACKEND 决定
+    complete = calls.make_complete(args.model, threading.Semaphore(1))
     res = run_agent(args.question, load_library("" if args.index == "orig" else args.index), args.model,
                     complete=complete, effort=args.effort)
     for r in res["rounds"]:
