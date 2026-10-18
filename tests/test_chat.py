@@ -89,7 +89,7 @@ def test_respond_passes_history_to_agent():
             {"role": "assistant", "content": "去过"}]
     _, script = run("他后来去了哪", page, resp("我只讲三国历史."))
     msgs = script.seen[0]["messages"]
-    assert [m["content"] for m in msgs[1:]] == ["曹操去过浚仪吗", "去过", "他后来去了哪"]
+    assert [m["content"] for m in msgs[1:-1]] == ["曹操去过浚仪吗", "去过", "他后来去了哪"] and msgs[-1]["role"] == "developer"
 
 
 def test_respond_shows_error():

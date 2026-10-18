@@ -30,16 +30,25 @@ def source_label(chunk: Mapping[str, Any]) -> str:
     return f"{where} {layer} ({chunk['id']})"
 
 
+QUOTE_MIN_CJK = 6  # “” 里至少这么多汉字 (且有繁体字) 才当作引文
+
+
 def extract_quotes(reply: str) -> list[str]:
     """从回答里抽出引用的原文片段, 按出现顺序, 去掉引号本身.
 
-    只抽取「」包围的文本; 用这个函数的问答流程要在 system prompt 里约定用「」引原文.
+    抽取「」包围的文本; 用这个函数的问答流程要在 system prompt 里约定用「」引原文.
+    有的模型 (不照约定) 用 “” 引原文: “” 里的文字有繁体字, 去掉标点后至少 QUOTE_MIN_CJK 个汉字时也当作引文, 排在「」引文后面;
+    回答里普通的 “” (现代说法, 简体) 不收.
     例: "原文：「太祖乃變易姓名，間行東歸」[1]，又「遂不就拜」" -> ["太祖乃變易姓名，間行東歸", "遂不就拜"]
     没有引文时返回 []. 嵌套引号 (原文里的对话 「…『…』…」) 只取最外层.
     只认「」: 原文里的对话用「」『』, 模型照抄时会带上内层引号; ASCII 双引号不分开闭, 没法处理嵌套.
     没闭合的「 (模型输出被截断) 丢掉.
     """
-    quotes, depth, buf = [], 0, []
+    quotes, depth, buf, extra_quotes = [], 0, [], []
+    for m in re.finditer(r"“([^“”]+)”", reply):
+        t = m.group(1)
+        if len(re.findall(r"[\u4e00-\u9fff]", t)) >= QUOTE_MIN_CJK and to_simplified(t) != t:
+            extra_quotes.append(t)
     for ch in reply:
         if ch == "「":
             depth += 1
@@ -53,7 +62,7 @@ def extract_quotes(reply: str) -> list[str]:
                 continue
         if depth:
             buf.append(ch)
-    return quotes
+    return quotes + [q for q in extra_quotes if q not in quotes]
 
 
 def verify_quotes(quotes: list[str], chunks: list[dict]) -> list[tuple[str, str | None]]:

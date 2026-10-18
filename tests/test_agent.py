@@ -101,7 +101,7 @@ def test_agent_no_presearch_then_tools_then_answer():
         resp("建安七年「遂至浚儀，治睢陽渠」[1]"))
     r = agent.run_agent("曹操什么时候去过浚仪？", LIB, complete=script)
     first = script.seen[0]["messages"]
-    assert [m["role"] for m in first] == ["system", "user"], "不再由代码先检索"
+    assert [m["role"] for m in first] == ["system", "user", "developer"], "不再由代码先检索; developer 是 LANG_NOTE"
     assert script.seen[0]["kw"].get("tools") == agent.TOOLS
     second = script.seen[1]["messages"]
     assert second[-2]["role"] == "assistant" and second[-2]["tool_calls"][0]["id"] == "a"
@@ -267,7 +267,7 @@ def test_review_replaces_reply_and_skips_without_tools():
                     resp("魏太祖建安七年至浚仪, 治睢阳渠。"), resp("作为一个人工智能语言模型，我还没学习如何回答这个问题"))
     r = agent.run_agent("曹操去过浚仪吗", LIB, complete=script, review=True)
     assert r["reply"] == "魏太祖建安七年至浚仪, 治睢阳渠。", "自查返回拒答模板时保留原回答"
-    assert script.seen[-1]["messages"][-1]["content"] == agent.REVIEW_TEXT_LAYERED, "默认 REVIEW_MODE layered"
+    assert script.seen[-1]["messages"][-1]["content"] == agent.REVIEW_TEXT_LAYERED + " " + agent.LANG_NOTE, "默认 REVIEW_MODE layered"
     r = agent.run_agent("你好", LIB, complete=Script(resp("我只讲三国历史.")), review=True)
     assert r["calls"] == 1, "没用工具 (闲聊) 不自查"
 
@@ -281,7 +281,7 @@ def test_review_short_keeps_reply_when_ok():
                         resp("魏太祖建安七年至浚仪。"), resp(" 无误。"))
         r = agent.run_agent("曹操去过浚仪吗", LIB, complete=script, review=True)
         assert r["reply"] == "魏太祖建安七年至浚仪。" and r["rounds"][-1]["args"] == {"ok": True}
-        assert script.seen[-1]["messages"][-1]["content"] == agent.REVIEW_TEXT_SHORT
+        assert script.seen[-1]["messages"][-1]["content"] == agent.REVIEW_TEXT_SHORT + " " + agent.LANG_NOTE
         script = Script(resp(calls=[tc("c1", "search", query="浚儀")]), resp(calls=[tc("c2", "search", query="官渡")]),
                         resp("初稿, 带一句资料外的背景。"), resp("改后的回答, 去掉了资料外的背景。"))
         r = agent.run_agent("曹操去过浚仪吗", LIB, complete=script, review=True)
@@ -298,6 +298,58 @@ def test_not_found_answer_gets_one_more_try():
         _not_found_once()
     finally:
         agent.OFF.add("nudge_notfound")
+
+
+def test_scope_refusal_without_tools_gets_one_search():
+    """一次工具没用就说 "只讲三国" 的拒答 (nudge_scope): 默认关 (agent.OFF 里有它), 不提示;
+    打开后追加一次 SCOPE_NUDGE, 模型搜一次再答. 一次工具没用的普通回答 (不是拒答) 不提示."""
+    assert "nudge_scope" in agent.OFF
+    script = Script(resp("我只讲三国的历史, 这个问题不在我能回答的范围内."))
+    r = agent.run_agent("有个富豪路上搭载了一位妇人, 富豪是谁", LIB, complete=script)
+    assert "nudge_scope" not in [x["tool"] for x in r["rounds"]] and len(script.seen) == 1
+    agent.OFF.discard("nudge_scope")
+    try:
+        script = Script(resp("我只讲三国的历史, 这个问题不在我能回答的范围内."),
+                        resp(calls=[tc("c1", "search", query="富豪 妇人 天使")]), resp(calls=[tc("c2", "search", query="浚儀")]),
+                        resp("找到了: 公軍譙."))
+        r = agent.run_agent("有个富豪路上搭载了一位妇人, 富豪是谁", LIB, complete=script)
+        assert [x["tool"] for x in r["rounds"]].count("nudge_scope") == 1 and r["reply"] == "找到了: 公軍譙."
+        assert script.seen[1]["messages"][-1]["content"] == agent.SCOPE_NUDGE
+        script = Script(resp("你好, 我是讲三国历史的助手."))
+        r = agent.run_agent("你好", LIB, complete=script)
+        assert "nudge_scope" not in [x["tool"] for x in r["rounds"]] and len(script.seen) == 1
+    finally:
+        agent.OFF.add("nudge_scope")
+
+
+def test_lang_note_after_question_and_in_review():
+    """lang_note (默认开): 问题后面紧跟一条 developer 消息 LANG_NOTE, 自查指令末尾也加上; 放进 OFF 后都没有."""
+    assert "lang_note" not in agent.OFF
+    script = Script(resp(calls=[tc("c1", "search", query="浚儀")]), resp(calls=[tc("c2", "search", query="官渡")]),
+                    resp("draft answer"), resp("checked answer"))
+    agent.run_agent("Did Cao Cao go to Junyi?", LIB, complete=script, review=True)
+    first = script.seen[0]["messages"]
+    assert first[-1]["role"] == "developer" and first[-1]["content"].endswith(agent.LANG_NOTE) and first[-2]["role"] == "user"
+    assert "Cao Cao" in first[-1]["content"], "问题里的拼音人名 (pinyin_who) 和语言提醒合在一条 developer 消息里"
+    assert script.seen[-1]["messages"][-1]["content"].endswith(agent.LANG_NOTE)
+    agent.OFF.add("lang_note")
+    try:
+        script = Script(resp(calls=[tc("c1", "search", query="浚儀")]), resp(calls=[tc("c2", "search", query="官渡")]), resp("answer"))
+        agent.run_agent("Did Cao Cao go to Junyi?", LIB, complete=script)
+        assert all(agent.LANG_NOTE not in (m.get("content") or "") for m in script.seen[0]["messages"])
+    finally:
+        agent.OFF.discard("lang_note")
+
+
+def test_aggregate_question_needs_three_searches():
+    """汇总题 (有哪些, 有几个, how many ...) 搜两次就想作答时也提示再查 (门槛 MIN_SEARCHES_AGG); 普通题搜两次不提示."""
+    script = Script(resp(calls=[tc("c1", "search", query="浚儀")]), resp(calls=[tc("c2", "search", query="官渡")]),
+                    resp("初答"), resp(calls=[tc("c3", "search", query="浚儀")]), resp("再答"))
+    r = agent.run_agent("曹操有几个儿子", LIB, complete=script)
+    assert [x["tool"] for x in r["rounds"]].count("nudge") == 1 and r["reply"] == "再答"
+    script = Script(resp(calls=[tc("c1", "search", query="浚儀")]), resp(calls=[tc("c2", "search", query="官渡")]), resp("答"))
+    r = agent.run_agent("曹操去过浚仪吗", LIB, complete=script)
+    assert "nudge" not in [x["tool"] for x in r["rounds"]]
 
 
 def _not_found_once():
@@ -327,8 +379,9 @@ def test_history_goes_between_system_and_question():
     script = Script(resp("我只讲三国历史."))
     agent.run_agent("他儿子呢", LIB, complete=script, history=hist)
     msgs = script.seen[0]["messages"]
-    assert msgs[0]["role"] == "system" and msgs[-1] == {"role": "user", "content": "他儿子呢"}
-    middle = msgs[1:-1]
+    assert msgs[0]["role"] == "system" and msgs[-2] == {"role": "user", "content": "他儿子呢"}
+    assert msgs[-1] == {"role": "developer", "content": agent.LANG_NOTE}
+    middle = msgs[1:-2]
     assert len(middle) == 2 * agent.HISTORY_TURNS and middle[-1]["content"] == "答9", "只带最近几轮"
     assert all(m["role"] in ("user", "assistant") for m in middle)
 

@@ -8,7 +8,7 @@ English | [中文](README.zh-CN.md)
 is Classical Chinese, so the two share little vocabulary. Indexing an LLM-made modern-Chinese translation (document expansion)
 with hybrid BM25 + dense retrieval and alias expansion lifts hit@10 from 0.40 to 0.81 on the development questions (0.78 → 0.97
 on held-out ones). Against baselines with the same model on the same 103 questions: closed-book 61 fully correct (with
-unsupported claims in 37 answers), one-shot retrieval 79, the agent 101; on 32 English questions 26 / 15 / 31. Every
+unsupported claims in 37 answers), one-shot retrieval 79, the agent 101; on the same 103 questions asked in English 71 / 36 / 99. Every
 quotation in an answer is checked against the source text by code.
 
 A RAG project that answers questions about Three Kingdoms history from Chen Shou's *Records of the Three Kingdoms*
@@ -20,7 +20,9 @@ The whole pipeline lives in this repository: data preparation (parsing the origi
 translation of the book), hybrid retrieval, the tool-calling agent, evaluation, a web chat UI, and history-based
 games: "Three Kingdoms Turtle Soup" (三国海龟汤) and "Guess the Person" (猜人物).
 
-The model is fixed: **DeepSeek V4.1 Flash** via OpenRouter, reasoning effort low. Retrieval runs over the modern-Chinese
+Two LLM backends are supported: **DeepSeek V4.1 Flash** via OpenRouter (the default, reasoning effort low) and
+**Claude Haiku 5.5** through the native Claude API (`LLM_BACKEND=anthropic`, reasoning effort medium); the comparison is
+under [Two backends](#two-backends). Retrieval runs over the modern-Chinese
 translation, while the prompt asks the model to quote only the original Classical Chinese text, and code checks the
 quotations it finds against it.
 
@@ -45,7 +47,10 @@ Main parts:
   context; an annotation comes with the main text it annotates), `era` (converts a reign-era year to the Common Era year)
   and `who` (whom a name or title refers to, and how many people share it), plus the `[n]` source numbers shown to the model.
 - **LLM access** (`rag/llm.py`): an OpenAI-compatible interface that returns the full response (tool calls are read from
-  `tool_calls`).
+  `tool_calls`). With `LLM_BACKEND=anthropic` the same call goes to `rag/claude_llm.py`, which talks to the Claude
+  Messages API through the Anthropic SDK (optional extra `anthropic`) and returns a response of the same shape, so the
+  agent, the games, the web chat and the evaluation scripts run unchanged. It sends back the model's thinking blocks with
+  each tool call, keeps the history append-only so prompt caching works, and passes the reasoning effort through.
   - Wrapper for calls through OpenRouter (`rag/openrouter.py`): uses only the providers listed in `LLM_PROVIDERS` in
     `.env`, retries with backoff when rate-limited, and records tokens and cost.
 - **Agent loop** (`rag/loop.py`): call the model → run the tools it asks for → send the results back as `tool` messages →
@@ -124,7 +129,7 @@ two of them, and treated them with the kindness of brothers."
 ## Quickstart
 
 Requires [uv](https://docs.astral.sh/uv/) and Python ≥ 3.11. Downloading the text and the embedding model needs network
-access, and asking questions calls the model through OpenRouter, which is billed to your key. Start with a route that
+access, and asking questions calls the model through OpenRouter or the Claude API, which is billed to your key. Start with a route that
 needs no large downloads:
 
 ```bash
@@ -164,6 +169,15 @@ uv sync --extra index --extra ui
 uv run python -m app.chat --openrouter --model deepseek-v4.1-flash --effort low   # open http://localhost:7860
 ```
 
+To use Claude Haiku 5.5 instead, `uv sync --extra anthropic`, then in `.env` set `LLM_BACKEND=anthropic`,
+`LLM_MODEL=claude-haiku-5-5`, `LLM_REASONING_EFFORT=medium` and `ANTHROPIC_API_KEY` (the lines are in `.env.example`),
+and start the chat without `--openrouter`:
+
+```bash
+uv sync --extra index --extra ui --extra anthropic
+uv run python -m app.chat --model claude-haiku-5-5 --effort medium
+```
+
 Tests make no LLM calls and need no network: `uv run python -m tests` runs them all (the one case in `test_dense` that uses
 the real bge-m3 model needs `uv sync --extra index` and the bge-m3 model already on disk, which one run of `rag.dense`
 takes care of, or `ALLOW_MODEL_DOWNLOAD=1` to let the test download it; otherwise it is skipped). GitHub Actions runs
@@ -185,7 +199,7 @@ flowchart TB
         E["Alias expansion"] --> F
     end
     subgraph agent["Agent"]
-        Q["Question"] --> L["Agent loop<br/>DeepSeek V4.1 Flash"]
+        Q["Question"] --> L["Agent loop<br/>DeepSeek V4.1 Flash<br/>or Claude Haiku 5.5"]
         L --> R["Self-review +<br/>quotation check"]
         R --> O["Answer with<br/>cited quotations [n]"]
     end
@@ -224,22 +238,26 @@ questions in view, so they count as a development set.
 
 As a test set, the 37 held-out questions that have gold passages (`eval/questions-holdout.jsonl`, never used for tuning)
 give hit@10 0.78 for BM25 over the original text and 0.97 for the agent's retriever (MRR 0.62 → 0.91; loose; strict 0.76 / 0.61
-for BM25, unchanged for the agent's retriever). Searching the English questions directly (`eval/questions-en.jsonl`, 28 with gold passages) gives hit@10 0.50:
+for BM25, unchanged for the agent's retriever). Searching the English questions directly (`eval/questions-en.jsonl`, 100 with gold passages) gives hit@10 0.39 (loose; strict 0.36):
 the index is Chinese, which is why the agent translates names and terms back into Chinese before it searches.
 
 ### Answer quality
 
 Five configurations, all DeepSeek V4.1 Flash (reasoning effort low), one run each (an empty answer was retried up to
 three times), on the same 103 Chinese questions (held-out 40; inference / the novel / official titles and geography 30;
-fact-level errors 24; people 9) and 32 English questions:
+fact-level errors 24; people 9) and the same 103 questions rewritten in English (`eval/questions-en.jsonl`; names in pinyin,
+Wade-Giles for about a fifth, English official titles and event names):
 
-| Configuration | Script | Correct / partial / wrong (103) | English correct (32) | Answers with a confident claim not found in the source (103) | Quotations found in the passages the model saw (103) | Model calls per question | Cost per question |
+| Configuration | Script | Correct / partial / wrong (103) | English correct (103) | Answers with a confident claim not found in the source (103) | Quotations found in the passages the model saw (103) | Model calls per question | Cost per question |
 |---|---|---|---|---|---|---|---|
-| Closed-book: no tools, no context, a short prompt that allows answering from memory | `eval/run_closed.py` | 61 / 33 / 9 | 26 | 37 | not checked (no passages) | 1 | $0.0037 |
-| Same prompt as the next row, but the context says "no material" | `eval/run_single.py --no-context` | 6 / 10 / 87 | 2 | 0 | 0 / 18 (0%) | 1 | $0.0008 |
-| One-shot retrieval: the question itself is searched once, top 10 groups in the context, one answer | `eval/run_single.py` | 79 / 17 / 7 | 15 | 0 | 590 / 607 (97.2%) | 1 | $0.0024 |
-| Agent with code interventions off (no self-review, quotation fix, citation fix, search nudge) | `eval/run_agent.py --off ...` | 101 / 2 / 0 | 31 | 2 | 764 / 854 (89.5%) | 3.5 | $0.0036 |
-| **Agent (default)** | `eval/run_agent.py` | **101 / 2 / 0** | **31** | **1** | **1202 / 1202 (100%)** | 4.7 | $0.0081 |
+| Closed-book: no tools, no context, a short prompt that allows answering from memory | `eval/run_closed.py` | 61 / 33 / 9 | 71 | 37 | not checked (no passages) | 1 | $0.0037 |
+| Same prompt as the next row, but the context says "no material" | `eval/run_single.py --no-context` | 6 / 10 / 87 | 10 | 0 | 0 / 18 (0%) | 1 | $0.0008 |
+| One-shot retrieval: the question itself is searched once, top 10 groups in the context, one answer | `eval/run_single.py` | 79 / 17 / 7 | 36 | 0 | 590 / 607 (97.2%) | 1 | $0.0024 |
+| Agent with code interventions off (no self-review, quotation fix, citation fix, search nudge) | `eval/run_agent.py --off ...` | 101 / 2 / 0 | 98 | 2 | 764 / 854 (89.5%) | 3.5 | $0.0036 |
+| **Agent (default)** | `eval/run_agent.py` | **101 / 2 / 0** | **99** | **1** | **1202 / 1202 (100%)** | 4.7 | $0.0081 |
+
+An older set of 20 English questions (`eval/questions-en-dev.jsonl`) was used while writing the English rule in the prompt,
+so it is reported apart: closed-book 18, one search 9, the agent 19 of 20 correct.
 
 "A confident claim not found in the source" is the judge's list of specific facts (years, names, quotations, sources)
 stated as fact that it could not find in the text; without material the model mostly says it has none, hence 0 in the
@@ -254,8 +272,8 @@ What the rows separate:
 - **Accuracy comes from the agent's searching.** Between one-shot retrieval and the agent with interventions off, the
   model writes its own queries, searches again, reads the surrounding passages and converts reign years with a tool. The
   gold passage is in the context for 86 of 100 answerable questions with one search and for all 100 with the agent; on
-  English questions one search uses the English wording and gets 15 / 32, while the agent translates terms back into
-  Chinese first (31 / 32).
+  English questions one search uses the English wording (gold passage in the context for 36 of 100) and gets 36 / 103,
+  while the agent translates names and terms back into Chinese first (99 / 103).
 - **The code interventions buy quotation accuracy, not correctness.** Turning them off leaves accuracy unchanged on these
   sets, but only 89.5% of quotations are then found in the passages the model saw; with them every quotation checks out.
   They roughly double the cost per question.
@@ -266,12 +284,40 @@ questions run one at a time with `eval.bench_latency`): about a third is the sea
 after the answer. 5 closed-book questions got no answer in three attempts (reasoning used up the 8192-token output
 limit) and count as wrong.
 
+### Two backends
+
+The same agent, prompt and tools with Claude Haiku 5.5 (native Claude API) and with DeepSeek V4.1 Flash, on 62 questions
+(`eval/questions-probe62.jsonl`: the 40 held-out questions, 18 English questions and 4 new ones), one run each, all five
+runs judged blind in one package:
+
+| Backend | Reasoning effort | Correct / partial / wrong (62) | Chinese correct (44) | English correct (18) | Tool calls per question | Cost per question |
+|---|---|---|---|---|---|---|
+| Claude Haiku 5.5, before the three changes below | low | 58 / 3 / 1 | 41 | 17 | 2.8 | $0.0042 |
+| Claude Haiku 5.5 | low | 56 / 4 / 2 | 39 | 17 | 3.1 | $0.0050 |
+| **Claude Haiku 5.5** | **medium** | **60 / 1 / 1** | 42 | 18 | 3.6 | $0.0056 |
+| Claude Haiku 5.5 | high | 58 / 1 / 3 | 41 | 17 | 4.2 | $0.0076 |
+| **DeepSeek V4.1 Flash** | **low** | **62 / 0 / 0** | 44 | 18 | 4.5 | $0.0069 |
+
+The three changes, made for both backends after the main comparison above: a question asking for a list or a count
+("which people", "how many") needs three searches before the first answer instead of two; pinyin names in an English
+question are looked up with `who` by code before the model starts; and Classical Chinese inside “…” is checked like a
+「」 quotation. On Haiku they did not raise accuracy (56 vs 58 at low, a difference a single run cannot separate from noise): its
+misses are answers that stop at the first person found even after more searches (the second 张松, 苏则 for 刚侯), not
+too few searches. DeepSeek had no new error with them. Medium effort gave Haiku four more correct answers than low for
+about 12% more cost; high was not better. One question Haiku missed at every effort after the changes: who the "White Horse General" was
+(庞德, 18-0022), which it said the text does not mention.
+
+English, 21 questions (the 18 above plus the three pinyin homonyms Zhou Tai, Liu Yan, Zhang Yi), with the final prompt:
+Haiku (medium) 19 / 1 / 1 and DeepSeek 21 / 0 / 0. Haiku named every person sharing the pinyin for two of the three
+homonym questions; the pinyin lookup by code is what made the difference, since Haiku on its own translates the name
+to one Chinese form and asks `who` about that. Haiku answered all 21 English questions in English, DeepSeek 20 of 21.
+
 **Judging.** Answers were judged by Claude Sonnet subagents following written rules
 ([`eval/judge_prompt.md`](https://github.com/DynHelium/sanguozhi-rag/blob/eval-judging/eval/judge_prompt.md)), against the original text, which they search
 with `eval.find`; for official titles and geography, points the text does not cover are judged against reference
 answers. The judging is blind: for each question, the closed-book, one-shot and agent answers went into one package under
-random labels (the English questions: one-shot and agent; the closed-book English answers were judged separately), and
-the two ablation rows were packaged together the same way. "Partial" means the core of the question is answered but an
+random labels, and the two ablation rows were packaged together the same way; for the English questions all five
+configurations went into one package (the 20 development questions were judged in an earlier round). "Partial" means the core of the question is answered but an
 item is missing, or a fabricated or misattributed quotation, source or detail is added. The author reviewed the 46
 verdicts the judges marked as uncertain in the main comparison and fixed these borderline rules; the later runs were
 judged with them. Each change is recorded next to the original verdict. Answers, verdicts (with token usage and cost per
@@ -296,6 +342,15 @@ uv run python -m eval.run_agent --summary --name cv --questions eval/questions-*
   query had ranked first.
 - **Limits are enforced in code, not in the prompt.** The last request of the loop carries no tools, so the model has to
   answer in text; asking for `tool_choice="none"` was not reliable. Quotation and citation checks are plain code.
+- **Names in pinyin are looked up, not guessed.** English questions write names in pinyin, and many names share one
+  (Zhou Tai is both 周泰 and 州泰; Liu Yan is 刘焉, 刘琰 and 刘延). The `who` tool accepts pinyin and Wade-Giles and lists
+  everyone with that romanization, and code runs it on the pinyin names it finds in the question before the first model
+  call (only spellings in the pinyin table count, so ordinary English words are not taken for names). Names from other histories (北宫伯玉) and from the novel (孙尚香, 大乔) are mapped to the
+  form the *Sanguozhi* uses and labelled as such (`data/aliases_extra.json`), so either form works in a question.
+- **One interface, two backends.** The rest of the code only sees `rag.llm.complete`; the Claude backend converts
+  messages and responses at that one point. Prompt rules are written once for both models, and each change is checked on
+  both, which is how the language slip above was found: with the lookup note worded in Chinese, Haiku answered one English
+  question in eighteen in Chinese, so the note is now worded in English.
 - **Retrieval decides accuracy, the checks decide citations.** The ablations above are the reason the interventions stay
   on even though they cost time: without them about one quotation in ten does not match the source.
 
@@ -333,12 +388,12 @@ uv run python -m app.soup --openrouter --model deepseek-v4.1-flash --effort low 
 Ask for it in the web chat (e.g. "let's play guess the person") or click the button to start (command line: `uv run python -m rag.skills --openrouter`).
 There are two modes:
 
-- **You guess**: the program picks a person from the *Sanguozhi* at random; you may ask up to 20 yes-no or either-or
-  questions, then name the person. The pick is made by code: it draws a random passage from the main text, finds the
-  people from the alias table who appear in it, and picks one weighted by 1 / the number of passages that person appears
-  in across the book (without the weighting Cao Cao would come up far too often).
-- **The agent guesses**: you think of a person; the agent asks yes-no questions (up to 25), can use the retrieval tools
-  to look things up in the original text, and finally guesses a name.
+- **You guess**: the program picks a person from the *Sanguozhi* at random; you may ask as many yes-no or either-or
+  questions as you like and name the person at most three times (after three wrong names the answer is revealed). The pick
+  is made by code: it counts the main-text passages each person in the alias table appears in and picks one with weight
+  equal to the square root of that count, so famous people come up more often without taking over.
+- **The agent guesses**: you think of a person; the agent asks as many yes-no questions as it needs, can use the
+  retrieval tools to look things up in the original text, and has three tries at the name.
 
 The answer stays in code: the chat model does not know it. The judge is a separate conversation that gets the original
 passages about the person up front, keeps one conversation for the whole game (so it remembers earlier answers), and gives only the conclusion (yes / no, an
@@ -367,7 +422,7 @@ cannot guarantee that paraphrases or interpretations of the history are correct.
   errors; it is used only for retrieval and to aid understanding, and quotations in answers always use the original text.
 - The quotation check only proves that "this text is in the original and the citation number is right"; it cannot
   guarantee that paraphrases and interpretations are correct.
-- The evaluation question sets are small (103 Chinese and 32 English questions), each configuration was run once, and the
+- The evaluation question sets are small (103 Chinese questions and the same 103 in English), each configuration was run once, and the
   judge is an LLM; differences of one or two questions are within noise.
 
 ## Data and licenses
@@ -386,8 +441,8 @@ cannot guarantee that paraphrases or interpretations of the history are correct.
 ## Credits
 
 The author hand-wrote the LLM access (`rag/llm.py`), the agent loop (`rag/loop.py`) and the retrieval algorithms
-(tokenization, BM25, dense retrieval, fusion, query expansion). Claude (Anthropic's AI assistant) wrote the prompts, data
-preparation scripts, data queries behind the tools, agent wiring, evaluation framework, web pages, the Turtle Soup game,
+(tokenization, BM25, dense retrieval, fusion, query expansion). Claude (Anthropic's AI assistant) wrote the prompts, the Claude
+backend (`rag/claude_llm.py`), data preparation scripts, data queries behind the tools, agent wiring, evaluation framework, web pages, the Turtle Soup game,
 Guess the Person and the skill routing, tests and documentation.
 
 This repository was created from a private working repository (about 290 commits, including experiments and data that are

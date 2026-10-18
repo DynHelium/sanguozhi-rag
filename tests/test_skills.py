@@ -65,22 +65,24 @@ def test_parse_guess():
 
 
 def test_guess_game_flow():
-    """问一题 (模型判词), 没法回答的问题不计数, 猜错计一问, 用称呼猜中结束."""
+    """问一题 (模型判词), 没法回答的问题不计数, 问题不限次数; 猜错显示还能猜几次, 用称呼猜中结束."""
     c = judge_says("是", "没法回答")
     g = guess.GuessGame(PERSON, LIB, c, known_names={"刘备", "曹操"})
-    assert g.ask("他是男性吗？").startswith("是  (1/20)")
-    assert g.ask("讲讲他的生平").startswith("没法回答  (1/20)") and c.calls == 2
-    assert g.ask("猜 曹操").startswith("不是 曹操. (2/20)")
+    assert g.ask("他是男性吗？").startswith("是  (第 1 问)")
+    assert g.ask("讲讲他的生平").startswith("没法回答  (第 1 问)") and c.calls == 2
+    assert g.ask("猜 曹操") == "不是 曹操. (还能猜 2 次)"
     out = g.ask("猜 刘玄德")
     assert out.startswith("猜对了") and "刘备" in out and "蜀汉昭烈皇帝" in out and g.over
 
 
 def test_guess_bad_verdict_and_limit():
-    """判词不认识且没有 answer 时算 "没有记载"; 问题用完后不再请求模型, 只提示猜名字."""
+    """判词不认识且没有 answer 时算 "没有记载"; 猜错 MAX_GUESSES (3) 次就结束并揭晓谜底."""
     c = judge_says("大概是吧")
-    g = guess.GuessGame(PERSON, LIB, c, max_questions=1)
-    assert g.ask("他打过仗吗").startswith("没有记载  (1/1)")
-    assert "用完了" in g.ask("他当过皇帝吗") and c.calls == 1
+    g = guess.GuessGame(PERSON, LIB, c, known_names={"曹操", "孙权", "袁绍"})
+    assert g.ask("他打过仗吗").startswith("没有记载  (第 1 问)")
+    assert g.ask("猜 曹操").endswith("还能猜 2 次)") and g.ask("猜 孙权").endswith("还能猜 1 次)")
+    out = g.ask("猜 袁绍")
+    assert "3 次机会用完了" in out and "刘备" in out and g.over and c.calls == 1
 
 
 def test_router_guess_session():
@@ -148,11 +150,17 @@ def test_agent_guess_flow():
 
 
 def test_agent_guess_runs_out():
-    """次数用完就结束, 问玩家想的是谁; /放弃 让 Agent 认输."""
-    c = agent_says('{"ask": "q1"}', '{"ask": "q2"}')
-    g = guess.AgentGuessGame(LIB, c, max_turns=1)
+    """问问题不限次数 (只有 safety_max 兜底); 名字猜错 3 次认输, 猜错时告诉 Agent 还能猜几次; /放弃 让 Agent 认输."""
+    c = agent_says('{"guess": "曹操"}', '{"guess": "孙权"}', '{"guess": "袁绍"}')
+    g = guess.AgentGuessGame(LIB, c)
     g.intro()
-    assert "用完了" in g.ask("不是") and g.over
+    assert g.ask("错").startswith("第 2 次: 我猜是 孙权")
+    assert any(m["role"] == "user" and "还能猜 2 次" in m["content"] for m in g.msgs)
+    assert g.ask("不对").startswith("第 3 次: 我猜是 袁绍")
+    assert "3 次都没猜中" in g.ask("错") and g.over
+    g1 = guess.AgentGuessGame(LIB, agent_says('{"ask": "q1"}', '{"ask": "q2"}'), safety_max=1)
+    g1.intro()
+    assert "认输" in g1.ask("不是") and g1.over
     g2 = guess.AgentGuessGame(LIB, agent_says('{"ask": "q"}'))
     g2.intro()
     assert "认输" in g2.reveal() and g2.over
@@ -164,7 +172,7 @@ def test_guess_person_mode_choice():
         lambda: guess.GuessGame(PERSON, LIB, judge_says("是")), lambda: guess.AgentGuessGame(LIB, agent_says('{"ask": "q?"}')))})
     assert "两种玩法" in r.handle("u", "/猜人物")
     assert r.handle("u", "这游戏怎么玩") is None and r.active("u") is not None
-    assert "你可以问" in r.handle("u", "1")
+    assert "问题不限次数" in r.handle("u", "1")
     assert r.handle("u", "他是男的吗").startswith("是")
     r.handle("v", "/guess_person")
     assert r.handle("v", "2").endswith("第 1 问: q?")
@@ -294,7 +302,7 @@ def test_judge_free_answer_and_leak():
     replies = [SimpleNamespace(content='{"verdict": "选择", "answer": "北方人"}', tool_calls=None),
                SimpleNamespace(content='{"verdict": "是", "answer": "是, 他就是先主"}', tool_calls=None)]
     g = guess.GuessGame(PERSON, LIB, lambda m, tools=None: replies.pop(0))
-    assert g.ask("他是南方人还是北方人？").startswith("北方人  (1/20)")
+    assert g.ask("他是南方人还是北方人？").startswith("北方人  (第 1 问)")
     assert g.ask("他是不是开国皇帝").startswith(guess.LEAK_REPLY) and g.asked == 1
 
 

@@ -38,7 +38,7 @@ from rag.soup import LEAK_REPLY, _parse_json, leaks
 VERDICTS = ("是", "不是", "选择", "没有记载", "没法回答", "非游戏")  # 判词类别; 给玩家看的是 answer 那一句话
 NOT_GAME = "非游戏"  # 这句话不是游戏里的问题: GuessGame.ask 返回 None, 交给问答 agent
 NOT_COUNTED = "没法回答"  # 这一类不算一问
-MAX_QUESTIONS = 20
+MAX_GUESSES = 3  # 两种玩法都是: 问问题不限次数, 猜名字最多几次 (猜错这么多次就结束)
 JUDGE_ROUNDS = 3  # 裁判每个问题最多几轮工具调用
 TURN_BUDGET = 90.0  # 一问 (一次 play) 最多花几秒: 超过后不再发新请求, 抛 TimeoutError, 由游戏提示玩家再说一次
 OnEvent = Callable[[str, Any], None]  # on_event(kind, info): 进度事件, kind 是 "tool" / "stage" / "think" (见 play)
@@ -63,7 +63,7 @@ JUDGE_SYS = """你是 "猜人物" 游戏的裁判. 谜底是《三国志》里�
 每个问题最后只输出一行 JSON: {{"verdict": "是 | 不是 | 选择 | 没有记载 | 没法回答 | 非游戏", "answer": "结论 (必要时加括号注明按哪种理解)", "evidence": [依据的资料编号 n]}}"""
 
 GUESS_SYS = """你在玩 "猜人物": 对方心里想了一个三国人物 (多半是《三国志》里的人, 也可能是只在《三国演义》里出名的人物),
-你要用是非问题猜出是谁. 你最多问 {n} 次 (猜名字也算一次).
+你要用是非问题猜出是谁. 问问题不限次数, 但名字最多只能猜 {g} 次, 猜错 {g} 次就输了, 所以有把握再猜.
 
 怎么问: 像一个熟悉三国的真人玩家那样, 问这个人本身, 让对方好答、有意思:
   - 身份: 君主, 将领, 谋士, 文人, 宦官, 后妃或女性, 外族首领……
@@ -225,15 +225,16 @@ def parse_guess(text: str, known_names: set[str] | None = None) -> str | None:
 
 
 class GuessGame:
-    """一局猜人物: 谜底, 已问的问题数, 是否结束. 不依赖界面, 测试和 rag/skills.py 直接调它.
+    """一局猜人物: 谜底, 已问的问题数 (不限), 猜错名字的次数 (到 max_guesses 结束并揭晓), 是否结束. 不依赖界面, 测试和 rag/skills.py 直接调它.
 
     lib 是 rag.library.load_library() 的结果; complete 签名同 judge_question 的 complete."""
 
-    def __init__(self, person: Person, lib: Library, complete: Callable[..., Any], max_questions: int = MAX_QUESTIONS,
+    def __init__(self, person: Person, lib: Library, complete: Callable[..., Any], max_guesses: int = MAX_GUESSES,
                  known_names: set[str] | None = None) -> None:
-        self.p, self.lib, self.complete, self.max = person, lib, complete, max_questions
+        self.p, self.lib, self.complete, self.max = person, lib, complete, max_guesses
         self.known_names = known_names or set()
-        self.asked = 0
+        self.asked = 0    # 问了几个问题 (不限)
+        self.guesses = 0  # 猜错了几次名字 (到 self.max 就结束)
         self.over = False
         self.seen = Seen(lib.notes)
         self.msgs = judge_messages(lib, person, self.seen)  # 整局的裁判对话, 每问接着往下问
@@ -242,11 +243,12 @@ class GuessGame:
         """开局说明."""
         return (f"我心里想好了一个《三国志》里出现过的人物. 除了魏蜀吴的人, 也可能是东汉末年 (如董卓部下、汉朝大臣)"
                 " 或西晋 (如晋朝开国的将相) 的人."
-                f" 你可以问 {self.max} 个问题 (是非题或二选一, 我查原文回答),"
-                " 猜名字时说 \"猜 某某\" 或直接说名字. 输入 /放弃 揭晓答案, /退出 结束游戏.")
+                " 问题不限次数 (是非题或二选一, 我查原文回答), 名字最多猜"
+                f" {self.max} 次: 说 \"猜 某某\" 或直接说名字. 输入 /放弃 揭晓答案, /退出 结束游戏.")
 
     def ask(self, text: str, on_event: OnEvent | None = None) -> str | None:
         """处理玩家的一句话: 猜名字就由代码比对, 否则当作是非问题交给裁判. 返回界面上显示的一行.
+        问题不限次数; 猜错名字 self.max 次就结束并揭晓.
         裁判超时时这一问不计数, 请玩家再问一次. 裁判判断不是游戏里的问题 (NOT_GAME) 时返回 None, 不计数."""
         text = text.strip()
         if self.over:
@@ -258,12 +260,13 @@ class GuessGame:
             if matches(name, self.p):
                 self.over = True
                 return "猜对了! " + self.reveal_text()
-            self.asked += 1
+            self.guesses += 1
+            if self.guesses >= self.max:
+                self.over = True
+                return f"不是 {name}. {self.max} 次机会用完了. " + self.reveal_text()
             self.msgs.append({"role": "user", "content": f"(玩家猜是 {name}, 程序判定猜错了. 这一条不用回答.)"})
             self.msgs.append({"role": "assistant", "content": "好的."})
-            return f"不是 {name}. ({self.asked}/{self.max})" + self._left()
-        if self.asked >= self.max:
-            return f"{self.max} 个问题用完了, 猜一个名字吧, 或者输入 /放弃 揭晓."
+            return f"不是 {name}. (还能猜 {self.max - self.guesses} 次)"
         try:
             r = judge_question(self.lib, self.p, text, self.complete, on_event, self.msgs, self.seen)
         except TimeoutError:
@@ -272,10 +275,7 @@ class GuessGame:
             return None
         if r["verdict"] != NOT_COUNTED and r["answer"] != LEAK_REPLY:
             self.asked += 1
-        return f"{r['answer']}  ({self.asked}/{self.max})" + self._left()
-
-    def _left(self) -> str:
-        return " 问题用完了, 猜一个名字吧." if self.asked >= self.max and not self.over else ""
+        return f"{r['answer']}  (第 {self.asked} 问)"
 
     def reveal(self) -> str:
         """放弃, 直接揭晓."""
@@ -386,8 +386,7 @@ def new_game(lib: Library, complete: Callable[..., Any], rng: random.Random | No
     return GuessGame(person, lib, complete, known_names=known)
 
 
-AGENT_MAX = 25        # Agent 来猜时最多几次 (问问题和猜名字都算)
-AGENT_HINT_AFTER = 20  # 问过这么多次以后, 每轮告诉模型还剩几次 (模型自己不数)
+AGENT_SAFETY_MAX = 50  # Agent 来猜时问问题不限次数, 只在问到这么多次还没猜中时认输 (防止模型一直问下去, 不告诉玩家和模型)
 AGENT_ROUNDS = 4       # Agent 每一轮最多几轮工具调用
 _YES = {"是", "是的", "对", "对的", "对了", "嗯", "有", "属于", "算", "算是", "没错", "正确", "猜对了", "是他", "是她",
         "yes", "y", "yep", "correct"}
@@ -407,13 +406,15 @@ class AgentGuessGame:
     """Agent 来猜: 玩家心里想一个人, Agent 问是非问题 (可以用检索工具查原文), 最后猜名字, 玩家答 对 / 错.
 
     整局是同一段对话 (GUESS_SYS 是 system prompt); 每一轮用 play() 跑 agent 循环, 并删掉循环追加的 developer 提醒.
-    问满 AGENT_HINT_AFTER 次后每轮附上 "还剩 N 次". Agent 没给出问题或名字时提醒一次.
+    问问题不限次数, 名字最多猜 max_guesses 次: 猜错时告诉 Agent 还能猜几次, 猜错 max_guesses 次就认输.
+    问和猜合计到 safety_max 轮还没猜中也认输 (只防模型一直问下去). Agent 没给出问题或名字时提醒一次.
     complete 签名同 judge_question 的 complete; turns 记录每一轮 {"n", "ask" 或 "guess" + "desc", "tools"}."""
 
-    def __init__(self, lib: Library, complete: Callable[..., Any], max_turns: int = AGENT_MAX,
-                 hint_after: int = AGENT_HINT_AFTER) -> None:
-        self.lib, self.complete, self.max, self.hint_after = lib, complete, max_turns, hint_after
-        self.msgs: list[dict] = [{"role": "system", "content": GUESS_SYS.format(n=max_turns)},
+    def __init__(self, lib: Library, complete: Callable[..., Any], max_guesses: int = MAX_GUESSES,
+                 safety_max: int = AGENT_SAFETY_MAX) -> None:
+        self.lib, self.complete, self.max, self.safety_max = lib, complete, max_guesses, safety_max
+        self.guesses = 0  # 猜错了几次名字
+        self.msgs: list[dict] = [{"role": "system", "content": GUESS_SYS.format(g=max_guesses)},
                                  {"role": "user", "content": "我想好了一个人, 开始吧."}]
         self.turns: list[dict] = []
         self.seen = Seen(lib.notes)
@@ -424,7 +425,7 @@ class AgentGuessGame:
         """开局: 说明玩法, 并给出第一个问题."""
         return ("你心里想好一个《三国志》里的人物, 我来问. 请回答 是 / 不是 / 不知道, 也可以简短说明 (如 \"都待过\");"
                 " 我猜名字时回答 对 / 错."
-                f" 我最多问 {self.max} 次. /放弃 我认输, /退出 结束游戏.\n\n" + self._next(on_event))
+                f" 我问问题不限次数, 名字最多猜 {self.max} 次. /放弃 我认输, /退出 结束游戏.\n\n" + self._next(on_event))
 
     def _next(self, on_event: OnEvent | None = None) -> str:
         """让 Agent 想下一问 (或猜名字). 超时时恢复对话历史, 标记 pending, 请玩家随便说一句再试."""
@@ -441,11 +442,9 @@ class AgentGuessGame:
 
     def _think(self, on_event: OnEvent | None) -> str:
         n = len(self.turns) + 1
-        if n > self.max:
+        if n > self.safety_max:
             self.over = True
-            return f"{self.max} 次用完了, 我没猜出来. 你想的是谁?"
-        if n > self.hint_after:
-            self.msgs[-1]["content"] += f"\n(还剩 {self.max - n + 1} 次.)"
+            return f"问了 {self.safety_max} 次还没猜出来, 我认输. 你想的是谁?"
         log: list[dict] = []
         reply = play(self.msgs, self.lib, self.seen, log, self.complete, AGENT_ROUNDS, on_event)
         if not field(reply, "guess") and not field(reply, "ask"):
@@ -480,7 +479,11 @@ class AgentGuessGame:
             if kind == "是":
                 self.over = True
                 return f"太好了, 是 {last['guess']}! 我用了 {last['n']} 次."
-            self.msgs.append({"role": "user", "content": f"不是 {last['guess']}."})
+            self.guesses += 1
+            if self.guesses >= self.max:
+                self.over = True
+                return f"{self.max} 次都没猜中, 我认输. 你想的是谁?"
+            self.msgs.append({"role": "user", "content": f"不是 {last['guess']}. (你还能猜 {self.max - self.guesses} 次.)"})
         else:
             if kind is None and (not text or len(text) > FREE_MAX):
                 return None  # 太长的多半不是在回答这个问题 (问玩法, 想结束……), 交给问答 agent

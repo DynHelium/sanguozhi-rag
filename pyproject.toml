@@ -19,6 +19,9 @@ index = [
 ui = [
     "gradio>=4.40",
 ]
+anthropic = [
+    "anthropic>=1.15.0",
+]
 
 [tool.uv]
 package = false

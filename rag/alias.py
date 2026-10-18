@@ -14,6 +14,8 @@ data/aliases.json 的来历: 大模型对照原文 (和白话译文) 逐卷整�
 再用代码核对每个 orig 确实出现在 src 的原文里, 通过的卷合并成这一个文件. 只收原文里有的称呼, 不用演义或现代资料.
 """
 import json
+import re
+import unicodedata
 from functools import lru_cache
 from typing import NotRequired, TypeAlias, TypedDict
 
@@ -80,6 +82,70 @@ def load_aliases() -> AliasTable:
     if not path.exists():
         return {"people": [], "homonyms": {}, "variants": {}, "variant_surnames": {}}
     return json.loads(path.read_text(encoding="utf-8"))
+
+
+class Extra(TypedDict):
+    """data/aliases_extra.json 的一条: 《三国志》以外的叫法.
+        {"name": "孙尚香", "sgz": "孙夫人", "kind": "演义", "src": "34-0002", "desc": "孙权之妹, 刘备之妻; ..."}
+    kind: "他书" (其他史书的写法, 可以采信), "演义" (小说里的叫法), "传说" (后世民间的说法).
+    sgz 是到《三国志》里查这个人用的写法, src 的原文里逐字有它: 多半是本人的称呼 (孙夫人, 北宫玉), 书里没记名字时是相关的人
+    (黄月英查 黄承彦, 原文只说是他的女儿); desc 说清楚是哪一种."""
+    name: str
+    sgz: str
+    kind: str
+    src: str
+    desc: str
+
+
+@lru_cache
+def load_extras() -> dict[str, Extra]:
+    """读 data/aliases_extra.json, 返回 {简体的 name: 条目}. 文件不存在时为空.
+    这些叫法不进 data/aliases.json (那里只收原文里有的称呼), 也不参与 expand_query; who 认得它们, search 会补上 sgz."""
+    path = config.DATA_DIR / "aliases_extra.json"
+    if not path.exists():
+        return {}
+    return {to_simplified(e["name"]): e for e in json.loads(path.read_text(encoding="utf-8"))["names"]}
+
+
+def key(text: str) -> str:
+    """拼音写法归一成查表用的键: 去掉声调符号 (Zhōu -> zhou), 小写, 只留字母, ü / v 写成 u.
+        "Zhou Tai" "zhou-tai" "Zhōu Tài" -> "zhoutai";  "Chou T'ai" -> "choutai";  "Lü Pu" "Lv Bu" -> "lupu" / "lubu"."""
+    t = "".join(c for c in unicodedata.normalize("NFKD", text) if unicodedata.category(c) != "Mn")  # ü -> u + 分音符, 去掉分音符
+    t = t.lower().replace("v", "u")
+    return "".join(c for c in t if "a" <= c <= "z")
+
+
+@lru_cache
+def load_pinyin() -> dict[str, list[str]]:
+    """读 data/aliases_pinyin.json (ingest/pinyin_index.py 生成): {拼音键: [中文写法, ...]}, 键见 key(). 文件不存在时为空."""
+    path = config.DATA_DIR / "aliases_pinyin.json"
+    if not path.exists():
+        return {}
+    return json.loads(path.read_text(encoding="utf-8"))
+
+
+def find_pinyin_names(text: str, limit: int = 3) -> list[str]:
+    """英文问题里用拼音写的人名, 按出现顺序, 最多 limit 个: 首字母大写的词连着取 3 / 2 / 1 个拼起来, 经 key() 归一后
+    在 load_pinyin() 里查得到的才算 (长的优先, 不重叠). 只认表里有的写法, 所以 "Red Cliffs" 这类普通英文不会误认.
+        find_pinyin_names("Who was Zhou Tai?") -> ["Zhou Tai"];  find_pinyin_names("Did Chu-ko Liang ...") -> ["Chu-ko Liang"]"""
+    table = load_pinyin()
+    if not table:
+        return []
+    words = re.findall(r"[A-Za-zÀ-ɏ][A-Za-zÀ-ɏ'’\-]*", text)
+    found: list[str] = []
+    i = 0
+    while i < len(words) and len(found) < limit:
+        for n in (3, 2, 1):
+            span = words[i:i + n]
+            if len(span) == n and all(w[0].isupper() for w in span) and key("".join(span)) in table:
+                name = " ".join(span)
+                if name not in found:
+                    found.append(name)
+                i += n
+                break
+        else:
+            i += 1
+    return found
 
 
 def person_forms(p: Person) -> Forms:

@@ -11,6 +11,7 @@ DATA_DIR = Path(os.getenv("DATA_DIR", ROOT / "data"))  # 可在 .env 里设 DATA
 INDEX_DIR = DATA_DIR / "index"
 
 # 大模型调用 (rag/llm.py, OpenAI 兼容接口); 检索和检索评测不用这几项
+LLM_BACKEND = os.getenv("LLM_BACKEND", "openai")  # "openai" = OpenAI 兼容接口 (DeepSeek 经 OpenRouter); "anthropic" = Claude 原生接口 (rag/claude_llm.py, key 读 ANTHROPIC_API_KEY)
 LLM_BASE_URL = os.getenv("LLM_BASE_URL", "https://openrouter.ai/api/v1")
 LLM_API_KEY = os.getenv("LLM_API_KEY", "")
 LLM_MODEL = os.getenv("LLM_MODEL", "")
