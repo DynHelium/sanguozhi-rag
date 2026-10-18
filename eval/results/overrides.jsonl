@@ -46,3 +46,7 @@
 {"group": "closed", "qid": "f-21", "from": "错", "to": "部分", "why": "规则 1 复查: 初平三年及英雄记四年异说答对；误引典略/吴录原文，称死因一致而漏吕公投石说和裴松之按语"}
 {"group": "closed", "qid": "h-11", "from": "错", "to": "部分", "why": "规则 1 复查: 裴潜评语核心答对；夹带编造的“太祖曰善”"}
 {"group": "closed", "qid": "h-10", "from": "错", "to": "部分", "why": "规则 1 复查: 六个月、陆抗三万、胡烈解围答对；夹带盛曼、追击破陆抗等不实细节"}
+{"group": "single-nocontext", "qid": "e-h-39", "from": "错", "to": "部分", "why": "规则 3"}
+{"group": "single-nocontext", "qid": "e-h-40", "from": "错", "to": "部分", "why": "规则 3"}
+{"group": "single", "qid": "e-h-39", "from": "错", "to": "部分", "why": "规则 3"}
+{"group": "single", "qid": "e-h-40", "from": "错", "to": "部分", "why": "规则 3"}
