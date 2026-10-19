@@ -33,6 +33,7 @@
 gr.BrowserState (浏览器 localStorage) 里, 刷新页面后对话和正在玩的游戏都还在; "清除对话" 清掉聊天记录和游戏 (见 build_ui).
 """
 import argparse
+import contextvars
 from datetime import date
 import queue
 import re
@@ -58,19 +59,20 @@ MSG: dict[str, dict[str, str]] = {
         "search": "搜索: {q}", "read": "读原文: {id}", "who": "查人: {name}", "era": "年号换算: {era}{year}年",
         "start_game": "开始游戏: {game}", "end_game": "结束游戏", "tool_error": " (出错: {e})", "chunks": " → {n} 段",
         "nudge": "资料还不够, 再查一次", "nudge_notfound": "回答说没找到, 换说法再搜", "retry": "回答不完整, 重新作答",
-        "review": "核对回答 (逐句对照资料)", "quote_fix": "有引文对不上原文, 修改引文",
+        "review": "核对回答 (逐句对照资料)", "quote_fix": "有引文对不上原文, 修改引文", "lang_fix": "改写成提问用的语言",
         "thinking": "· 思考中……", "steps": "{title} ({n} 步)", "search_title": "检索过程", "think_title": "思考过程",
         "sources": "出处 ({n} 段)", "trans": "白话", "check": "引文核对", "ok": " ✓", "missing": " ✗ 原文里找不到",
         "bad_number": " ✗ 没有这个编号", "misplaced": " ✗ 出处标错, 文字在 ", "bad_nums": "回答里有不存在的编号: ",
         "draft": "*（初稿，正在逐句核对资料，核对完会更新）*", "no_answer": "(没有得到回答)", "error": "出错了: {e}",
         "too_long": "问题太长了 (超过 {n} 字), 请精简后再问.", "budget": "今日 API token 额度已用完, 请明天再来.",
+        "working_title": "查阅《三国志》原文", "working": "正在检索和核对原文……",
     },
     "en": {
         "search": "Search: {q}", "read": "Read: {id}", "who": "Who: {name}", "era": "Era year: {era} {year}",
         "start_game": "Start game: {game}", "end_game": "End game", "tool_error": " (error: {e})", "chunks": " → {n} passages",
         "nudge": "Not enough material, searching again", "nudge_notfound": "The answer found nothing, searching with other words",
         "retry": "The answer was incomplete, answering again", "review": "Checking the answer against the sources",
-        "quote_fix": "A quotation does not match the source, fixing it",
+        "quote_fix": "A quotation does not match the source, fixing it", "lang_fix": "Rewriting in the language of the question",
         "thinking": "· Thinking…", "steps": "{title} ({n} steps)", "search_title": "Search steps", "think_title": "Thinking",
         "sources": "Sources ({n})", "trans": "Modern Chinese", "check": "Quotation check", "ok": " ✓",
         "missing": " ✗ not found in the source", "bad_number": " ✗ no such number",
@@ -79,6 +81,7 @@ MSG: dict[str, dict[str, str]] = {
         "no_answer": "(no answer)", "error": "Something went wrong: {e}",
         "too_long": "The question is too long (over {n} characters); please shorten it.",
         "budget": "Today's API token quota has been used up; please come back tomorrow.",
+        "working_title": "Consulting the Sanguozhi", "working": "Searching and checking the sources…",
     },
 }
 
@@ -125,19 +128,20 @@ def to_agent_history(history: list[dict]) -> list[dict]:
     输入 (Gradio 回传的 history, 按页面顺序; tests/test_chat 的例子):
         [{"role": "user", "content": "曹操去过浚仪吗"},
          {"role": "assistant", "content": "· 搜索: 浚儀", "metadata": {"title": "检索过程 (1 步)", "status": "done"}},  <- 折叠块, 去掉
-         {"role": "assistant", "content": "去过 [1]"},                                                                <- 最终回答, 留
+         {"role": "assistant", "content": "去过 [1]"},                                                                <- 最终回答, 留 (去掉编号)
          {"role": "assistant", "content": "[1] ...", "metadata": {"title": "出处 (1 段)"}},                          <- 折叠块, 去掉
          {"role": "user", "content": [{"type": "text", "text": "后来呢"}]},                                          <- content 是列表
          {"role": "assistant", "content": [{"type": "text", "text": "进军官渡"}], "metadata": None},                 <- metadata 为 None, 留
          {"role": "assistant", "content": ""}]                                                                        <- 空, 去掉
     输出:
-        [{"role": "user", "content": "曹操去过浚仪吗"}, {"role": "assistant", "content": "去过 [1]"},
+        [{"role": "user", "content": "曹操去过浚仪吗"}, {"role": "assistant", "content": "去过"},
          {"role": "user", "content": "后来呢"}, {"role": "assistant", "content": "进军官渡"}]
 
     按页面顺序逐条处理:
         - role 不是 "user" / "assistant" 的丢掉
         - metadata 里 "title" 非空的 (折叠块) 丢掉; 没有 metadata, metadata 为 None 或 {} 都算普通消息
-        - content 用 text_of 转成字符串并去掉首尾空白, 为空的丢掉
+        - content 用 text_of 转成字符串并去掉首尾空白, 为空的丢掉; 回答里的资料编号 [n] 去掉 (编号只对那一次检索有效,
+          留着会让模型以为要对上这次的编号, 甚至解释 "上一条的编号来自另一次检索")
         - 输出每条只含 "role" 和 "content" (不带 metadata)
     不截取轮数: 只带最近几轮由 run_agent 做 (agent.HISTORY_TURNS). 空列表返回 []."""
     out = []
@@ -146,6 +150,8 @@ def to_agent_history(history: list[dict]) -> list[dict]:
         if m.get("role") not in ("user", "assistant") or meta.get("title"):
             continue
         text = text_of(m.get("content")).strip()
+        if m["role"] == "assistant":
+            text = CITE.sub("", text).strip()
         if text:
             out.append({"role": m["role"], "content": text})
     return out
@@ -176,7 +182,7 @@ def describe(kind: str, info: Any, lang: str = "zh") -> str | None:
         text = " ".join(str(info).split())
         return "💭 " + (text if len(text) <= 600 else text[:600] + "……")
     if kind == "stage":
-        return "· " + (t(lang, info) if info in ("nudge", "nudge_notfound", "retry", "review", "quote_fix") else str(info))
+        return "· " + (t(lang, info) if info in ("nudge", "nudge_notfound", "retry", "review", "quote_fix", "lang_fix") else str(info))
     return None
 
 
@@ -254,7 +260,7 @@ def check_limits(question: str, history: list[dict], budget: Budget | None) -> s
 
 def make_respond(lib: agent.Library, model: str | None = None, effort: str | None = None,
                  complete_factory: Callable[[], Callable[..., Any]] | None = None, budget: Budget | None = None,
-                 router: "Router | None" = None) -> Callable[..., Iterator[list[dict]]]:
+                 router: "Router | None" = None, show_steps: bool = True) -> Callable[..., Iterator[list[dict]]]:
     """返回 build_ui 用的 respond(message, history, sid).
 
     message 是字符串或 {"text": ...} (多模态输入框); history 是页面上的消息列表 (格式见模块 docstring).
@@ -273,7 +279,9 @@ def make_respond(lib: agent.Library, model: str | None = None, effort: str | Non
     游戏不管的消息走问答 agent, agent 的 system prompt 附上 router.agent_note, tools 加上 start_game / end_game,
     agent 调用它们时显示游戏的回复 (SkillReply). 预算用完时任何消息 (包括游戏的) 都只回一条说明; 游戏的消息不经过
     check_limits 的长度检查, 花费由 main() 传给 make_router 的 complete 记进 budget.
-    sid 是 BrowserState 里存的浏览器 id, 区分各人的游戏."""
+    sid 是 BrowserState 里存的浏览器 id, 区分各人的游戏.
+    show_steps 为 False 时不列出检索的每一步 (公开的演示页用): 回答出来之前只显示一行 "正在检索和核对原文……" (带转圈),
+    回答出来后这一行去掉, 只留回答和出处."""
 
     current: dict[str, threading.Event] = {}  # 每个浏览器 id 正在进行的那一问的取消标记
     current_lock = threading.Lock()
@@ -305,11 +313,15 @@ def make_respond(lib: agent.Library, model: str | None = None, effort: str | Non
             finally:
                 events.put(("done", None))
 
-        threading.Thread(target=work, daemon=True).start()
+        # 带上当前的 contextvars (Gradio 的请求上下文): 在 ZeroGPU 上, 后台线程里的 @spaces.GPU 函数要靠它知道是哪个访客的额度
+        threading.Thread(target=contextvars.copy_context().run, args=(work,), daemon=True).start()
         lines: list[str] = []
         draft: list[dict] = []  # 自查前的初稿 (run_agent 的 "draft" 事件): 先显示, 最终回答出来后被整体换掉
 
         def progress(status: str) -> dict:
+            if not show_steps:
+                return {"role": "assistant", "content": t(lang, "working"),
+                        "metadata": {"title": t(lang, "working_title"), "status": status}}
             return {"role": "assistant", "content": "\n".join(lines) or t(lang, "thinking"),
                     "metadata": {"title": t(lang, "steps", title=title, n=len(lines)), "status": status}}
         first = True
@@ -340,7 +352,7 @@ def make_respond(lib: agent.Library, model: str | None = None, effort: str | Non
         except GeneratorExit:  # 用户点了停止
             cancel.set()
             raise
-        box["head"] = [progress("done")] if lines else []
+        box["head"] = [progress("done")] if lines and show_steps else []
 
     def respond(message: Any, history: list[dict] | None, sid: str = "default") -> Iterator[list[dict]]:
         question = text_of(message.get("text") if isinstance(message, dict) else message).strip()
@@ -423,6 +435,7 @@ def main() -> None:
     ap.add_argument("--port", type=int, default=7860)
     ap.add_argument("--share", action="store_true", help="Gradio 公网临时链接 (默认只在本机)")
     ap.add_argument("--lan", action="store_true", help="局域网里的其他设备也能访问 (监听 0.0.0.0, 不设密码)")
+    ap.add_argument("--hide-steps", action="store_true", help="不列出检索的每一步, 回答出来前只显示一行 \"正在检索和核对原文\" (公开演示页用)")
     ap.add_argument("--daily-budget", type=float, default=None,
                     help="每天最多花多少美元 (按接口返回的花费累计, OpenRouter 和 Claude 原生接口都有; 问答和游戏都算), 用完后拒绝新消息; 默认不限")
     args = ap.parse_args()
@@ -445,7 +458,7 @@ def main() -> None:
             budget.add(c.stats['cost'])
         
     router = make_router(lib, _cal_cost, model, args.effort)
-    respond = make_respond(lib, model, args.effort, factory, budget, router)
+    respond = make_respond(lib, model, args.effort, factory, budget, router, show_steps=not args.hide_steps)
 
     desc = f"`{model or config.LLM_MODEL}`" + (f" · effort {args.effort}" if args.effort else "")  # 不分语言
     demo = build_ui(respond, router, desc)

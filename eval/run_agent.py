@@ -121,10 +121,10 @@ def main() -> None:
     ap.add_argument("--jobs", type=int, default=1, help="同时跑几题 (至少为 PER_MODEL x 模型数; 单模型另有并发上限 PER_MODEL)")
     ap.add_argument("--review-mode", default=agent.REVIEW_MODE, choices=["rewrite", "short", "layered", "patch"],
                     help="自查的做法 (agent.REVIEW_MODE): rewrite = 一律重写整篇, short = 没问题只回 无误, "
-                         "layered = 事实 / 推断 / 背景分开核对 (配合把回答分成这三类的 system prompt), "
+                         "layered = 按事实, 推断, \"没有记载 / 演义\" 的说法, 写法四项核对 (默认, 配合 SYSTEM / SYSTEM_CLAUDE), "
                          "patch = 核对标准同 layered, 只列出要改的句子由代码替换")
     ap.add_argument("--review-effort", help="自查等作答之后几步的 reasoning_effort (agent.REVIEW_EFFORT); 不给就和作答相同")
-    ap.add_argument("--off", nargs="+", choices=["nudge", "nudge_notfound", "nudge_scope", "agg_nudge", "pinyin_who", "lang_note", "review", "quote_fix", "cite_fix", "none"],
+    ap.add_argument("--off", nargs="+", choices=["nudge", "nudge_notfound", "nudge_scope", "agg_nudge", "pinyin_who", "lang_note", "lang_fix", "review", "quote_fix", "cite_fix", "none"],
                     help=f"消融: 关掉这些代码介入, 覆盖 agent.OFF (默认 {sorted(agent.OFF)}); none = 全开")
     ap.add_argument("--tag", help="结果里 model 字段写这个 (盲判/同一文件放多种配置用); 只能配一个模型")
     ap.add_argument("--summary", action="store_true", help="不跑模型, 只打印汇总 (有判读结果时一并统计); 几套题的结果要带上跑时同样的 --questions")

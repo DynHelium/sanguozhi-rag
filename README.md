@@ -67,10 +67,11 @@ Main parts:
   appendix `eval/tool_calling.py` is an early single-tool experiment on whether small local models use the tools
   interface reliably (its live run needs a local model and does not work for now; its fake-model tests do).
 - **Full agent** (`rag/agent.py`): the model decides what to search and read; the code does no retrieval up front. The
-  system prompt asks for three kinds of content, written separately: facts taken from retrieved original text (quoted,
-  with a `[n]` number); inferences marked "据此推断" ("inferred from this") together with their basis; plot points from
-  the novel *Romance of the Three Kingdoms* (三国演义) and modern equivalents of place names in a final paragraph labeled
-  as not being records of the *Sanguozhi*. The code handles the round limit, a nudge to search more when too little was
+  system prompt states principles rather than a format: facts come only from retrieved original text (quoted, with a
+  `[n]` number); an inference is marked as one in the wording ("from these records…") with its basis, without fixed
+  section headings; and before saying the text has no record of something, or that it comes from the novel *Romance of
+  the Three Kingdoms* (三国演义), the model searches for it in other words and reads the end-of-biography comment and the
+  annotations. The code handles the round limit, a nudge to search more when too little was
   retrieved, a self-review after answering, verbatim quotation checks, and citation-number checks. Quotations that fail
   the check are flagged, but the code cannot guarantee that every fact in an answer has a source.
 - **Agent evaluation** (`eval/run_agent.py`): 40 held-out questions (`eval/questions-holdout.jsonl`),
@@ -255,7 +256,7 @@ the index is Chinese, which is why the agent translates names and terms back int
 
 ### Answer quality
 
-Five configurations, all DeepSeek V4.1 Flash (reasoning effort low), one run each (an empty answer was retried up to
+Five configurations, all DeepSeek V4.1 Flash (reasoning effort low) with an earlier, sectioned prompt (see [Questions asked the way people ask them](#questions-asked-the-way-people-ask-them)), one run each (an empty answer was retried up to
 three times), on the same 103 Chinese questions (held-out 40; inference / the novel / official titles and geography 30;
 fact-level errors 24; people 9) and the same 103 questions rewritten in English (`eval/questions-en.jsonl`; names in pinyin,
 Wade-Giles for about a fifth, English official titles and event names):
@@ -298,31 +299,45 @@ limit) and count as wrong.
 
 ### Two backends
 
-The same agent, prompt and tools with Claude Haiku 5.5 (native Claude API) and with DeepSeek V4.1 Flash, on 62 questions
-(`eval/questions-probe62.jsonl`: the 40 held-out questions, 18 English questions and 4 new ones), one run each, all five
-runs judged blind in one package:
+The same agent and tools with DeepSeek V4.1 Flash and with Claude Haiku 5.5 (native Claude API), on 62 questions
+(`eval/questions-probe62.jsonl`: the 40 held-out questions, 18 English questions and 4 new ones) and on 21 English
+questions (the 18 plus the pinyin homonyms Zhou Tai, Liu Yan and Zhang Yi), one run each, judged blind:
 
-| Backend | Reasoning effort | Correct / partial / wrong (62) | Chinese correct (44) | English correct (18) | Tool calls per question | Cost per question |
-|---|---|---|---|---|---|---|
-| Claude Haiku 5.5, before the three changes below | low | 58 / 3 / 1 | 41 | 17 | 2.8 | $0.0042 |
-| Claude Haiku 5.5 | low | 56 / 4 / 2 | 39 | 17 | 3.1 | $0.0050 |
-| **Claude Haiku 5.5** | **medium** | **60 / 1 / 1** | 42 | 18 | 3.6 | $0.0056 |
-| Claude Haiku 5.5 | high | 58 / 1 / 3 | 41 | 17 | 4.2 | $0.0076 |
-| **DeepSeek V4.1 Flash** | **low** | **62 / 0 / 0** | 44 | 18 | 4.5 | $0.0069 |
+| Backend | Reasoning effort | Correct / partial / wrong (62) | Chinese correct (44) | English correct (18) | English 21 | Tool calls per question | Cost per question |
+|---|---|---|---|---|---|---|---|
+| **DeepSeek V4.1 Flash** | low | **61 / 1 / 0** | 43 | 18 | 21 / 0 / 0 | 4.5 | $0.0065 |
+| **Claude Haiku 5.5** | medium | **58 / 2 / 2** | 41 | 17 | 20 / 0 / 1 | 4.4 | $0.0100 |
 
-The three changes, made for both backends after the main comparison above: a question asking for a list or a count
-("which people", "how many") needs three searches before the first answer instead of two; pinyin names in an English
-question are looked up with `who` by code before the model starts; and Classical Chinese inside “…” is checked like a
-「」 quotation. On Haiku they did not raise accuracy (56 vs 58 at low, a difference a single run cannot separate from noise): its
-misses are answers that stop at the first person found even after more searches (the second 张松, 苏则 for 刚侯), not
-too few searches. DeepSeek had no new error with them. Medium effort gave Haiku four more correct answers than low for
-about 12% more cost; high was not better. One question Haiku missed at every effort after the changes: who the "White Horse General" was
-(庞德, 18-0022), which it said the text does not mention.
+The two backends share one system prompt with a different last paragraph: DeepSeek is told to keep answers short (it
+writes long ones), Haiku to search more before answering open questions (it searched two to five times a question, DeepSeek two to twelve, more
+on the open questions, and Haiku too readily said the text has no record of something). Haiku's misses: the "White Horse
+General" (庞德, 18-0022), which it said the text does not mention; the second 张松 in an annotation; a detail of 赵达.
+Reasoning effort for Haiku was chosen on an earlier version of the prompt: medium gave four more correct answers than
+low (60 vs 56 of 62) for about 12% more cost, and high was not better (58).
 
-English, 21 questions (the 18 above plus the three pinyin homonyms Zhou Tai, Liu Yan, Zhang Yi), with the final prompt:
-Haiku (medium) 19 / 1 / 1 and DeepSeek 21 / 0 / 0. Haiku named every person sharing the pinyin for two of the three
-homonym questions; the pinyin lookup by code is what made the difference, since Haiku on its own translates the name
-to one Chinese form and asks `who` about that. Haiku answered all 21 English questions in English, DeepSeek 20 of 21.
+### Questions asked the way people ask them
+
+The test sets above are mostly factual. Sixteen open questions (`eval/questions-human.jsonl`, eight written by the
+author, such as "Why could Sima Yi be honoured in Cao Cao's ancestral temple?" or "Should Xiahou Ba have defected to
+Shu?", and `eval/questions-human-x.jsonl`, eight that test premises, such as whether Guan Yu's arrogance is an invention
+of the novel or whether Liu Bei really said "君可自取") have no reference answers. The judge checked every concrete
+claim against the text and rated how the answer reads. The current prompt replaced an earlier one that sorted every
+answer into "facts / inferences / background" sections:
+
+| Backend, prompt | Correct / partial / wrong (16) | Reads naturally / somewhat stiff / stiff | Claims the text has no record of something it does record |
+|---|---|---|---|
+| DeepSeek, earlier prompt | 16 / 0 / 0 | 0 / 3 / 13 | 0 |
+| **DeepSeek, current prompt** | 14 / 2 / 0 | **16 / 0 / 0** | 0 |
+| Claude Haiku, earlier prompt | 10 / 3 / 3 | 0 / 10 / 6 | 4 |
+| **Claude Haiku, current prompt** | 11 / 4 / 1 | 4 / 9 / 3 | 2 |
+
+On the 40 held-out questions the change kept accuracy (DeepSeek 40 → 39 correct, Haiku 39 → 38, within the spread of a
+single run) and made answers read better (DeepSeek: 2 → 14 natural, 24 → 1 stiff). On the 16 open questions DeepSeek's answers became
+about 30% shorter; its two partial answers on the open questions are details misstated while paraphrasing. Haiku's remaining
+miss is a question about a state rather than a person (why the *Sanguozhi* records little of Shu): it searched five
+times, all about Chen Shou himself, and never reached the passage that answers it (Chen Shou's comment on the Later
+Lord, 33-0045: Shu kept no official historians). The main five-configuration comparison above was measured with an
+earlier revision of the same sectioned prompt.
 
 **Judging.** Answers were judged by Claude Sonnet subagents following written rules
 ([`eval/judge_prompt.md`](https://github.com/DynHelium/sanguozhi-rag/blob/eval-judging/eval/judge_prompt.md)), against the original text, which they search
@@ -360,9 +375,16 @@ uv run python -m eval.run_agent --summary --name cv --questions eval/questions-*
   call (only spellings in the pinyin table count, so ordinary English words are not taken for names). Names from other histories (北宫伯玉) and from the novel (孙尚香, 大乔) are mapped to the
   form the *Sanguozhi* uses and labelled as such (`data/aliases_extra.json`), so either form works in a question.
 - **One interface, two backends.** The rest of the code only sees `rag.llm.complete`; the Claude backend converts
-  messages and responses at that one point. Prompt rules are written once for both models, and each change is checked on
-  both, which is how the language slip above was found: with the lookup note worded in Chinese, Haiku answered one English
-  question in eighteen in Chinese, so the note is now worded in English.
+  messages and responses at that one point. The system prompt is one set of rules plus a last paragraph per model, and
+  each change is checked on both models. Two language slips were found this way: a lookup note worded in Chinese made
+  Haiku answer an English question in Chinese, and with the per-model paragraph after the language rule DeepSeek did the
+  same on three of 21 English questions (two after moving the rule back to the end). Wording did not fix the second reliably, so code now checks it: an English
+  question with an answer that is mostly Chinese (outside the quotations) gets one request to rewrite it in English.
+- **Principles, not a template.** The prompt says what counts as evidence, how to mark an inference, and to check before
+  saying the text has no record of something (search the claim in other words, read the end-of-biography comment and the
+  annotations; `who` names where the comment is). It no longer prescribes sections, which models filled whether or not
+  the question needed them. When an answer still says something is not recorded after few searches, code asks once for
+  that check.
 - **Retrieval decides accuracy, the checks decide citations.** The ablations above are the reason the interventions stay
   on even though they cost time: without them about one quotation in ten does not match the source.
 
