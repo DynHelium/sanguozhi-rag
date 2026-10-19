@@ -13,7 +13,10 @@ main 分支 README "Answer quality"（中文版 "回答效果"）里的数字都
 | `<配置>-<题集>.judged.jsonl` | 判卷结果：每题 对 / 部分 / 错，错在哪（`errors`），原文查不到的说法（`unsupported`），一句说明 | |
 | `overrides.jsonl` | 作者改判的记录：哪一组哪一题，从什么改成什么，为什么 | |
 | `backends-<后端>-probe62.jsonl` | 两种后端对照（README "Two backends"）：62 题，`haiku-low-nochange`（Haiku，low，三项改动之前）、`haiku-low`、`haiku-medium`、`haiku-high`、`deepseek`（low） | `eval.run_agent`（Haiku 在 `.env` 设 `LLM_BACKEND=anthropic`） |
-| `backends-<后端>-en21.jsonl` | 英文 21 题（含三道拼音同音题），最终 prompt：`haiku-medium`、`deepseek` | 同上 |
+| `backends-<后端>-en21.jsonl` | 英文 21 题（含三道拼音同音题），较早的 prompt（P8）：`haiku-medium`、`deepseek` | 同上 |
+| `prompt-<p8/p9>-<后端>-holdout.jsonl` | 留出题 40 道，较早的 prompt（P8，分事实 / 推断 / 背景写）和现在的 prompt（P9）× DeepSeek（low）/ Haiku（medium）；四组同包盲判，判决行多一个 `style` 字段（自然 / 略僵 / 僵硬） | `eval.run_agent` |
+| `prompt-p9-<后端>-new4.jsonl`、`prompt-p9-<后端>-en21.jsonl` | 现在的 prompt：新题 4 道；英文 21 道（含三道同音题，带 lang_fix） | 同上 |
+| `human-<p8/p9>-<后端>.jsonl` | 按人平时的问法提问的 16 道开放题（`eval/questions-human.jsonl`、`eval/questions-human-x.jsonl`），两种 prompt × 两种后端；四组同包盲判。没有标准答案，判决行写每个具体说法核对的结果：`verdict`、`errors`、`missing`（漏掉的关键记载）、`novel_misjudged`（把有记载的说成没有或出自演义）、`style` / `style_note` | 同上 |
 
 回答文件的每行是脚本的结果行：问题、回答、模型看过的原文块（`retrieved`）、工具调用（`rounds`）、引文核对（`quotes` / `cites`）、用时、
 token 数和花费（`usage`，美元，OpenRouter 返回的）、配置。
@@ -24,6 +27,7 @@ token 数和花费（`usage`，美元，OpenRouter 返回的）、配置。
 - agent：main 分支的 `rag/agent.py`（结果行里的 `system_sha` / `review_sha` 是 system prompt 和自查指令全文的哈希）；白话索引，别名扩展 route2，自查 layered。
 - 每种配置每套题跑一遍。闭卷有 5 题三次都没给出回答（推理用完 8192 token 的输出上限），判卷文件里按错计（`judge` 为 `code: empty reply`）。
 - 两种后端对照的 Haiku 各组：Claude Haiku 5.5（`claude-haiku-5-5`），Claude 原生接口（`rag/claude_llm.py`），花费按 Claude 的价格算；五组 62 题的回答合成一包盲判（g1–g5），英文 21 题两组各自判。`haiku-low-nochange` 里 e-h-15 至 e-h-23 这 9 题是在三项改动写进代码之前跑的（`off` 里没有 agg_nudge / pinyin_who），其余 53 题是之后用 `--off agg_nudge pinyin_who` 跑的，两者配置相同。
+- P8 和 P9（P8 是较早的分段式 prompt 的最后一版；README 五种配置的主对照用的是同一种分段写法的更早一版，后来又加过几条规则）：`rag/agent.py` 的 system prompt 从分段的写法（P8）改成按原则写（P9，两种后端共用规则加各自的最后一段），同时 `who` 给出传末陈寿的评、英文直引号里的文言也核对、"没找到" 的提示改为有针对性的核实并默认开。留出题、新题 4 道和真人问法题的 P9 回答，是在把作答语言那一句挪回 prompt 最后一行之前跑的（中文问题只差这一处顺序）；英文 21 题是挪回之后、加了 lang_fix 再跑的。P8 的真人问法回答里，hx 开头的 8 道是在改动前的代码上补跑的。
 - 结果行里的 `sec` 是并发跑题时记的，含排队等待，不代表单题用时；README 的用时来自 `eval.bench_latency` 逐题跑。
 
 ## 判卷
