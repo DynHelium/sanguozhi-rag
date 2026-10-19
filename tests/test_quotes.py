@@ -75,6 +75,8 @@ def test_extract_curly_quotes_of_classical_text():
     """“” 里有繁体字, 至少 QUOTE_MIN_CJK 个汉字时也当作引文, 排在「」引文后面; 现代说法 (简体) 的 “” 不收."""
     reply = "原文：「太祖乃變易姓名，間行東歸」[1]。又说“淯母娥自傷父讎不報”，民间叫她“烈女赵娥”。"
     assert quotes.extract_quotes(reply) == ["太祖乃變易姓名，間行東歸", "淯母娥自傷父讎不報"]
+    reply = '曹操召见后 "表為司空軍祭酒"[2]，又说 "使孤成大業者，必此人也"[2]；他是 "司空军祭酒" 一类的谋士。'
+    assert quotes.extract_quotes(reply) == ["表為司空軍祭酒", "使孤成大業者，必此人也"], "英文直引号里的文言也收, 简体的现代说法不收"
 
 
 if __name__ == "__main__":

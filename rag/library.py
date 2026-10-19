@@ -88,6 +88,8 @@ class Library:
         for c in chunks:
             if parent := c.get("parent"):
                 self.notes.setdefault(parent, []).append(c)
+        # 每卷传末陈寿的评 (正文里以 "評曰" 开头的块): who 列人时一并给出, 问人物评价, 为什么失败之类时直接 read
+        self.ping = {c["id"].split("-")[0]: c["id"] for c in chunks if not c.get("parent") and c["text"].startswith("評曰")}
         if eras_table is None:
             from ingest import eras
             eras_table = eras.load()
@@ -224,8 +226,9 @@ class Library:
         for i in sorted(x for x in keys.get(q, ()) if x >= 0):
             p = data["people"][i]
             where = "无传, 出处" if p.get("notrans") else "传的首段"
-            lines.append(f"- {p['name']}" + (f", 字{p['zi']}" if p.get("zi") else "") + f" ({where} {p['id']}); 称呼: "
-                         + ", ".join(person_forms(p)))
+            ping = None if p.get("notrans") else self.ping.get(p["id"].split("-")[0])
+            lines.append(f"- {p['name']}" + (f", 字{p['zi']}" if p.get("zi") else "") + f" ({where} {p['id']}"
+                         + (f", 传末陈寿的评 {ping}" if ping else "") + "); 称呼: " + ", ".join(person_forms(p)))
         others = data.get("homonyms", {}).get(q, [])
         lines += [f"- 另一个 {q} (出处 {o['src']}): {o['desc']}" for o in others]
         return lines

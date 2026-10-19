@@ -291,13 +291,30 @@ def test_review_short_keeps_reply_when_ok():
 
 
 def test_not_found_answer_gets_one_more_try():
-    """回答说没找到时要求换说法再搜 (nudge_notfound): 默认关 (agent.OFF 里有它); 打开后只追加一次."""
-    assert "nudge_notfound" in agent.OFF
-    agent.OFF.discard("nudge_notfound")
-    try:
-        _not_found_once()
-    finally:
-        agent.OFF.add("nudge_notfound")
+    """回答说没找到 / 没有记载, 而搜得少或没看过传末评时, 要求核实一次 (nudge_notfound, 默认开); 只追加一次."""
+    assert "nudge_notfound" not in agent.OFF
+    _not_found_once()
+
+
+def test_not_found_pattern_covers_english_answers():
+    """英文回答说 "does not mention / no record" 也算 "没有记载" (nudge_notfound 对英文题也起作用); 普通句子不算."""
+    for t in ["The Sanguozhi does not mention a White Horse General.", "There is no record of this.", "原文没有记载"]:
+        assert agent.NOT_FOUND.search(t), t
+    assert not agent.NOT_FOUND.search("Zhou Tai was a general of Wu.")
+
+
+def test_not_found_after_enough_searches_and_ping_is_left_alone():
+    """已经 search 了 MIN_SEARCHES_NOTFOUND 次, 也看过传末评 ("評曰" 开头的块) 时, 说 "没有记载" 不再提示 (原文确实没有的正当回答)."""
+    ping = {"id": "01-0090", "tier": 1, "juan": 1, "juan_title": "魏書•武帝紀", "headings": ["評"], "parent": None, "cites": [],
+            "sources": ["01-0090"], "text": "評曰：漢末，天下大亂。"}
+    chunks = CHUNKS + [ping]
+    table = {**TABLE, "評": ["01-0090"]}
+    lib = agent.Library(chunks, lambda q, k, where=None: [c for c in chunks if c["id"] in table.get(q, [])][:k], ERAS)
+    queries = ["浚儀", "官渡", "評", "官渡"]
+    script = Script(*[resp(calls=[tc(f"c{i}", "search", query=q)]) for i, q in enumerate(queries)],
+                    resp("《三国志》里没有记载曹操去过许都以外的这个地方."))
+    r = agent.run_agent("曹操去过浚仪吗", lib, complete=script)
+    assert "nudge_notfound" not in [x["tool"] for x in r["rounds"]]
 
 
 def test_scope_refusal_without_tools_gets_one_search():
@@ -350,6 +367,18 @@ def test_aggregate_question_needs_three_searches():
     script = Script(resp(calls=[tc("c1", "search", query="浚儀")]), resp(calls=[tc("c2", "search", query="官渡")]), resp("答"))
     r = agent.run_agent("曹操去过浚仪吗", LIB, complete=script)
     assert "nudge" not in [x["tool"] for x in r["rounds"]]
+
+
+def test_english_question_with_chinese_answer_is_rewritten_once():
+    """英文问题得到中文回答 (去掉引文后大多是汉字) 时, 要求改写成英文一次 (lang_fix, 默认开); 中文问题不管."""
+    script = Script(resp(calls=[tc("c1", "search", query="浚儀")]), resp(calls=[tc("c2", "search", query="官渡")]),
+                    resp("去过: 「遂至浚儀」[1]。"), resp("Yes. 「遂至浚儀」[1] (he went on to Junyi)."))
+    r = agent.run_agent("Did Cao Cao go to Junyi?", LIB, complete=script)
+    assert r["reply"].startswith("Yes.") and [x["tool"] for x in r["rounds"]].count("lang_fix") == 1
+    assert script.seen[-1]["messages"][-1]["content"] == agent.LANG_FIX
+    script = Script(resp(calls=[tc("c1", "search", query="浚儀")]), resp(calls=[tc("c2", "search", query="官渡")]), resp("去过 [1]"))
+    r = agent.run_agent("曹操去过浚仪吗", LIB, complete=script)
+    assert "lang_fix" not in [x["tool"] for x in r["rounds"]]
 
 
 def _not_found_once():

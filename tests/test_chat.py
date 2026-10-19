@@ -39,7 +39,7 @@ def test_history_keeps_only_questions_and_answers():
         {"role": "assistant", "content": ""},
     ]
     assert chat.to_agent_history(page) == [
-        {"role": "user", "content": "曹操去过浚仪吗"}, {"role": "assistant", "content": "去过 [1]"},
+        {"role": "user", "content": "曹操去过浚仪吗"}, {"role": "assistant", "content": "去过"},
         {"role": "user", "content": "后来呢"}, {"role": "assistant", "content": "进军官渡"}]
 
 
@@ -225,6 +225,32 @@ def test_runtime_messages_follow_question_language():
     assert "quota" in out[0][0]["content"] and "额度" not in out[0][0]["content"]
     assert set(chat.UI_TEXT["zh"]) == set(chat.UI_TEXT["en"]) and set(chat.MSG["zh"]) == set(chat.MSG["en"])
     assert {k for k, _ in chat.GAME_BUTTONS} <= set(chat.UI_TEXT["en"])
+
+
+def test_hidden_steps_show_one_neutral_line_then_only_the_answer():
+    """show_steps=False (公开演示页): 回答出来前只有一行 "正在检索和核对原文" (不列搜了什么), 回答出来后这一行去掉."""
+    script = Script(resp(calls=[tc("c1", "search", query="浚儀")]), resp("去过 [1]"), resp("去过 [1]"))  # 第三个是自查
+    respond = chat.make_respond(LIB, complete_factory=lambda: script, show_steps=False)
+    out = list(respond("曹操去过浚仪吗", []))
+    assert all("浚儀" not in m["content"] for step in out[:-1] for m in step if (m.get("metadata") or {}).get("title"))
+    final = out[-1]
+    assert not any((m.get("metadata") or {}).get("title", "").startswith(("检索过程", "查阅")) for m in final)
+    assert final[0]["content"].startswith("去过")
+
+
+def test_background_thread_keeps_request_context():
+    """后台线程带着发起请求时的 contextvars (ZeroGPU 靠 Gradio 的请求上下文算访客额度)."""
+    import contextvars
+    var = contextvars.ContextVar("request", default=None)
+    seen = []
+    base = Script(resp("答"), resp("答"))  # 作答, 自查
+
+    def complete(messages, **kw):
+        seen.append(var.get())
+        return base(messages, **kw)
+    var.set("visitor-1")
+    list(chat.make_respond(LIB, complete_factory=lambda: complete)("曹操去过浚仪吗", []))
+    assert seen and set(seen) == {"visitor-1"}
 
 
 if __name__ == "__main__":
