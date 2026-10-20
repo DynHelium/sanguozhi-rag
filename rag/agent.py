@@ -18,8 +18,10 @@ OFF 里的名字关掉对应的代码介入, 消融实验用.
 模型看到的每一块有一个全局编号 [n] (rag/library.Seen), 回答里的 [n] 指 seen.chunks[n-1]. 默认检索白话索引,
 每块给模型看原文和白话译文; 引文只认原文.
 
-SYSTEM_SMALL (模型名含 SMALL_MODELS 里的字样时由 system_for 选用) 和 run_agent 里遇到 "no user query" 报错的重试,
-是早期在本地小模型上实验时留下的; DeepSeek 用 SYSTEM, claude-* 模型用 SYSTEM_CLAUDE (两者共用 SYSTEM_CORE, 见 system_for).
+DeepSeek 用 SYSTEM, claude-* 模型用 SYSTEM_CLAUDE (两者共用 SYSTEM_CORE, 见 system_for).
+
+代码发给模型的话 (再查提示, 自查指令, 改引文, 改写成英文, 以及 rag/loop.py 的两条循环提示) 一律用 developer 角色,
+不冒充用户: 用 user 角色时模型会把提示当成用户的追问, 回答里写 "我按您的要求重新核实了". Claude 原生接口里 developer 转成对话中途的 system 消息 (rag/claude_llm.py).
 """
 import argparse
 import json
@@ -35,7 +37,7 @@ from rag.quotes import check_cites, extract_quotes, fix_cites, renumber_cites, v
 MIN_SEARCHES = 2  # search + read 合计不到 2 次就想作答时, 代码追加一句提示让它再查 (只提示一次, 见 make_check).
 MIN_SEARCHES_AGG = 3  # 汇总题 (AGGREGATE: 有哪些, 有几个, ...) 的门槛 (agg_nudge): 漏人多半是只搜了一两次
 AGGREGATE = re.compile(r"有哪些|有几个|几个人|哪几|哪些人|都有谁|分别|各自|how many|who were|which (?:people|men|ones)", re.I)
-                  # 小模型常常搜 1 次就答, 只在 prompt 里写 "至少搜两次" 不管用. search 和 who 一次都没调的不提示 (闲聊/拒答); 只调了 who 就作答的也提示.
+                  # 模型常常搜 1 次就答, 只在 prompt 里写 "至少搜两次" 不管用. search 和 who 一次都没调的不提示 (闲聊/拒答); 只调了 who 就作答的也提示.
 NUDGE = ("你只查了 {n} 次. 你看过的资料出自: {where}. 回答前请再查一次, 确认没有漏掉: "
          "资料里提到的相关人物, 用他们的全名分别 search (如问某人的儿子, 就对资料里出现的每个儿子的名字各搜一次); "
          "或用 read 读相关传记的上下文和裴注. 不要只换一个更泛的词重搜.")
@@ -44,7 +46,7 @@ NUDGE = ("你只查了 {n} 次. 你看过的资料出自: {where}. 回答前请�
 NOT_FOUND = re.compile(r"(没有|未|没)(能)?(找到|查到|检索到|记载|说|提到|提及|写到|载)|查不到|找不到|无(此)?记载|未见"
                        r"|\b(no|not any) (record|mention)|(does|do|did) not (record|mention|say)|not (recorded|mentioned)", re.I)  # 英文回答也认
 _REFUSAL_TEMPLATE = re.compile(r"人工智能|语言模型|无法回答|换个话题|我还没学习")
-NOT_FOUND_NUDGE = ("你的回答里说原文没有记载或没找到某些内容. 下这种结论之前要核实: 1. 把这件事的关键词换 2~3 种说法 search "
+NOT_FOUND_NUDGE = ("你的回答草稿里说原文没有记载或没找到某些内容. 下这种结论之前要核实: 1. 把这件事的关键词换 2~3 种说法 search "
                    "(同义词, 原文的文言用词, 相关的人物, 地点, 官职或称号); 2. read 相关人物传末陈寿的评 (who 的结果里写了在哪一段), "
                    "评价, 成败原因, 史官缺载之类常写在那里; 3. 看相关段落的裴注. 核实之后再回答: 找到了就照原文改正, "
                    "确实没有再说没有记载.")
@@ -78,7 +80,7 @@ REVIEW_TEXT = ("请逐句核对你刚才的回答, 只能用上面工具返回�
                "3. 「」里的引文必须一字不差来自原文. "
                "直接输出修改后的完整回答 (格式同前), 不要说明改了什么, 不要调用工具.")
 # 自查的做法 (REVIEW_MODE), 选用哪段自查指令:
-#   "rewrite"  一律输出改后的完整回答 (REVIEW_TEXT); 配合只依据原文, 不推断不补背景的 prompt, 如 SYSTEM_SMALL.
+#   "rewrite"  一律输出改后的完整回答 (REVIEW_TEXT); 配合只依据原文, 不推断不补背景的 prompt.
 #   "short"    没有问题只回 REVIEW_OK, 有问题才输出完整回答 (REVIEW_TEXT_SHORT); 大多数回答不用改, 省掉重写整篇的时间.
 #   "layered"  默认. 配合 SYSTEM / SYSTEM_CLAUDE (记载和推断用措辞区分), 按事实, 推断, "没有记载 / 演义" 的说法, 写法四项核对,
 #              一律输出改后的完整回答 (REVIEW_TEXT_LAYERED); REVIEW_TEXT 会一律删掉推断, 把 SYSTEM 允许写的推断删光.
@@ -139,6 +141,7 @@ def apply_patch(reply: str, patch: str) -> tuple[str, int, int]:
     return re.sub(r"\n{3,}", "\n\n", reply).strip(), done, missed
 
 
+DRAFT = "下面是你刚才写好, 还没有发给用户的回答:\n<<<\n{reply}\n>>>\n\n"  # 代码的指令带上草稿, 放进 developer 消息 (见 run_agent / after_answer)
 QUOTE_FIX = ("下面这些「」里的引文, 在你查到的资料原文里找不到 (可能有字记错, 或用省略号跳过了内容, 或引了白话译文):\n{quotes}\n"
              "请把它们改成资料原文里一字不差的句子; 找不到对应原文的, 去掉「」改成转述 (转述也要和原文一致). "
              "其他内容不要改. 直接输出修改后的完整回答, 不要说明改了什么, 不要调用工具.")
@@ -159,7 +162,7 @@ def bad_reply(reply: str, finish_reason: str | None) -> bool:
 
 def nudge_text(n_look: int, chunks: list[dict]) -> str:
     """提示语 NUDGE: 列出模型看过的块来自哪些传 (卷名·最后一级小标题, 去重, 最多 8 个), 给出具体的再查方向.
-    n_look 是 search + read 的次数. 不用笼统的 "换个说法再搜": 小模型会去搜更泛的词.
+    n_look 是 search + read 的次数. 不用笼统的 "换个说法再搜": 模型会去搜更泛的词.
         nudge_text(1, [<01-0002 的块>])  -> "你只查了 1 次. 你看过的资料出自: 魏書•武帝紀. 回答前请再查一次, ..." """
     where = []
     for c in chunks:
@@ -197,44 +200,11 @@ SYSTEM_CLAUDE = SYSTEM_CORE + """
 查资料要查够再作答: 问为什么, 该不该, 能不能避免, 怎么评价这类问题, 分别搜当事人的传, 相关的对方或同僚的传, 并 read 当事人传末陈寿的评; 这类问题一般要 search 四次以上. 只搜一两次就下结论, 容易漏掉最直接的那条记载.
 """ + LANG_RULE
 
-# 小模型 (gemma) 用的 system prompt: 只依据原文, 不推断; 要求回答短 (只答问的那一点,
-# 多讲一件事就多一处出错), 并加了读原文要点 (庙号/谥号, 追尊, 年份取事件本身那一段, 祖父辈).
-SYSTEM_SMALL = """你是一位讲解三国历史的老师, 依据《三国志》(陈寿正文和裴松之注) 回答提问. 你手边有四个工具: search 检索原文, read 读某一块原文的前后文, era 把年号换算成公元年, who 查人 (一个名字或称号指谁, 有几个同名的人).
-
-做法:
-1. 回答任何三国历史问题之前, 必须先用 search 查资料, 至少换两种说法搜两次. 资料库按白话译文检索: 检索词用现代汉语, 人名写全名 (曹操, 刘备, 孙权), 加上事件关键词, 如 "曹操 去世 年龄" "荀彧 儿子 官职". 一次没找到就换说法再搜: 换成相关人物, 地名, 官职, 或人物的字; 译文里的说法常和问题不同 (洛阳 → 京城, 京都; 逃离 → 逃回, 东归, 改换姓名; 被杀 → 遇害, 被刺), 要换着词搜. 问题没给人名的 (如 "哪个皇帝被刺死了"), 先用问题里的事件词搜 ("皇帝 被刺 杀死"), 不要先猜一个人名去搜.
-2. 问题里的人只给了称号 (先主, 宣王, 魏王, 明帝), 或问 "有几个X" "X是谁" 时, 先用 who 查: 它告诉你这个称呼指谁, 有几个同名的人, 各自的传在哪一段 (id 可以直接 read), 以及这个人在书里的其他称呼 (译文里常用称呼而不是名字, 如 魏太祖, 先主, 拿称呼去 search 更容易命中). 同名的人要分别查.
-3. 原文常用简称和省略. 遇到 "帝" "公" "太祖" "先主" 等不确定指谁, 或 "七年" "明年" 这种没写年号的年份, 用 read 往前读, 直到弄清楚, 不要猜.
-4. 资料标题里写 "裴注" 的块 (id 带 n, 如 46-0016n0) 是给正文 46-0016 作的注. 搜到裴注, 却没看到它所注的那段正文时, 对这块裴注调用 read, 会附上它注的正文: 事情的主干 (谁, 哪一年, 结果) 常常在正文里, 不要只凭注文作答.
-5. 公元年只能来自 era 工具: 没有调用 era 就不写公元年; 白话译文里也没有公元年. 不要凭记忆写公元年, 也不要补资料里没有的背景 (身份, 情节, 出处).
-6. 只依据你查到的原文回答, 不用自己的记忆补充事实. 资料是你自己检索到的, 不是用户提供的. 至少换 3 种说法搜过, 并 read 过最相关的那一段, 都找不到, 才说《三国志》里没有找到相关记载; 这时不要再给出 "通常认为" "一般指" 之类资料以外的说法或名单.
-   - 只写资料里写了的: 不补地理, 世系, 别称, 治所之类的背景; 不自己推断因果和先后 ("所以", "此前" 要有原文依据); 原文里 "初" 开头的是追述以前的事.
-   - 转述 "谁做了什么" 要和原文的主语一致; 拿不准的地方直接引原文, 不要改写.
-   - 提到书名和作者, 照资料里写的 (如 "袁暐《献帝春秋》"), 不要换成别的书或别的作者.
-7. 引用时只引原文 (文言), 不要引白话译文; 一字不改放在「」里, 后面标资料编号, 如「太祖乃變易姓名，間行東歸」[3]. 不要在「」里用省略号跳过内容, 不要把卷名, 人名, 书名单独放进「」.
-8. 裴注要说明引自哪本书 (如 "裴注引《魏書》"); "臣松之以為" "臣松之案" 开头的是裴松之自己的按语, 说成 "裴松之按", 不要算到他引的书上. 几种说法不一致时并列说明, 不替读者裁决.
-9. 问题出自《三国演义》而正史不同的, 照常回答, 说明 "这是演义的说法, 正史记载为……". 问题里的人物, 称号或情节在资料里查不到, 或者和原文对不上时, 想一想它是不是出自《三国演义》或戏曲 (如 "桃园结义" "三英战吕布"): 是的话要明说 "这是《三国演义》的说法, 《三国志》里没有这件事 (或: 记载为……)", 不要只说 "资料里没找到". 问题里的说法 (预设) 和原文不完全一致的 (如问 "谁是总指挥", 原文是两人分任左右督), 照原文说明, 不要顺着问题的说法下结论.
-10. 只回答三国 (东汉末到西晋初) 的历史问题. 与此无关的请求 (闲聊, 写代码, 翻译, 其他朝代等), 不调用工具, 一句话说明你只讲三国历史.
-11. 每条资料都有《三国志》原文 (文言繁体) 和【白话译文】. 先看白话弄懂意思, 再对照原文核实; 两者有出入时以原文为准 (译文可能有错).
-12. 问 "有哪些/有几个" 的汇总题, 每个可能相关的人或传分别搜一次, 不要搜一次就作答. 找到主要的那段正文后, 对它 read 一次 (会附上它的全部裴注, 裴注里常有正文没写的人和事, 如正文只列四个儿子, 裴注里还有第五个). 问儿子, 子女时, 养子 (原文 "養子" "以為子") 也要列出并注明, 并另外搜一次 "某某 养子". 问 "关系如何" "经过如何" 的综合题, 按阶段分别搜 (早年交往, 合作, 交恶, 结局), 每个阶段都要有原文.
-13. 作答前自查: 问题要的每一项都在资料里找到原文了吗? 没找到的继续搜或 read; 确实找不到的明说没找到, 不要用记忆补.
-14. 无论查到多少, 最后一定要给出文字回答, 不能空着.
-15. 读原文的几个要点 (常见的读错):
-   - 庙号是 "某祖" "某宗" (太祖, 高祖, 世祖), 谥号是 "某帝" "某皇帝" (武帝, 文帝), 两者不同, 问哪个答哪个.
-   - 原文写 "追尊" "追諡" 的人是死后追封的, 不是在位的皇帝; 数 "有几个皇帝" 时只数真正即位的.
-   - 问 "哪一年" 时, 年份取事件本身所在的那一段 (往前找最近的年号), 不要用后面别的事件的年份.
-   - 分清 "某某的祖父, 父亲, 兄弟" 和某某本人: 祖父的儿子 (如 "八龍") 不是本人的儿子.
-16. 用户用英文提问时: 检索 (search, who) 仍然用中文, 把英文里的人名, 地名, 称号, 官职译回中文再搜 (Cao Cao → 曹操, Red Cliffs → 赤壁, Emperor Zhaolie → 昭烈皇帝, Grand Administrator → 太守); 拼法不标准的 (旧式威妥玛拼音, 如 Chang Ho, Ts'ao Ts'ao) 先想清楚对应哪个中文名. 回答用英文, 人名用汉语拼音, 官职用通行英译 (Chancellor, Grand Commandant, Inspector, Administrator, Colonel); 引文照样引原文 (文言) 并在后面附英文大意.
-中文提问用简体中文回答, 英文提问用英文回答; 要短: 先用一两句话给结论, 再给 1~3 处原文依据 (引文 + 编号). 只回答问题问的那一点, 不要展开讲其他相关的事件和人物 (多讲一件事就多一处出错的可能); 拿不准的细节宁可不写. 汇总题 (有哪些/有几个) 把每一项列出来, 每项一句."""
-SMALL_MODELS = ("gemma",)  # 模型名里含这些字样时, 默认用 SYSTEM_SMALL
-
 
 def system_for(model: str | None) -> str:
-    """按模型选默认 system prompt: 小模型 (SMALL_MODELS) 用 SYSTEM_SMALL, claude-* 模型用 SYSTEM_CLAUDE,
-    其他 (DeepSeek) 用 SYSTEM. SYSTEM 和 SYSTEM_CLAUDE 共用 SYSTEM_CORE, 只差最后一段."""
+    """按模型选默认 system prompt: claude-* 模型用 SYSTEM_CLAUDE, 其他 (DeepSeek) 用 SYSTEM.
+    两者共用 SYSTEM_CORE, 只差最后一段."""
     m = (model or config.LLM_MODEL or "").lower()
-    if any(s in m for s in SMALL_MODELS):
-        return SYSTEM_SMALL
     return SYSTEM_CLAUDE if m.split("/")[-1].startswith("claude-") else SYSTEM
 
 
@@ -332,7 +302,7 @@ def make_check(rounds: list[dict], seen: Seen, emit: Callable[[str, Any], None],
         n_search = sum(1 for x in rounds if x["tool"] == "search")
         n_look = n_search + sum(1 for x in rounds if x["tool"] == "read")  # 搜过之后又 read 过, 算在找, 不提示
         n_who = sum(1 for x in rounds if x["tool"] == "who")
-        # 只调了 who 没 search 也要提示: 小模型常常 who 之后直接作答
+        # 只调了 who 没 search 也要提示: 模型常常 who 之后直接作答
         need = MIN_SEARCHES_AGG if "agg_nudge" not in OFF and AGGREGATE.search(question) else MIN_SEARCHES
         if "nudge" not in done and "nudge" not in OFF and (n_search or n_who) and n_look < need:
             return add("nudge", nudge_text(n_look, seen.chunks))
@@ -368,6 +338,15 @@ def after_answer(reply: str, messages: list[dict], complete: Callable[..., Any],
     def log(kind: str, args: dict | None = None) -> None:
         rounds.append({"by": "code", "tool": kind, "args": args or {}, "chunks": [], "error": None})
 
+    def ask(draft: str, instruction: str) -> str:
+        """草稿和指令放进一条 developer 消息, 请求一次, 再把这条消息撤掉: 下一步只看到自己的指令和当时的草稿.
+        不把草稿作为 assistant 消息放回对话: Claude 原生接口不许 system 消息紧跟在 assistant 的文字回答后面."""
+        messages.append({"role": "developer", "content": DRAFT.format(reply=draft) + instruction})
+        try:
+            return complete(messages).content or ""
+        finally:
+            messages.pop()
+
     if bad_reply(reply, state["finish"]) and state["calls"] < MAX_ROUNDS + 3:
         # 截断 ("**是董") / 只有工具调用标记 / 空回答: 去掉坏回答, 要求重新作答一次 (不传 tools)
         emit("stage", "retry")
@@ -380,10 +359,8 @@ def after_answer(reply: str, messages: list[dict], complete: Callable[..., Any],
         emit("draft", reply)  # 先把初稿给界面看, 自查结果出来后再换
         state["draft"] = reply
         emit("stage", "review")
-        messages.append({"role": "assistant", "content": reply})
         text = {"short": REVIEW_TEXT_SHORT, "layered": REVIEW_TEXT_LAYERED, "patch": REVIEW_TEXT_PATCH}.get(REVIEW_MODE, REVIEW_TEXT)
-        messages.append({"role": "user", "content": text + ("" if "lang_note" in OFF else " " + LANG_NOTE)})
-        checked = complete(messages).content or ""
+        checked = ask(reply, text + ("" if "lang_note" in OFF else " " + LANG_NOTE))
         state["review_raw"] = checked
         ok = REVIEW_MODE in ("short", "patch") and bool(_REVIEW_OK_RE.match(checked.strip()))
         if REVIEW_MODE == "patch":
@@ -397,9 +374,7 @@ def after_answer(reply: str, messages: list[dict], complete: Callable[..., Any],
                 reply = strip_markup(checked)
     if reply and question and "lang_fix" not in OFF and not _CJK.search(question) and mostly_chinese(reply):
         emit("stage", "lang_fix")
-        messages.append({"role": "assistant", "content": reply})
-        messages.append({"role": "user", "content": LANG_FIX})
-        rewritten = strip_markup(complete(messages).content or "")
+        rewritten = strip_markup(ask(reply, LANG_FIX))
         ok = usable(rewritten, "") and not mostly_chinese(rewritten)
         log("lang_fix", {"ok": ok})
         if ok:
@@ -409,9 +384,7 @@ def after_answer(reply: str, messages: list[dict], complete: Callable[..., Any],
     if bad_q and review and "quote_fix" not in OFF:
         # 引文核对不过的 (记错字, 用省略号跳过, 引了白话) 回给模型改一次
         emit("stage", "quote_fix")
-        messages.append({"role": "assistant", "content": reply})
-        messages.append({"role": "user", "content": QUOTE_FIX.format(quotes="\n".join(f"「{q}」" for q in bad_q))})
-        fixed = complete(messages).content or ""
+        fixed = ask(reply, QUOTE_FIX.format(quotes="\n".join(f"「{q}」" for q in bad_q)))
         log("quote_fix", {"bad": bad_q})
         if usable(fixed, reply):
             reply = strip_markup(fixed)
@@ -468,7 +441,7 @@ def run_agent(question: str, lib: Library, model: str | None = None, complete: C
          "prompt_tokens": [2630, 10882, 14246, 13752],    每次请求的 prompt token 数; 接口没给时为 None
          "messages": [...]}                               完整对话
 
-    请求报 "no user query found in messages" 时补一条用户消息重申问题再试一次; 其他异常直接抛出."""
+    请求出错时直接抛出."""
     tools = tools or TOOLS
     base = complete or llm.complete
     extra = {"reasoning_effort": effort} if effort else {}
@@ -504,14 +477,7 @@ def run_agent(question: str, lib: Library, model: str | None = None, complete: C
         kw: dict[str, Any] = {"tools": tools} if tools else {}
         if effort_:
             kw["reasoning_effort"] = effort_
-        try:
-            resp = base(msgs, model=model, **{**extra, **kw})
-        except Exception as e:
-            # 有的对话模板 (qwen3.8) 偶尔报 "no user query found in messages", 原因不明: 补一条用户消息重申问题, 再试一次
-            if "no user query" not in str(e):
-                raise
-            msgs.append({"role": "user", "content": f"请根据以上检索结果回答原问题: {question}"})
-            resp = base(msgs, model=model, **{**extra, **kw})
+        resp = base(msgs, model=model, **{**extra, **kw})
         state["calls"] += 1
         state["finish"] = getattr(resp.choices[0], "finish_reason", None)
         usage.append(getattr(getattr(resp, "usage", None), "prompt_tokens", None))
@@ -538,8 +504,7 @@ def run_agent(question: str, lib: Library, model: str | None = None, complete: C
     # 最后一次 (第 MAX_ROUNDS + 1 次请求) 的回答不再检查; 每种提示最多一次 (make_check 自己记).
     check = make_check(rounds, seen, emit, question)
     while state["calls"] <= MAX_ROUNDS and (hint := check(reply)):
-        messages.append({"role": "assistant", "content": reply})
-        messages.append({"role": "user", "content": hint})
+        messages.append({"role": "developer", "content": DRAFT.format(reply=reply) + hint})  # 草稿不作为 assistant 消息放回 (见 after_answer 的 ask)
         reply = agent_loop(messages, tools, call, call_tool, max_rounds=MAX_ROUNDS - state["calls"])
     after = (lambda m, tools=None: call(m, tools, REVIEW_EFFORT)) if REVIEW_EFFORT else call
     reply, quotes = after_answer(reply, messages, after, state, seen, rounds, emit, REVIEW if review is None else review,

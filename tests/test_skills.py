@@ -8,7 +8,7 @@ import tempfile
 from pathlib import Path
 from types import SimpleNamespace
 
-from rag import guess, skills, soup
+from rag import guess, loop, skills, soup
 from tests.test_agent import LIB
 
 skills.TRACE_DIR = Path(tempfile.mkdtemp())  # 测试的逐步记录写到临时目录, 不进 data/
@@ -81,6 +81,7 @@ def test_guess_bad_verdict_and_limit():
     g = guess.GuessGame(PERSON, LIB, c, known_names={"曹操", "孙权", "袁绍"})
     assert g.ask("他打过仗吗").startswith("没有记载  (第 1 问)")
     assert g.ask("猜 曹操").endswith("还能猜 2 次)") and g.ask("猜 孙权").endswith("还能猜 1 次)")
+    assert "曹操" in g.note and "孙权" in g.note, "连续猜错两次, 下一问时两个名字都告诉裁判"
     out = g.ask("猜 袁绍")
     assert "3 次机会用完了" in out and "刘备" in out and g.over and c.calls == 1
 
@@ -137,7 +138,7 @@ def agent_says(*replies: str):
 
 
 def test_agent_guess_flow():
-    """Agent 来猜: 开局给第一问; 太长的回答交给问答 agent (None); 猜错接着问; 猜对结束. 历史里没有 developer 提醒."""
+    """Agent 来猜: 开局给第一问; 太长的回答交给问答 agent (None); 猜错接着问; 猜对结束. 历史里没有循环的提醒 (FINAL_TURN 等)."""
     c = agent_says('{"ask": "这个人是男性吗？"}', '{"guess": "曹操", "desc": "魏武帝"}', '{"guess": "刘备", "desc": "先主"}')
     g = guess.AgentGuessGame(LIB, c)
     assert g.intro().endswith("第 1 问: 这个人是男性吗？")
@@ -146,7 +147,7 @@ def test_agent_guess_flow():
     assert g.ask("嗯哼").startswith("请回答 对 / 错")
     assert g.ask("错").startswith("第 3 次: 我猜是 刘备")
     assert g.ask("对").startswith("太好了") and g.over
-    assert all(m["role"] != "developer" for m in c.last)
+    assert all(m.get("content") not in (loop.FINAL_TURN, loop.LAST_TOOL_ROUND) for m in c.last)
 
 
 def test_agent_guess_runs_out():
@@ -155,7 +156,8 @@ def test_agent_guess_runs_out():
     g = guess.AgentGuessGame(LIB, c)
     g.intro()
     assert g.ask("错").startswith("第 2 次: 我猜是 孙权")
-    assert any(m["role"] == "user" and "还能猜 2 次" in m["content"] for m in g.msgs)
+    assert any(m["role"] == "developer" and "还能猜 2 次" in m["content"] for m in g.msgs), "还能猜几次是代码的话, 用 developer"
+    assert any(m["role"] == "user" and m["content"] == "错" for m in g.msgs), "玩家的原话照样是 user"
     assert g.ask("不对").startswith("第 3 次: 我猜是 袁绍")
     assert "3 次都没猜中" in g.ask("错") and g.over
     g1 = guess.AgentGuessGame(LIB, agent_says('{"ask": "q1"}', '{"ask": "q2"}'), safety_max=1)
