@@ -84,10 +84,10 @@ def test_setup_checks_backend_model_and_key():
         assert "只能用 claude-* 模型" in exits(R.setup, "deepseek-v4.1-flash")
     with backend("anthropic", anthropic_key=None):
         assert "ANTHROPIC_API_KEY" in exits(R.setup, "claude-haiku-5-5")
-    with backend("ollama"):
-        assert "openai 或 anthropic" in exits(R.setup, "qwen3.5:9b")
+    with backend("local"):
+        assert "openai 或 anthropic" in exits(R.setup, "my-model")
     with backend("openai"):
-        assert "deepseek/deepseek-v4.1-flash" in exits(R.setup, "qwen3.5:4b"), "本地模型名 (没有 提供方/) 退出并提示"
+        assert "deepseek/deepseek-v4.1-flash" in exits(R.setup, "my-model"), "没有 提供方/ 的模型名退出并提示"
 
 
 def test_setup_model_name_forms():

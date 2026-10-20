@@ -29,7 +29,7 @@ from collections import Counter
 from collections.abc import Mapping
 from typing import Any, Callable, TypedDict
 
-from rag import agent
+from rag import agent, loop
 from rag.library import Library, Seen
 from rag.loop import agent_loop
 from rag.normalize import to_simplified
@@ -129,8 +129,8 @@ def tool_runner(lib: Library, seen: Seen, log: list[dict]) -> Callable[[str, str
 
 def play(msgs: list[dict], lib: Library, seen: Seen, log: list[dict], complete: Callable[..., Any], rounds: int,
          on_event: OnEvent | None = None, show: bool = True, budget: float = TURN_BUDGET) -> str:
-    """跑一轮 agent_loop, 再删掉它追加的 developer 提醒 ("工具调用次数已经用完" 等).
-    同一段对话要接着用时, 这些提醒留在历史里会让模型以为再也不能查原文.
+    """跑一轮 agent_loop, 再删掉它追加的两条循环提醒 (rag/loop 的 FINAL_TURN, LAST_TOOL_ROUND).
+    同一段对话要接着用时, 这些提醒留在历史里会让模型以为再也不能查原文. 游戏自己的 developer 消息 (猜错了, 还能猜几次) 留着.
 
     on_event 不为 None 时, 每次模型回复后发 ("think", 推理文字) (OpenRouter 在 message.reasoning 里返回, 没有就不发),
     每次工具调用后发 ("tool", {"tool", "args", "chunks", "error"}) (格式同 rag/agent.run_agent 的事件, app/chat.describe 能显示).
@@ -156,7 +156,7 @@ def play(msgs: list[dict], lib: Library, seen: Seen, log: list[dict], complete: 
         return text
 
     reply = agent_loop(msgs, agent.TOOLS, call, run_tool, max_rounds=rounds)
-    msgs[:] = [m for m in msgs if m.get("role") != "developer"]
+    msgs[:] = [m for m in msgs if not (m.get("role") == "developer" and m.get("content") in (loop.FINAL_TURN, loop.LAST_TOOL_ROUND))]
     return reply
 
 
@@ -178,7 +178,8 @@ def judge_messages(lib: Library, person: Person, seen: Seen) -> list[dict]:
 
 
 def judge_question(lib: Library, person: Person, question: str, complete: Callable[..., Any],
-                   on_event: OnEvent | None = None, msgs: list[dict] | None = None, seen: Seen | None = None) -> dict:
+                   on_event: OnEvent | None = None, msgs: list[dict] | None = None, seen: Seen | None = None,
+                   note: str | None = None) -> dict:
     """裁判玩家的一个问题. 返回 {"verdict": VERDICTS 之一 (类别), "answer": 给玩家看的一句话, "by": "model",
     "tools": [工具调用记录], "raw": 模型回答末尾}.
 
@@ -186,7 +187,9 @@ def judge_question(lib: Library, person: Person, question: str, complete: Callab
     都交给模型按意思回答, 代码不预先拦; 唯一的代码检查是 leaks: 回答里出现谜底的名字或称呼就换成 LEAK_REPLY.
     msgs 是这一局的裁判对话 (judge_messages 开头, 之前的问答和工具调用都在里面), 这一问和回答原地追加, 超时时恢复原样;
     不传时单独开一段 (seen 同时新建). msgs 和 seen 要成对传 (GuessGame 的 self.msgs / self.seen): 只传 msgs 时工具查到的段落会从 [1] 重新编号, 和 system prompt 里已编好的号撞上. 谜底的出处原文预先放在 system prompt 里, 大多数问题不用再调工具, 资料以外的事才查. 模型给出的判词类别不在 VERDICTS 里 (或解析不了) 时记为
-    "没有记载"; answer 为空时用判词本身. on_event 只收到 ("stage", "查原文") (裁判的推理和检索词会泄底, 不发). 超过 TURN_BUDGET 时抛 TimeoutError."""
+    "没有记载"; answer 为空时用判词本身. on_event 只收到 ("stage", "查原文") (裁判的推理和检索词会泄底, 不发). 超过 TURN_BUDGET 时抛 TimeoutError.
+    note: 代码要告诉裁判的话 (如 "玩家上一次猜错了"), 作为 developer 消息放在这一问后面: 代码的话不冒充玩家,
+    也不能紧跟在裁判的回答后面 (Claude 原生接口不许 system 消息跟在 assistant 的文字后面)."""
     if msgs is None:
         seen = Seen(lib.notes)
         msgs = judge_messages(lib, person, seen)
@@ -194,6 +197,8 @@ def judge_question(lib: Library, person: Person, question: str, complete: Callab
     log: list[dict] = []
     snapshot = list(msgs)
     msgs.append({"role": "user", "content": question})
+    if note:
+        msgs.append({"role": "developer", "content": note})
     try:
         reply = play(msgs, lib, seen, log, complete, JUDGE_ROUNDS, on_event, show=False)
     except BaseException:  # 超时, 用户停止 (rag/skills.Cancelled): 这一问作废, 对话回到问之前
@@ -238,6 +243,7 @@ class GuessGame:
         self.over = False
         self.seen = Seen(lib.notes)
         self.msgs = judge_messages(lib, person, self.seen)  # 整局的裁判对话, 每问接着往下问
+        self.note: str | None = None  # 下一问时告诉裁判的话 (玩家猜错了名字), 见 judge_question 的 note
 
     def intro(self, on_event: OnEvent | None = None) -> str:
         """开局说明."""
@@ -264,11 +270,11 @@ class GuessGame:
             if self.guesses >= self.max:
                 self.over = True
                 return f"不是 {name}. {self.max} 次机会用完了. " + self.reveal_text()
-            self.msgs.append({"role": "user", "content": f"(玩家猜是 {name}, 程序判定猜错了. 这一条不用回答.)"})
-            self.msgs.append({"role": "assistant", "content": "好的."})
+            self.note = (self.note + "\n" if self.note else "") + f"玩家猜是 {name}, 程序判定猜错了."  # 连续猜错几次再提问时都告诉裁判
             return f"不是 {name}. (还能猜 {self.max - self.guesses} 次)"
         try:
-            r = judge_question(self.lib, self.p, text, self.complete, on_event, self.msgs, self.seen)
+            r = judge_question(self.lib, self.p, text, self.complete, on_event, self.msgs, self.seen, self.note)
+            self.note = None
         except TimeoutError:
             return "这一问查原文太久了, 没判出来 (不计数). 请再问一次."
         if r["verdict"] == NOT_GAME:
@@ -448,8 +454,12 @@ class AgentGuessGame:
         log: list[dict] = []
         reply = play(self.msgs, self.lib, self.seen, log, self.complete, AGENT_ROUNDS, on_event)
         if not field(reply, "guess") and not field(reply, "ask"):
-            self.msgs += [{"role": "assistant", "content": reply}, {"role": "user", "content": _REMIND}]
-            reply = play(self.msgs, self.lib, self.seen, log, self.complete, 1, on_event)
+            # 草稿和提醒放进 developer 消息 (不作为 assistant 消息放回: Claude 原生接口不许 system 跟在 assistant 文字后面), 用完撤掉
+            self.msgs.append({"role": "developer", "content": f"你刚才的回答是:\n<<<\n{reply}\n>>>\n{_REMIND}"})
+            try:
+                reply = play(self.msgs, self.lib, self.seen, log, self.complete, 1, on_event)
+            finally:
+                self.msgs.pop()
         self.msgs.append({"role": "assistant", "content": reply})
         name = field(reply, "guess")
         turn: dict[str, Any] = ({"n": n, "guess": name, "desc": field(reply, "desc") or ""} if name
@@ -483,7 +493,8 @@ class AgentGuessGame:
             if self.guesses >= self.max:
                 self.over = True
                 return f"{self.max} 次都没猜中, 我认输. 你想的是谁?"
-            self.msgs.append({"role": "user", "content": f"不是 {last['guess']}. (你还能猜 {self.max - self.guesses} 次.)"})
+            self.msgs.append({"role": "user", "content": text})
+            self.msgs.append({"role": "developer", "content": f"对方说你猜的 {last['guess']} 不对. 你还能猜 {self.max - self.guesses} 次."})
         else:
             if kind is None and (not text or len(text) > FREE_MAX):
                 return None  # 太长的多半不是在回答这个问题 (问玩法, 想结束……), 交给问答 agent

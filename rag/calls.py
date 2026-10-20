@@ -5,7 +5,7 @@
     openai     (默认) DeepSeek V4.1 Flash 经 OpenRouter (OpenAI 兼容接口, key 是 LLM_API_KEY).
                每次请求加 extra_body: 让 OpenRouter 在 usage 里返回花费, 并只用 PROVIDERS 里给这个模型指定的服务商.
     anthropic  Claude 原生接口 (rag/claude_llm.py, key 是 ANTHROPIC_API_KEY), 花费由它按价目表算.
-暂时只支持这两种: 本地模型 (把接口地址改到本机 Ollama 等) 暂不支持. 要恢复, 把 rag/config.LLM_BASE_URL 改回从 .env 读,
+暂时只支持这两种: 本地模型暂不支持. 要恢复, 把 rag/config.LLM_BASE_URL 改回从 .env 读,
 再让 setup 接受第三种后端 (请求不加 OpenRouter 的 extra_body).
 
 入口脚本的用法:
@@ -50,7 +50,7 @@ def setup(model: str | None) -> str:
       模型不在 rag/claude_llm.PRICES 里时提醒: 花费会记成 0, 网页的每日上限不起作用.
     - openai 后端 (OpenRouter): 没有 "提供方/" 的 claude-* 退出 (要么设 LLM_BACKEND=anthropic, 要么写 OpenRouter 的全名
       anthropic/claude-...); 要有 LLM_API_KEY (或 OPENROUTER_API_KEY); 短名补成全名 (full_name), 补完仍没有 "提供方/"
-      (如本地的 qwen3.5:4b) 时退出. key 在这里查, 免得第一次请求才报 401.
+      (如 my-model) 时退出. key 在这里查, 免得第一次请求才报 401.
     - .env 里还有原来连本地模型的 LLM_BASE_URL 时打印一句提醒 (已经不起作用)."""
     if os.environ.get("LLM_BASE_URL", "").rstrip("/") not in ("", config.LLM_BASE_URL):
         print(f"提醒: .env 里的 LLM_BASE_URL={os.environ['LLM_BASE_URL']} 不再起作用 (暂时不支持本地模型), 可以删掉", file=sys.stderr)

@@ -1,11 +1,9 @@
-"""附录: 早期的 function calling 实验, 看本机 Ollama 上的模型能不能稳定地用 OpenAI tools 接口 (只有一个 search 工具).
+"""附录: 早期的 function calling 实验, 看模型能不能稳定地用 OpenAI tools 接口 (只有一个 search 工具).
 
-不代表当前配置: 现在的 agent (rag/agent.py) 固定用 DeepSeek V4.1 Flash (经 OpenRouter), 有四个工具. 保留这个脚本是为了
-记录 "轮数上限靠最后一次不传 tools" 这个决定的依据.
-现在暂时不支持本地模型: 接口地址固定为 OpenRouter (rag/config.LLM_BASE_URL), 所以实测部分跑不了 (要恢复见 rag/calls.py 开头);
-假模型测试 (tests.test_tool_loop) 和 --summary 照常能跑.
+不代表当前配置: 现在的 agent (rag/agent.py) 用 DeepSeek V4.1 Flash 或 Claude Haiku, 有四个工具. 保留这个脚本是为了
+记录 "轮数上限靠最后一次不传 tools" 这个决定的依据. 接口走 rag/llm (OpenAI 兼容接口, 经 OpenRouter).
 
-    uv run python -m eval.tool_calling                      # 跑 MODELS 里的模型, 约 30~40 分钟 (要本机 Ollama, 暂时跑不了, 见上)
+    uv run python -m eval.tool_calling --models deepseek/deepseek-v4.1-flash   # 跑给定的模型 (没有实跑过, 只有假模型测试)
     uv run python -m eval.tool_calling --summary <结果文件>   # 只打印汇总
     uv run python -m tests.test_tool_loop                   # 假模型测试 check_call / loop_one
 
@@ -14,17 +12,13 @@
     B. tool_choice="required": 前 REQUIRED_N 题各一次, 看强制调用时格式还对不对.
     C. 多轮循环 (loop_one): 最多 MAX_ROUNDS 轮, 比较模型自己搜到的块和直接用原问题检索前 5 / 前 8 的 gold 召回.
 
-当时的实测结论 (四个 4b~12b 的 qwen3.5 / gemma4 模型, temperature 0.7, 不开思考; 名单和现在的 MODELS 不同; 结果文件没有随仓库发布):
-    - 机制可靠: 单轮 49 题 x 3 次, 四个模型都 147/147 调用且格式全对, 没有泄漏成文字.
-    - 搜满上限后传 tool_choice="none", 仍有约 3% 返回 tool_calls, 所以上限靠最后一次不传 tools.
-    - 用这里的最简 prompt, 模型多半只搜一次, 召回不如直接拿原问题检索.
+早期实测的结论: 搜满上限后传 tool_choice="none", 仍有约 3% 返回 tool_calls, 所以轮数上限靠最后一次不传 tools.
 """
 import argparse
 import json
 import re
 import sys
 import time
-import urllib.request
 from typing import Any, Literal, NotRequired, TypedDict, cast
 
 from openai.types.chat import ChatCompletionMessage, ChatCompletionMessageToolCall
@@ -33,13 +27,12 @@ from rag import config, context, llm, retrieve
 from rag.schema import ChunkDict, Question, Search
 
 
-MODELS = ["qwen3.5:9b-16k", "gemma4:12b-16k", "gemma4:26b-16k", "qwen3.8:27b-16k"]  # Ollama 上的模型名
 REPS = 3
 TEMPERATURE = 0.7
 REQUIRED_N = 10
 MAX_ROUNDS = 3
 TOOL_K = 5
-OUT = config.DATA_DIR / "processed" / "eval_runs" / "tools-ollama-4090.json"  # 文件名里的 4090 是当时跑实验的机器
+OUT = config.DATA_DIR / "processed" / "eval_runs" / "tools.json"
 
 # 只有一个 search 工具 (OpenAI tools 格式); 模型调用时返回 name "search", arguments '{"query": "吕蒙"}'.
 SYSTEM = ("你是三国史问答助手。回答前先用 search 工具在《三国志(裴松之注)》原文里检索, "
@@ -144,16 +137,6 @@ def call(model: str, messages: list[dict[str, Any]], tools: list[dict[str, Any]]
     return resp.choices[0].message, resp.choices[0].finish_reason, time.time() - t
 
 
-def unload(model: str) -> None:
-    """让 Ollama 卸载这个模型 (keep_alive 0), 腾出显存给下一个模型; 本机没有 Ollama 时连接出错, 忽略."""
-    req = urllib.request.Request("http://localhost:11434/api/generate",
-                                 data=json.dumps({"model": model, "keep_alive": 0}).encode())
-    try:
-        urllib.request.urlopen(req).read()
-    except OSError:
-        pass
-
-
 def gold_hit(chunk_ids: list[str], gold: list[str], by_id: dict[str, ChunkDict]) -> bool:
     """这些块的 sources (所属段落 id) 里有没有任一个 gold 段落."""
     return any(s in gold for cid in chunk_ids for s in by_id[cid]["sources"])
@@ -207,7 +190,7 @@ def loop_row(model: str, q: Question, end: str, rounds: list[dict[str, Any]], an
              search: Search, by_id: dict[str, ChunkDict]) -> dict[str, Any]:
     """loop_one 的一行结果 (结果文件的 "loop"): 循环的结局加上统计字段.
 
-        {"model": "qwen3.5:9b", "qid": "r-10", "q": "白衣渡江是谁的事迹？", "gold": ["54-0032", "36-0004n0"],
+        {"model": "deepseek-v4.1-flash", "qid": "r-10", "q": "白衣渡江是谁的事迹？", "gold": ["54-0032", "36-0004n0"],
          "end": "answer",                    answer / no_call / malformed / cap / leaked / empty
          "rounds": [{"queries": ["吕蒙"], "chunks": [...]}, ...],
          "n_search": 1, "repeat_query": False, "first_is_question": False,
@@ -329,13 +312,14 @@ def summarize(data: dict) -> None:
 def main() -> None:
     ap = argparse.ArgumentParser(description="function calling 实测")
     ap.add_argument("--summary", help="只打印已有结果文件的汇总")
-    ap.add_argument("--models", nargs="*", default=MODELS)
+    ap.add_argument("--models", nargs="*", default=[], help="模型名 (OpenRouter 全名), 实测时必填")
     ap.add_argument("--limit", type=int, help="只跑前 N 题 (冒烟用), 结果写到 tools-smoke.json")
     args = ap.parse_args()
     if args.summary:
         summarize(json.loads(open(args.summary, encoding="utf-8").read()))
         return
-    raise SystemExit("实测要本机 Ollama, 暂时不支持本地模型 (接口地址固定为 OpenRouter; 要恢复见 rag/calls.py 开头); 只能 --summary")
+    if not args.models:
+        raise SystemExit("实测要用 --models 给出模型名")
     with open(config.ROOT / "eval" / "retrieval.jsonl", encoding="utf-8") as f:
         questions = [json.loads(line) for line in f if line.strip()]
     out = OUT
@@ -357,7 +341,6 @@ def main() -> None:
         print(f"  单轮完成 {len(data['single'])}", flush=True)
         data["required"] += run_required(m, questions)
         data["loop"] += run_loop(m, questions, search, by_id)
-        unload(m)
         out.write_text(json.dumps(data, ensure_ascii=False, indent=1), encoding="utf-8")  # 每个模型跑完存一次
     print("->", out)
     summarize(data)
